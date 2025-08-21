@@ -1,0 +1,47 @@
+name: CI (Java)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/user-service/**"
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+      - develop
+      - release/**
+    paths:
+      - "apps/user-service/**"
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+  checks: write
+  pull-requests: write
+
+jobs:
+  spotless-check:
+    name: Lint Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x ./gradlew
+        working-directory: apps/user-service
+
+      - name: Run Spotless Check
+        run: ./gradlew spotlessCheck
+        working-directory: apps/user-service
