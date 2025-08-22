@@ -34,3 +34,6 @@ spring:
         jdbc:
           lob:
             non_contextual_creation: true
+
+logging:
+  config: classpath:log4j2-develop.yml
