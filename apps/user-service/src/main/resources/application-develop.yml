@@ -10,7 +10,15 @@ spring:
     username: postgres
     password: password123
     driver-class-name: org.postgresql.Driver
-  
+
+  hikari:
+    connection-timeout: 30000
+    idle-timeout: 600000
+    max-lifetime: 1800000
+    maximum-pool-size: 10
+    minimum-idle: 5
+    pool-name: HikariCP-MyBatis
+
   # JPA/Hibernate 설정
   jpa:
     hibernate:
