@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.gltkorea'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1-alpha-SNAPSHOT'
 description = 'GLT korea - fast campus team4 ice bang'
 
 java {
