@@ -51,8 +51,8 @@ dependencies {
 	implementation 'com.lmax:disruptor:3.4.4'
 
 	// Lombok
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
 	// Database
 	runtimeOnly 'com.h2database:h2'
