@@ -13,5 +13,4 @@ ERROR_MESSAGES = {
 
 def get_error_message(status_code: int, detail: str | None = None) -> str:
     """상태 코드에 맞는 기본 메시지를 가져오되, detail이 있으면 우선"""
-    from app.errors.messages import ERROR_MESSAGES
     return detail or ERROR_MESSAGES.get(status_code, "알 수 없는 오류가 발생했습니다.")

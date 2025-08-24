@@ -1,25 +1,18 @@
+# app/api/router.py
 from fastapi import APIRouter
-from app.decorators.logging import log_api_call
+from .endpoints import embedding, processing,test
 
-router = APIRouter()
+api_router = APIRouter()
 
-@router.get("/")
+# embedding API URL
+api_router.include_router(embedding.router, prefix="/emb", tags=["Embedding"])
+
+# processing API URL
+api_router.include_router(processing.router, prefix="/prc", tags=["Processing"])
+
+#모듈 테스터를 위한 endpoint
+api_router.include_router(test.router, prefix="/test", tags=["Test"])
+
+@api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
-
-
-@router.get("/hello/{name}" , tags=["hello"])
-# @log_api_call
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
-
-# 이 엔드포인트는 테스트를 위해 예외를 발생시킵니다.
-@router.get("/test-error")
-def test_error():
-    raise ValueError("이것은 테스트용 값 오류입니다.")
-
-# 특정 경로에서 의도적으로 에러 발생
-@router.get("/error")
-async def trigger_error():
-    result = 1 / 0  # ZeroDivisionError 발생
-    return {"result": result}
+    return {"message": "서버 실행중입니다."}
