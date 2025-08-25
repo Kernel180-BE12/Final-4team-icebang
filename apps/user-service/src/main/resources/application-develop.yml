@@ -8,7 +8,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/pre_process
     username: postgres
-    password: password123
+    password: qwer1234
     driver-class-name: org.postgresql.Driver
 
   hikari:
@@ -19,21 +19,27 @@ spring:
     minimum-idle: 5
     pool-name: HikariCP-MyBatis
 
-  # JPA/Hibernate 설정
-  jpa:
-    hibernate:
-      ddl-auto: update  # create, create-drop, update, validate, none
-    show-sql: true
-    format-sql: true
-    database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    properties:
-      hibernate:
-        format_sql: true
-        use_sql_comments: true
-        jdbc:
-          lob:
-            non_contextual_creation: true
+#  # JPA/Hibernate 설정
+#  jpa:
+#    hibernate:
+#      ddl-auto: update  # create, create-drop, update, validate, none
+#    show-sql: true
+#    format-sql: true
+#    database: postgresql
+#    database-platform: org.hibernate.dialect.PostgreSQLDialect
+#    properties:
+#      hibernate:
+#        format_sql: true
+#        use_sql_comments: true
+#        jdbc:
+#          lob:
+#            non_contextual_creation: true
+
+mybatis:
+  mapper-locations: classpath:mybatis/mapper/**/*.xml
+  type-aliases-package: com.gltkorea.icebang.dto
+  configuration:
+    map-underscore-to-camel-case: true
 
 logging:
   config: classpath:log4j2-develop.yml
