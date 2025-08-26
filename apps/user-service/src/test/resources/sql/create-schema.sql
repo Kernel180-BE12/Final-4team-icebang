@@ -1,0 +1,104 @@
+-- 테이블 DROP (재생성을 위해 기존 테이블을 삭제)
+DROP TABLE IF EXISTS "ROLE_PERMISSION";
+DROP TABLE IF EXISTS "USER_ROLE";
+DROP TABLE IF EXISTS "PERMISSION";
+DROP TABLE IF EXISTS "ROLE";
+DROP TABLE IF EXISTS "USER_GROUP";
+DROP TABLE IF EXISTS "GROUP_INFO";
+DROP TABLE IF EXISTS "USER";
+
+
+-- 사용자 정보
+CREATE TABLE "USER" (
+                        "user_id" VARCHAR(36) NOT NULL,
+                        "name" VARCHAR(100) NULL,
+                        "email" VARCHAR(255) NULL UNIQUE,
+                        "password" VARCHAR(255) NULL,
+                        "phone_number" VARCHAR(50) NULL,
+                        "fax_number" VARCHAR(50) NULL,
+                        "zip_code" VARCHAR(20) NULL,
+                        "main_address" VARCHAR(255) NULL,
+                        "detail_address" VARCHAR(255) NULL,
+                        "recommender_id" VARCHAR(36) NULL,
+                        "resident_number" VARCHAR(100) NULL,
+                        "corporate_number" VARCHAR(100) NULL,
+                        "business_number" VARCHAR(100) NULL,
+                        "type" VARCHAR(50) NULL,
+                        "department" VARCHAR(100) NULL,
+                        "job_title" VARCHAR(50) NULL,
+                        "grade" VARCHAR(50) NULL,
+                        "status" VARCHAR(50) NULL,
+                        "joined_at" TIMESTAMP NULL,
+                        "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY ("user_id")
+);
+
+-- 사용자 그룹 정보
+CREATE TABLE "GROUP_INFO" (
+                              "group_id" VARCHAR(36) NOT NULL,
+                              "name" VARCHAR(255) NULL,
+                              "description" TEXT NULL,
+                              "status" VARCHAR(50) NULL,
+                              "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                              "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                              PRIMARY KEY ("group_id")
+);
+
+-- 사용자-그룹 관계
+CREATE TABLE "USER_GROUP" (
+                              "user_id" VARCHAR(36) NOT NULL,
+                              "group_id" VARCHAR(36) NOT NULL,
+                              "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                              "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                              PRIMARY KEY ("user_id", "group_id"),
+                              FOREIGN KEY ("user_id") REFERENCES "USER" ("user_id"),
+                              FOREIGN KEY ("group_id") REFERENCES "GROUP_INFO" ("group_id")
+);
+
+-- 역할 정보
+CREATE TABLE "ROLE" (
+                        "role_id" VARCHAR(36) NOT NULL,
+                        "name" VARCHAR(50) NULL,
+                        "code" VARCHAR(50) NULL UNIQUE,
+                        "description" VARCHAR(255) NULL,
+                        "status" VARCHAR(50) NULL,
+                        "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY ("role_id")
+);
+
+-- 권한 정보
+CREATE TABLE "PERMISSION" (
+                              "permission_id" VARCHAR(36) NOT NULL,
+                              "name" VARCHAR(50) NULL,
+                              "code" VARCHAR(50) NULL UNIQUE,
+                              "resource" VARCHAR(50) NULL,
+                              "action" VARCHAR(50) NULL,
+                              "description" VARCHAR(255) NULL,
+                              "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                              "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                              PRIMARY KEY ("permission_id")
+);
+
+-- 사용자-역할 관계
+CREATE TABLE "USER_ROLE" (
+                             "user_id" VARCHAR(36) NOT NULL,
+                             "role_id" VARCHAR(36) NOT NULL,
+                             "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                             "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                             PRIMARY KEY ("user_id", "role_id"),
+                             FOREIGN KEY ("user_id") REFERENCES "USER" ("user_id"),
+                             FOREIGN KEY ("role_id") REFERENCES "ROLE" ("role_id")
+);
+
+-- 역할-권한 관계
+CREATE TABLE "ROLE_PERMISSION" (
+                                   "role_id" VARCHAR(36) NOT NULL,
+                                   "permission_id" VARCHAR(36) NOT NULL,
+                                   "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                   "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                   PRIMARY KEY ("role_id", "permission_id"),
+                                   FOREIGN KEY ("role_id") REFERENCES "ROLE" ("role_id"),
+                                   FOREIGN KEY ("permission_id") REFERENCES "PERMISSION" ("permission_id")
+);
