@@ -10,7 +10,7 @@ trace_id_context: ContextVar[Optional[str]] = ContextVar('trace_id', default=Non
 
 
 class DatabaseLogger:
-    """통합 데이터베이스 로깅을 관리하는 클래스 (벡터DB + RDB)"""
+    """통합 데이터베이스 로깅을 관리하는 클래스 애노테이션으로 적용 가능"""
 
     def set_trace_id(self, trace_id: str):
         """스프링에서 받은 추적 ID 설정"""
@@ -60,21 +60,20 @@ class DatabaseLogger:
         else:
             return ""
 
-    def _log_db_operation(self, db_type: str, operation: str, track_params: List[str] = None):
+    def _log_database(self, db_type: str = "DATABASE", track_params: List[str] = None):
         """
-        데이터베이스 작업 로깅 데코레이터의 핵심 로직
+        데이터베이스 레이어 로깅 데코레이터
 
         Args:
-            db_type: 데이터베이스 타입 (VECTOR_DB, RDB)
-            operation: 작업 타입
-            track_params: 추적할 파라미터 이름들
+            db_type: 데이터베이스 타입
+            track_params: 추적할 파라미터 이름들 (함수 실행시 자동으로 값 추출)
         """
 
         def decorator(func):
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 trace_id = self.get_trace_id()
-                full_operation = f"{db_type}_{operation}_{func.__name__.upper()}"
+                operation = f"{db_type}_{func.__name__.upper()}"
 
                 # 동적으로 파라미터 추출
                 tracked_params = {}
@@ -89,32 +88,27 @@ class DatabaseLogger:
 
                 start_time = time.time()
 
-                # 작업 시작 로그
-                logger.info(f"[{db_type}_START] trace_id={trace_id} operation={full_operation}{param_str}")
+                logger.info(f"[{db_type}_START] trace_id={trace_id} operation={operation}{param_str}")
 
                 try:
                     # 실제 함수 실행
                     result = func(*args, **kwargs)
 
-                    # 실행 시간 계산
                     execution_time = time.time() - start_time
 
-                    # 결과 정보
+                    # 결과 정보 추가
                     result_str = self._format_result_info(result)
 
-                    # 성공 로그
                     logger.info(
-                        f"[{db_type}_SUCCESS] trace_id={trace_id} operation={full_operation} execution_time={execution_time:.4f}s{param_str}{result_str}")
+                        f"[{db_type}_SUCCESS] trace_id={trace_id} operation={operation} execution_time={execution_time:.4f}s{param_str}{result_str}")
 
                     return result
 
                 except Exception as e:
-                    # 실행 시간 계산
                     execution_time = time.time() - start_time
 
-                    # 실패 로그
                     logger.error(
-                        f"[{db_type}_ERROR] trace_id={trace_id} operation={full_operation} execution_time={execution_time:.4f}s{param_str} error={type(e).__name__}: {str(e)}")
+                        f"[{db_type}_ERROR] trace_id={trace_id} operation={operation} execution_time={execution_time:.4f}s{param_str} error={type(e).__name__}: {str(e)}")
 
                     raise
 
@@ -122,10 +116,60 @@ class DatabaseLogger:
 
         return decorator
 
-    def custom_db_operation(self, db_type: str, operation: str, track_params: List[str] = None):
-        """커스텀 데이터베이스 작업 로깅 - 사용자 정의 용"""
-        return self._log_db_operation(db_type, operation, track_params)
+    def log_database_class(self, db_type: str = "DATABASE",
+                           method_params: Dict[str, List[str]] = None,
+                           exclude_methods: List[str] = None):
+        """
+        클래스 전체에 데이터베이스 로깅을 적용하는 데코레이터
 
+        Args:
+            db_type: 데이터베이스 타입
+            method_params: 메서드별 추적할 파라미터 {메서드명: [파라미터명들]}
+            exclude_methods: 로깅에서 제외할 메서드명들
+        """
+
+        def class_decorator(cls):
+            exclude_list = exclude_methods or ['__init__', '__new__']
+
+            for name, method in inspect.getmembers(cls, predicate=inspect.isfunction):
+                if name.startswith('_') or name in exclude_list:
+                    continue
+
+                # 메서드별 파라미터 설정
+                track_params = method_params.get(name) if method_params else None
+
+                # 기존 _log_database 데코레이터 적용
+                wrapped_method = self._log_database(db_type, track_params)(method)
+                setattr(cls, name, wrapped_method)
+
+            return cls
+
+        return class_decorator
+
+    """ 메서드 데코레이터
+    @log_database 데코레이터들을 여기에 추가
+    db_type : 데이터베이스 타입 (예: VECTOR_DB, RDB)
+    track_params : 추적할 파라미터 이름들
+    """
+
+    def vector_db(self):
+        return self._log_database("VECTOR_DB", ["query", "embeddings", "top_k", "collection", "filters"])
+
+    """ 클래스 데코레이터
+    @log_database_class 데코레이터들을 여기에 추가
+    db_type : 데이터베이스 타입 (예: VECTOR_DB, RDB)
+    method_params : {메서드명: [추적할 파라미터 이름들]}
+    exclude_methods : 로깅에서 제외할 메서드명들
+    """
+
+    def rdb_class(self):
+        """관계형 데이터베이스 클래스 로깅"""
+        return self.log_database_class("RDB", {
+            "select": ["table", "where_clause", "limit"],
+            "insert": ["table", "data"],
+            "update": ["table", "data", "where_clause"],
+            "delete": ["table", "where_clause"]
+        })
 
 # 전역 DatabaseLogger 싱글톤
 db_logger = DatabaseLogger()

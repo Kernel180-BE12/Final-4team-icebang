@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.decorators.logging import log_api_call
+from app.services.ChunkingService import ChunkingService
 
 router = APIRouter()
 
@@ -13,3 +13,8 @@ async def root():
 async def say_hello(name: str):
     return {"message": f"Hello {name}"}
 
+@router.post("/chunk")
+async def chunk_text(text: str, chunk_size: int = 100, overlap: int = 20):
+    service = ChunkingService()
+    chunks = service.chunk_text(text, chunk_size, overlap)
+    return {"chunks": chunks, "count": len(chunks)}

@@ -10,8 +10,7 @@ trace_id_context: ContextVar[Optional[str]] = ContextVar('trace_id', default=Non
 
 
 class ServiceLogger:
-    """서비스 레이어 로깅을 관리하는 클래스 어노테이션으로 적용 가능"""
-
+    """서비스 레이어 로깅을 관리하는 클래스 애노테이션으로 적용 가능"""
 
     def set_trace_id(self, trace_id: str):
         """스프링에서 받은 추적 ID 설정"""
@@ -76,14 +75,12 @@ class ServiceLogger:
 
                 start_time = time.time()
 
-                # 서비스 시작 로그
                 logger.info(f"[{service_type}_START] trace_id={trace_id} operation={operation}{param_str}")
 
                 try:
                     # 실제 함수 실행
                     result = func(*args, **kwargs)
 
-                    # 실행 시간 계산
                     execution_time = time.time() - start_time
 
                     # 결과 정보 추가
@@ -93,17 +90,14 @@ class ServiceLogger:
                     elif isinstance(result, str):
                         result_str = f" result_length={len(result)}"
 
-                    # 서비스 성공 로그
                     logger.info(
                         f"[{service_type}_SUCCESS] trace_id={trace_id} operation={operation} execution_time={execution_time:.4f}s{param_str}{result_str}")
 
                     return result
 
                 except Exception as e:
-                    # 실행 시간 계산
                     execution_time = time.time() - start_time
 
-                    # 서비스 실패 로그
                     logger.error(
                         f"[{service_type}_ERROR] trace_id={trace_id} operation={operation} execution_time={execution_time:.4f}s{param_str} error={type(e).__name__}: {str(e)}")
 
@@ -113,10 +107,54 @@ class ServiceLogger:
 
         return decorator
 
+    def log_service_class(self, service_type: str = "SERVICE",
+                          method_params: Dict[str, List[str]] = None,
+                          exclude_methods: List[str] = None):
+        """
+        클래스 전체에 로깅을 적용하는 데코레이터
+
+        Args:
+            service_type: 서비스 타입
+            method_params: 메서드별 추적할 파라미터 {메서드명: [파라미터명들]}
+            exclude_methods: 로깅에서 제외할 메서드명들
+        """
+
+        def class_decorator(cls):
+            exclude_list = exclude_methods or ['__init__', '__new__']
+
+            for name, method in inspect.getmembers(cls, predicate=inspect.isfunction):
+                if name.startswith('_') or name in exclude_list:
+                    continue
+
+                # 메서드별 파라미터 설정
+                track_params = method_params.get(name) if method_params else None
+
+                # 기존 _log_service 데코레이터 적용
+                wrapped_method = self._log_service(service_type, track_params)(method)
+                setattr(cls, name, wrapped_method)
+
+            return cls
+
+        return class_decorator
+
+    """ 메서드 데코레이터
+    @log_service 데코레이터들을 여기에 추가
+    service_type : 서비스 이름 (예: CHUNKING)
+    track_params : 추적할 파라미터 이름들
+    """
     def chunking(self):
-        """청킹 서비스 로깅 - chunk_size, overlap, documents 추적"""
         return self._log_service("CHUNKING", ["chunk_size", "overlap", "overlap_ratio", "documents"])
 
+    """ 클래스 데코레이터
+    @log_service_class 데코레이터들을 여기에 추가
+    service_type : 서비스 이름 (예: CHUNKING)
+    method_params : {메서드명: [추적할 파라미터 이름들]}
+    exclude_methods : 로깅에서 제외할 메서드명들
+    """
+    def chunking_class(self):
+        return self.log_service_class("CHUNKING", {
+            "chunk_text": ["chunk_size", "overlap"]
+        })
 
 # 전역 ServiceLogger 싱글톤
 service_logger = ServiceLogger()
