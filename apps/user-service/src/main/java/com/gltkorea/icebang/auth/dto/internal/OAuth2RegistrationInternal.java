@@ -1,6 +1,7 @@
 package com.gltkorea.icebang.auth.dto.internal;
 
 import com.gltkorea.icebang.auth.dto.LoginRequest;
+
 import lombok.Getter;
 
 @Getter
