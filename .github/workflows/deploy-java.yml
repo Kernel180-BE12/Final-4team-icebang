@@ -1,11 +1,16 @@
 name: Deploy
 
+#on:
+#  workflow_dispatch:
+#  push:
+#    tags:
+#      - 'v*'
 on:
-  workflow_dispatch:
-  push:
-    tags:
-      - 'v*'
-
+  workflow_dispatch:  # 수동 실행 가능
+  workflow_run:       # 다른 워크플로우 완료 후 트리거
+    workflows: ["CI (Java)"]  # CI 워크플로우 이름
+    types:
+      - completed
 jobs:
   deploy:
     name: Deploy to AWS EC2
