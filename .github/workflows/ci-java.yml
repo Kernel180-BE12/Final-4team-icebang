@@ -45,3 +45,84 @@ jobs:
       - name: Run Spotless Check
         run: ./gradlew spotlessCheck
         working-directory: apps/user-service
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: spotless-check
+    strategy:
+      matrix:
+        java-version: [ "21" ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: '${{ matrix.java-version }}'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x ./gradlew
+        working-directory: apps/user-service
+
+      - name: Run Gradle Build
+        run: ./gradlew build -x test
+        working-directory: apps/user-service
+
+#      - name: Run Tests
+#        run: |
+#          if [ "${{ github.base_ref }}" == "main" ]; then
+#            ./gradlew test
+#          else
+#            ./gradlew prTest
+#          fi
+#        working-directory: apps/user-service
+      - name: Upload build artifacts
+#        if: matrix.java-version == '21' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: apps/user-service/build/libs/
+
+  docker:
+    name: Build Spring Boot Docker Image and push to registry
+    runs-on: ubuntu-latest
+#    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs:
+      - build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts (JAR)
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: apps/user-service/build/libs/
+
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/user-service
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/icebang-springboot-app:latest
+            ghcr.io/${{ github.repository }}/icebang-springboot-app:${{ github.sha }}
+
+      - name: Analyze image layers
+        run: |
+          echo "=== Image Layer Analysis ==="
+          docker history ghcr.io/${{ github.repository }}/mvp-app:latest --human --no-trunc
