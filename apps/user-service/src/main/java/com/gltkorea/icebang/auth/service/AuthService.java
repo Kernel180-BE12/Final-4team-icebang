@@ -1,13 +1,13 @@
 package com.gltkorea.icebang.auth.service;
 
-import com.gltkorea.icebang.auth.dto.LoginRequest;
-import com.gltkorea.icebang.auth.dto.external.AuthResponse;
+import com.gltkorea.icebang.auth.dto.LoginDto;
+import com.gltkorea.icebang.auth.dto.SignUpDto;
 import com.gltkorea.icebang.domain.user.model.Users;
 
 public interface AuthService {
-  AuthResponse login(LoginRequest request);
+  Users signUp(SignUpDto signUpDto);
 
-  void logout(String token);
+  Users login(LoginDto loginDto);
 
   Users loadUser(String identifier);
 }

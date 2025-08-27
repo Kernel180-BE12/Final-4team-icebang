@@ -1,3 +1,7 @@
 package com.gltkorea.icebang.domain.user.model;
 
-public class Users {}
+import com.gltkorea.icebang.domain.user.UserStatus;
+
+public class Users {
+  private UserStatus status;
+}
