@@ -33,16 +33,3 @@ class PrdSettings(BaseSettingsConfig):
     class Config:
         env_file = ['.env', 'prd.env']
 
-
-def get_settings() -> BaseSettingsConfig:
-    """환경 변수에 따라 적절한 설정 객체를 반환하는 함수"""
-    mode = os.getenv("MODE", "dev")
-    if mode == "dev":
-        return DevSettings()
-    elif mode == "prd":
-        return PrdSettings()
-    else:
-        raise ValueError(f"Invalid MODE environment variable: {mode}")
-
-
-settings = get_settings()
