@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  user-service:
+    image: ghcr.io/kernel180-be12/final-4team-icebang/user-service:latest
+    container_name: user-service
+    restart: always
+    ports:
+      - "80:8080"
+    env_file:
+      - .env
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
