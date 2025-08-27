@@ -1,15 +1,15 @@
--- 데이터 삽입
+-- 데이터 삽입 (⭐️ UUID 값을 직접 지정)
 INSERT INTO "USER" ("user_id", "name", "email", "password", "phone_number", "type", "status", "joined_at")
 VALUES
     ('86b2414f-8e4d-4c3e-953e-1b6c7003c271', '홍길동', 'hong.gildong@example.com', 'hashed_password_1', '010-1234-5678', 'INDIVIDUAL', 'ACTIVE', NOW()),
     ('92d04a8b-185d-4f1b-85d1-9650d99d1234', '김철수', 'kim.chulsu@example.com', 'hashed_1b590e829a28', '010-9876-5432', 'INDIVIDUAL', 'ACTIVE', NOW());
 
-INSERT INTO "GROUP_INFO" ("group_id", "name", "description", "status")
+INSERT INTO "GROUP_INFO" ("group_info_id", "name", "description", "status")
 VALUES
     ('0b5c1c4e-5e2a-438d-8c1d-1d2a3e3b4d5a', '개발팀', '애플리케이션 개발 그룹', 'ACTIVE'),
     ('5c3f7b2c-8a1e-45a8-9d2a-7e7f6a8e9d2b', '기획팀', '프로젝트 기획 그룹', 'ACTIVE');
 
-INSERT INTO "USER_GROUP_INFO" ("user_id", "group_id")
+INSERT INTO "USER_GROUP_INFO" ("user_id", "group_info_id")
 VALUES
     ('86b2414f-8e4d-4c3e-953e-1b6c7003c271', '0b5c1c4e-5e2a-438d-8c1d-1d2a3e3b4d5a'),
     ('92d04a8b-185d-4f1b-85d1-9650d99d1234', '5c3f7b2c-8a1e-45a8-9d2a-7e7f6a8e9d2b');
