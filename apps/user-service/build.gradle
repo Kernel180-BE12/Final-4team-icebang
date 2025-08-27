@@ -2,10 +2,11 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.4'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.diffplug.spotless' version '7.2.1'
 }
 
 group = 'com.gltkorea'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1-alpha-SNAPSHOT'
 description = 'GLT korea - fast campus team4 ice bang'
 
 java {
@@ -18,6 +19,10 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+	// Spring Boot의 기본 로깅(Logback) 제외
+	all {
+		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+	}
 }
 
 repositories {
@@ -25,13 +30,35 @@ repositories {
 }
 
 dependencies {
+	// Spring Boot Starters
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+	// MyBatis
 	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5'
-	compileOnly 'org.projectlombok:lombok'
+
+	// Log4j2 - 모든 모듈을 2.22.1로 통일
+	implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+	implementation 'org.apache.logging.log4j:log4j-core:2.22.1'
+	implementation 'org.apache.logging.log4j:log4j-api:2.22.1'
+	implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.22.1'
+	implementation 'org.apache.logging.log4j:log4j-jul:2.22.1'
+	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+
+	// 비동기 로깅
+	implementation 'com.lmax:disruptor:3.4.4'
+
+	// Lombok
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+	// Database
 	runtimeOnly 'com.h2database:h2'
-	annotationProcessor 'org.projectlombok:lombok'
+	runtimeOnly 'org.postgresql:postgresql'
+
+	// Test Dependencies
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 	testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.5'
@@ -42,4 +69,22 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+spotless {
+	java {
+		googleJavaFormat('1.17.0')
+		importOrder('java', 'javax', 'org', 'com', '', 'com.movement')
+		endWithNewline()
+		removeUnusedImports()
+		encoding('UTF-8')
+
+		targetExclude("**/generated/**", "**/Q*.java")
+	}
+	format 'misc', {
+		target '**/*.gradle', '**/*.md', '**/.gitignore'
+		trimTrailingWhitespace()
+		indentWithTabs()
+		endWithNewline()
+	}
 }
