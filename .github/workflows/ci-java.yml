@@ -82,7 +82,7 @@ jobs:
 #          fi
 #        working-directory: apps/user-service
       - name: Upload build artifacts
-#        if: matrix.java-version == '21' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: matrix.java-version == '21' && github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
@@ -91,7 +91,7 @@ jobs:
   docker:
     name: Build Spring Boot Docker Image and push to registry
     runs-on: ubuntu-latest
-#    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs:
       - build
 
