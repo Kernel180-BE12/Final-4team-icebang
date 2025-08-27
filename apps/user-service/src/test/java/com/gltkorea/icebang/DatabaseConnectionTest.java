@@ -19,7 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.gltkorea.icebang.dto.UserDto;
+import com.gltkorea.icebang.dto.UserAuthDto;
 import com.gltkorea.icebang.mapper.UserMapper;
 
 @SpringBootTest
@@ -55,7 +55,7 @@ class DatabaseConnectionTest {
     String testEmail = "hong.gildong@example.com";
 
     // when
-    Optional<UserDto> foundUser = userMapper.findByEmail(testEmail);
+    Optional<UserAuthDto> foundUser = userMapper.findByEmail(testEmail);
 
     // then
     // 사용자가 존재하고, 이름이 '홍길동'인지 확인
@@ -68,11 +68,11 @@ class DatabaseConnectionTest {
   @DisplayName("샘플 데이터가 올바르게 삽입되었는지 확인")
   void verifyAllSampleDataInserted() {
     // 사용자 데이터 확인
-    Optional<UserDto> hong = userMapper.findByEmail("hong.gildong@example.com");
+    Optional<UserAuthDto> hong = userMapper.findByEmail("hong.gildong@example.com");
     assertThat(hong).isPresent();
     assertThat(hong.get().getName()).isEqualTo("홍길동");
 
-    Optional<UserDto> kim = userMapper.findByEmail("kim.chulsu@example.com");
+    Optional<UserAuthDto> kim = userMapper.findByEmail("kim.chulsu@example.com");
     assertThat(kim).isPresent();
     assertThat(kim.get().getName()).isEqualTo("김철수");
 

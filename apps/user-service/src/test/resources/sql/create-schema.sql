@@ -23,6 +23,8 @@ CREATE TABLE "USER" (
                         "resident_number" VARCHAR(100) NULL,
                         "corporate_number" VARCHAR(100) NULL,
                         "business_number" VARCHAR(100) NULL,
+                        "provider" VARCHAR(100) NULL,
+                        "provider_id" VARCHAR(100) NULL,
                         "type" VARCHAR(50) NULL,
                         "department" VARCHAR(100) NULL,
                         "job_title" VARCHAR(50) NULL,

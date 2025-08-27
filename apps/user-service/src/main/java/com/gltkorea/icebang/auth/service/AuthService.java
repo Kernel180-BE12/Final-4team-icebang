@@ -2,12 +2,12 @@ package com.gltkorea.icebang.auth.service;
 
 import com.gltkorea.icebang.auth.dto.LoginDto;
 import com.gltkorea.icebang.auth.dto.SignUpDto;
-import com.gltkorea.icebang.domain.user.model.Users;
+import com.gltkorea.icebang.dto.UserAuthDto;
 
 public interface AuthService {
-  Users signUp(SignUpDto signUpDto);
+  UserAuthDto signUp(SignUpDto signUpDto); // 변경!
 
-  Users login(LoginDto loginDto);
+  UserAuthDto login(LoginDto loginDto); // 변경!
 
-  Users loadUser(String identifier);
+  UserAuthDto loadUser(String identifier); // 변경!
 }

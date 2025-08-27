@@ -27,7 +27,8 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    return http.authorizeHttpRequests(
+    return http.csrf(csrf -> csrf.disable()) // 이 줄을 추가하세요
+        .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(SecurityEndpoints.PUBLIC.getMatchers())
                     .permitAll()

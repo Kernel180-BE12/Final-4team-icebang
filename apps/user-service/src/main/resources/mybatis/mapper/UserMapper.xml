@@ -3,15 +3,58 @@
 
 <mapper namespace="com.gltkorea.icebang.mapper.UserMapper">
 
-    <select id="findByEmail" parameterType="String" resultType="com.gltkorea.icebang.dto.UserDto">
+    <!-- 기존 쿼리 (수정) -->
+    <select id="findByEmail" parameterType="String" resultType="com.gltkorea.icebang.dto.UserAuthDto">
         SELECT
-            user_id AS userId, -- DTO의 필드명(userId)과 컬럼명(user_id)이 다르면 별칭(alias)을 사용
+            user_id AS userId,
             name,
-            email
+            email,
+            password,
+            provider,
+            provider_id AS providerId,
+            status
         FROM
-            "USER" -- USER는 예약어이므로 큰따옴표로 감싸기
+            "USER"
         WHERE
             email = #{email}
+    </select>
+
+    <!-- 회원가입용 - 사용자 추가 -->
+    <insert id="insertUser" parameterType="com.gltkorea.icebang.dto.UserAuthDto">
+        INSERT INTO "USER" (user_id, name, email, password, provider, provider_id, status)
+        VALUES (#{userId}, #{name}, #{email}, #{password}, #{provider}, #{providerId}, #{status})
+    </insert>
+
+    <!-- 로그인용 - 이메일과 비밀번호로 조회 -->
+    <select id="findByEmailAndPassword" resultType="com.gltkorea.icebang.dto.UserAuthDto">
+        SELECT
+            user_id AS userId,
+            name,
+            email,
+            password,
+            provider,
+            provider_id AS providerId,
+            status
+        FROM
+            "USER"
+        WHERE
+            email = #{email} AND password = #{password}
+    </select>
+
+    <!-- ID로 사용자 조회 -->
+    <select id="findByUserId" parameterType="String" resultType="com.gltkorea.icebang.dto.UserAuthDto">
+        SELECT
+            user_id AS userId,
+            name,
+            email,
+            password,
+            provider,
+            provider_id AS providerId,
+            status
+        FROM
+            "USER"
+        WHERE
+            user_id = #{userId}
     </select>
 
 </mapper>
