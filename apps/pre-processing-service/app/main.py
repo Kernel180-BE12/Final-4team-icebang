@@ -1,5 +1,5 @@
 # main.py
-
+import uvicorn
 from fastapi import FastAPI
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.exceptions import RequestValidationError
@@ -30,5 +30,5 @@ app.add_middleware(LoggingMiddleware)
 # --- 라우터 등록 ---
 app.include_router(api_router, prefix="", tags=["api"])
 
-# if __name__ == "__main__":
-    # uvicorn.run(app, host="0.0.0.0", port=8000)
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
