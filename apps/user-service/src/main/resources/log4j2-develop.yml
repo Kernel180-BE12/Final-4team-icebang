@@ -9,10 +9,10 @@ Configuration:
         value: "UTF-8"
       # 통일된 콘솔 패턴 - 모든 로그에 RequestId 포함
       - name: "console-layout-pattern"
-        value: "%highlight{[%-5level]} [%X{id}] %d{MM-dd HH:mm:ss} [%t]  %n %msg%n%n"
+        value: "%highlight{[%-5level]} [%X{traceId}] %d{MM-dd HH:mm:ss} [%t]  %n %msg%n%n"
       # 파일용 상세 패턴 - RequestId 포함
       - name: "file-layout-pattern"
-        value: "[%X{id}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
+        value: "[%X{traceId}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
       # 로그 파일 경로들
       - name: "info-log"
         value: ${log-path}/user-service/info.log

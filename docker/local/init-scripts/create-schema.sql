@@ -8,7 +8,6 @@ DROP TABLE IF EXISTS "GROUP_INFO";
 DROP TABLE IF EXISTS "USER";
 
 
--- 사용자 정보 (외부 노출 가능성 높음 -> UUID)
 CREATE TABLE "USER" (
                         "user_id" VARCHAR(36) NOT NULL,
                         "name" VARCHAR(100) NULL,
