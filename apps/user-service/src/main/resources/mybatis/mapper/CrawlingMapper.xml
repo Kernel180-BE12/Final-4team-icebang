@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gltkorea.icebang.mapper.CrawlingMapper">
+
+    <select id="findProductsToCrawl" resultType="com.gltkorea.icebang.dto.ProductCrawlingData">
+        SELECT
+            id, name, url_to_crawl, price, stock_status, last_crawled_at
+        FROM
+            product
+        ORDER BY
+            id
+            LIMIT #{_pagesize} OFFSET #{_skiprows}
+    </select>
+
+    <update id="updateCrawledProduct">
+        UPDATE product
+        SET
+            price = #{price},
+            stock_status = #{stockStatus},
+            last_crawled_at = #{lastCrawledAt}
+        WHERE
+            id = #{id}
+    </update>
+</mapper>
