@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.gltkorea.icebang.domain.auth.dto.AuthCredential;
+import com.gltkorea.icebang.entity.Users;
 import com.gltkorea.icebang.mapper.UserMapper;
 
 import lombok.RequiredArgsConstructor;
