@@ -30,14 +30,21 @@ class ResponseNaverSearch(ResponseBase):
     total_keyword: dict[int, str]
 
 
-#키워드 사다구몰 검증
-class RequestSadaguValidate(RequestBase):
-    tag: str
-    category: str
+# #키워드 사다구몰 검증
+# class RequestSadaguValidate(RequestBase):
+#     tag: str
+#     category: str
+#
+# class ResponsetSadaguValidate(ResponseBase):
+#     keyword: str
 
-class ResponsetSadaguValidate(ResponseBase):
+# 2단계: 검색
+class RequestSadaguSearch(RequestBase):
     keyword: str
 
+class ResponseSadaguSearch(ResponseBase):
+    keyword: str
+    search_results: list[dict]
 
 #사다구몰 상품 크롤링
 class RequestSadaguCrawl(RequestBase):
