@@ -39,7 +39,8 @@ async def search(request: RequestNaverSearch):
         schedule_id=schedule_id,
         category=category,
         keyword=keywords,
-        total_keyword = {1: "바밥밥", 2: "밥밥밥", 3: "바밤바"}
+        total_keyword = {1: "바밥밥", 2: "밥밥밥", 3: "바밤바"},
+        status="SUCCESS"
     )
 
 @router.post("/search/test",response_model=ResponsetSadaguValidate)
