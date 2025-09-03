@@ -6,10 +6,11 @@ spring:
   
   # PostgreSQL 데이터베이스 연결 설정
   datasource:
-    url: jdbc:postgresql://localhost:5432/pre_process
-    username: postgres
+    url: jdbc:mariadb://localhost:3306/pre_process
+    username: mariadb_user
     password: qwer1234
-    driver-class-name: org.postgresql.Driver
+    driver-class-name: org.mariadb.jdbc.Driver
+
 
   hikari:
     connection-timeout: 30000
