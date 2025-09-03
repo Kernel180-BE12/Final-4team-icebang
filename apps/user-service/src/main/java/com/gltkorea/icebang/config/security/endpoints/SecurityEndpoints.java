@@ -4,9 +4,20 @@ public enum SecurityEndpoints {
   PUBLIC(
       "/", "/login", "/register", "/api/public/**", "/health", "/css/**", "/js/**", "/images/**"),
 
-  ADMIN("/admin/**", "/api/admin/**", "/management/**", "/actuator/**"),
+  // 데이터 관리 관련 엔드포인트
+  DATA_ADMIN("/admin/**", "/api/admin/**", "/management/**", "/actuator/**"),
 
-  USER("/user/**", "/api/user/**", "/profile/**", "/dashboard");
+  // 데이터 엔지니어 전용 엔드포인트
+  DATA_ENGINEER("/api/preprocessing/**", "/api/pipeline/**", "/api/jobs/**"),
+
+  // 분석가 전용 엔드포인트
+  ANALYST("/api/analysis/**", "/api/reports/**", "/api/dashboard/**"),
+
+  // 운영 관련 엔드포인트
+  OPS("/api/scheduler/**", "/api/monitoring/**"),
+
+  // 일반 사용자 엔드포인트
+  USER("/user/**", "/profile/**");
 
   private final String[] patterns;
 

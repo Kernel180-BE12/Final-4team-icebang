@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.domain.user.model;
+package com.gltkorea.icebang.domain.auth.dto;
 
 import java.util.Collection;
 import java.util.List;
@@ -6,10 +6,10 @@ import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import lombok.Builder;
+import lombok.Data;
 
-@Builder
-public class UserAccountPrincipal implements UserDetails {
+@Data
+public class AuthCredential implements UserDetails {
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return List.of();
