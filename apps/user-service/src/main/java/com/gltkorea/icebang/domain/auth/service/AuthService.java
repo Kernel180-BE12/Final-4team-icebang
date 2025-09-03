@@ -16,9 +16,9 @@ public class AuthService {
 
   public AuthCredential login(String email, String password) {
     Authentication auth =
-        authenticationManager.authenticate(
+        authenticationManager.authenticate( // 3
             new UsernamePasswordAuthenticationToken(email, password));
-
+    // 7
     return (AuthCredential) auth.getPrincipal();
   }
 }
