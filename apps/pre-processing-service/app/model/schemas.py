@@ -46,6 +46,15 @@ class ResponseSadaguSearch(ResponseBase):
     keyword: str
     search_results: list[dict]
 
+# 3단계: 매칭
+class RequestSadaguMatch(RequestBase):
+    keyword: str
+    search_results: list[dict]
+
+class ResponseSadaguMatch(ResponseBase):
+    keyword: str
+    matched_products: list[dict]
+
 #사다구몰 상품 크롤링
 class RequestSadaguCrawl(RequestBase):
     tag: str

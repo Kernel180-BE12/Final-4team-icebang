@@ -1,6 +1,6 @@
 # app/api/router.py
 from fastapi import APIRouter
-from .endpoints import keywords, blog,test,product, search
+from .endpoints import keywords, blog,test,product, search, match
 from ..core.config import settings
 
 api_router = APIRouter()
@@ -19,6 +19,9 @@ api_router.include_router(test.router, prefix="/test", tags=["Test"])
 
 #검색 API URL
 api_router.include_router(search.router, prefix="/search", tags=["search"])
+
+#매칭 API URL
+api_router.include_router(match.router, prefix="/match", tags=["match"])
 
 @api_router.get("/")
 async def root():
