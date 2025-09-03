@@ -20,9 +20,9 @@ class ResponseBase(BaseModel):
 #네이버 키워드 추출
 class RequestNaverSearch(RequestBase):
     tag: str
-    category: str
-    startDate :datetime
-    endDate :datetime
+    category: Optional[str] = None
+    start_date : str
+    end_date : str
 
 class ResponseNaverSearch(ResponseBase):
     category: str
