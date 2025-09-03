@@ -32,83 +32,79 @@ public class SecurityConfig {
     return new SecureRandom();
   }
 
-  /**
-   * HTTP 보안 설정 및 URL별 권한 설정
-   */
+  /** HTTP 보안 설정 및 URL별 권한 설정 */
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    return http
-            .authorizeHttpRequests(auth ->
-                    auth
-                            // 공개 접근 허용 경로들
-                            .requestMatchers(SecurityEndpoints.PUBLIC.getMatchers())
-                            .permitAll()
+    return http.authorizeHttpRequests(
+            auth ->
+                auth
+                    // 공개 접근 허용 경로들
+                    .requestMatchers(SecurityEndpoints.PUBLIC.getMatchers())
+                    .permitAll()
 
-                            // 로그인/로그아웃 경로 허용
-                            .requestMatchers("/auth/login", "/auth/logout")
-                            .permitAll()
+                    // 로그인/로그아웃 경로 허용
+                    .requestMatchers("/auth/login", "/auth/logout")
+                    .permitAll()
 
-                            // 관리자 전용 경로 (사용자 관리 등)
-                            .requestMatchers("/admin/users/**")
-                            .hasAuthority("SUPER_ADMIN")
+                    // 관리자 전용 경로 (사용자 관리 등)
+                    .requestMatchers("/admin/users/**")
+                    .hasAuthority("SUPER_ADMIN")
 
-                            // 데이터 관리자 경로
-                            .requestMatchers(SecurityEndpoints.DATA_ADMIN.getMatchers())
-                            .hasAuthority("SUPER_ADMIN")
+                    // 데이터 관리자 경로
+                    .requestMatchers(SecurityEndpoints.DATA_ADMIN.getMatchers())
+                    .hasAuthority("SUPER_ADMIN")
 
-                            // 데이터 엔지니어 경로
-                            .requestMatchers(SecurityEndpoints.DATA_ENGINEER.getMatchers())
-                            .hasAnyAuthority("SUPER_ADMIN", "ADMIN", "SENIOR_DATA_ENGINEER", "DATA_ENGINEER")
+                    // 데이터 엔지니어 경로
+                    .requestMatchers(SecurityEndpoints.DATA_ENGINEER.getMatchers())
+                    .hasAnyAuthority(
+                        "SUPER_ADMIN", "ADMIN", "SENIOR_DATA_ENGINEER", "DATA_ENGINEER")
 
-                            // 분석가 경로
-                            .requestMatchers(SecurityEndpoints.ANALYST.getMatchers())
-                            .hasAnyAuthority("SUPER_ADMIN", "ADMIN", "SENIOR_DATA_ENGINEER", "DATA_ENGINEER",
-                                    "SENIOR_DATA_ANALYST", "DATA_ANALYST", "VIEWER")
+                    // 분석가 경로
+                    .requestMatchers(SecurityEndpoints.ANALYST.getMatchers())
+                    .hasAnyAuthority(
+                        "SUPER_ADMIN",
+                        "ADMIN",
+                        "SENIOR_DATA_ENGINEER",
+                        "DATA_ENGINEER",
+                        "SENIOR_DATA_ANALYST",
+                        "DATA_ANALYST",
+                        "VIEWER")
 
-                            // 운영 관련 경로
-                            .requestMatchers(SecurityEndpoints.OPS.getMatchers())
-                            .hasAnyAuthority("SUPER_ADMIN", "ADMIN", "SENIOR_DATA_ENGINEER", "DATA_ENGINEER")
+                    // 운영 관련 경로
+                    .requestMatchers(SecurityEndpoints.OPS.getMatchers())
+                    .hasAnyAuthority(
+                        "SUPER_ADMIN", "ADMIN", "SENIOR_DATA_ENGINEER", "DATA_ENGINEER")
 
-                            // 일반 사용자 경로
-                            .requestMatchers(SecurityEndpoints.USER.getMatchers())
-                            .authenticated()
+                    // 일반 사용자 경로
+                    .requestMatchers(SecurityEndpoints.USER.getMatchers())
+                    .authenticated()
 
-                            // 그 외 모든 요청은 인증 필요
-                            .anyRequest()
-                            .authenticated()
-            )
-            .formLogin(AbstractHttpConfigurer::disable)  // 기본 로그인 폼 비활성화 (REST API 사용)
-            .logout(logout ->
-                    logout
-                            .logoutUrl("/auth/logout")
-                            .logoutSuccessUrl("/auth/login")
-                            .permitAll()
-            )
-            .csrf(AbstractHttpConfigurer::disable)  // REST API를 위해 CSRF 비활성화
-            .build();
+                    // 그 외 모든 요청은 인증 필요
+                    .anyRequest()
+                    .authenticated())
+        .formLogin(AbstractHttpConfigurer::disable) // 기본 로그인 폼 비활성화 (REST API 사용)
+        .logout(
+            logout -> logout.logoutUrl("/auth/logout").logoutSuccessUrl("/auth/login").permitAll())
+        .csrf(AbstractHttpConfigurer::disable) // REST API를 위해 CSRF 비활성화
+        .build();
   }
 
-  /**
-   * 비밀번호 암호화 설정
-   * - dev/test 환경: 평문 비밀번호 사용 (개발 편의성)
-   * - 운영 환경: BCrypt 암호화 사용
-   */
+  /** 비밀번호 암호화 설정 - dev/test 환경: 평문 비밀번호 사용 (개발 편의성) - 운영 환경: BCrypt 암호화 사용 */
   @Bean
   public PasswordEncoder bCryptPasswordEncoder() {
     String[] activeProfiles = environment.getActiveProfiles();
 
     for (String profile : activeProfiles) {
       if ("dev".equals(profile) || "test".equals(profile)) {
-        return NoOpPasswordEncoder.getInstance();  // 개발/테스트시 평문 비밀번호
+        return NoOpPasswordEncoder.getInstance(); // 개발/테스트시 평문 비밀번호
       }
     }
-    return new BCryptPasswordEncoder();  // 운영시 암호화
+    return new BCryptPasswordEncoder(); // 운영시 암호화
   }
 
   /**
-   * 인증 제공자 설정
-   * - 우리가 만든 AuthUserDetailService와 PasswordEncoder 연결
-   * - Spring Security가 로그인 처리 시 이 설정을 사용
+   * 인증 제공자 설정 - 우리가 만든 AuthUserDetailService와 PasswordEncoder 연결 - Spring Security가 로그인 처리 시 이 설정을
+   * 사용
    */
   @Bean
   public DaoAuthenticationProvider authenticationProvider() {
@@ -126,14 +122,10 @@ public class SecurityConfig {
     return authProvider;
   }
 
-  /**
-   * 인증 관리자 설정
-   * - 로그인 처리를 위한 AuthenticationManager 생성
-   * - Controller에서 수동 로그인 처리 시 사용
-   */
+  /** 인증 관리자 설정 - 로그인 처리를 위한 AuthenticationManager 생성 - Controller에서 수동 로그인 처리 시 사용 */
   @Bean
   public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
-          throws Exception {
+      throws Exception {
     return config.getAuthenticationManager();
   }
 }
