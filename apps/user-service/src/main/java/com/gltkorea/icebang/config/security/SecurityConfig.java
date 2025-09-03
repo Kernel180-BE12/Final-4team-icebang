@@ -32,6 +32,8 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(SecurityEndpoints.PUBLIC.getMatchers())
                     .permitAll()
+                    .requestMatchers("/auth/login")
+                    .permitAll()
                     .requestMatchers(SecurityEndpoints.ADMIN.getMatchers())
                     .hasRole("ADMIN")
                     .requestMatchers(SecurityEndpoints.USER.getMatchers())
@@ -40,11 +42,7 @@ public class SecurityConfig {
                     .authenticated())
         .formLogin(AbstractHttpConfigurer::disable)
         .logout(
-            logout ->
-                logout
-                    .logoutUrl("/logout")
-                    .logoutSuccessUrl("/login")
-                    .permitAll())
+            logout -> logout.logoutUrl("/auth/logout").logoutSuccessUrl("/auth/login").permitAll())
         .build();
   }
 
