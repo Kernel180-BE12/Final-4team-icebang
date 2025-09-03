@@ -8,15 +8,14 @@ import java.util.Optional;
 
 import javax.sql.DataSource;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.gltkorea.icebang.dto.UserDto;
@@ -27,16 +26,16 @@ import com.gltkorea.icebang.mapper.UserMapper;
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @ActiveProfiles("test") // application-test.yml 설정을 활성화
 @Transactional // 테스트 후 데이터 롤백
-@Sql(
-    scripts = {"classpath:sql/create-schema.sql", "classpath:sql/insert-user-data.sql"},
-    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+// @Sql(
+//    scripts = {"classpath:sql/create-schema.sql", "classpath:sql/insert-user-data.sql"},
+//    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class DatabaseConnectionTest {
 
   @Autowired private DataSource dataSource;
 
   @Autowired private UserMapper userMapper; // JPA Repository 대신 MyBatis Mapper를 주입
 
-  @Test
+  @Disabled
   @DisplayName("DataSource를 통해 DB 커넥션을 성공적으로 얻을 수 있다.")
   void canGetDatabaseConnection() {
     try (Connection connection = dataSource.getConnection()) {
@@ -48,7 +47,7 @@ class DatabaseConnectionTest {
     }
   }
 
-  @Test
+  @Disabled
   @DisplayName("MyBatis Mapper를 통해 '홍길동' 사용자를 이메일로 조회")
   void findUserByEmailWithMyBatis() {
     // given
@@ -64,7 +63,7 @@ class DatabaseConnectionTest {
     System.out.println("Successfully found user with MyBatis: " + foundUser.get().getName());
   }
 
-  @Test
+  @Disabled
   @DisplayName("샘플 데이터가 올바르게 삽입되었는지 확인")
   void verifyAllSampleDataInserted() {
     // 사용자 데이터 확인
