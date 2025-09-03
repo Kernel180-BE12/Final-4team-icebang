@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,8 +38,13 @@ public class SecurityConfig {
                     .hasRole("USER")
                     .anyRequest()
                     .authenticated())
-        .formLogin(form -> form.loginPage("/login").defaultSuccessUrl("/").permitAll())
-        .logout(logout -> logout.logoutSuccessUrl("/login").permitAll())
+        .formLogin(AbstractHttpConfigurer::disable)
+        .logout(
+            logout ->
+                logout
+                    .logoutUrl("/logout")
+                    .logoutSuccessUrl("/login")
+                    .permitAll())
         .build();
   }
 
