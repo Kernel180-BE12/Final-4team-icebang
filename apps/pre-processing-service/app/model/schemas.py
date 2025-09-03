@@ -55,6 +55,16 @@ class ResponseSadaguMatch(ResponseBase):
     keyword: str
     matched_products: list[dict]
 
+# 4단계: 유사도
+class RequestSadaguSimilarity(RequestBase):
+    keyword: str
+    matched_products: list[dict]
+
+class ResponseSadaguSimilarity(ResponseBase):
+    keyword: str
+    selected_product: dict | None = None
+    reason: str | None = None
+
 #사다구몰 상품 크롤링
 class RequestSadaguCrawl(RequestBase):
     tag: str

@@ -1,6 +1,6 @@
 # app/api/router.py
 from fastapi import APIRouter
-from .endpoints import keywords, blog,test,product, search, match
+from .endpoints import keywords, blog,test,product, search, match, similarity
 from ..core.config import settings
 
 api_router = APIRouter()
@@ -22,6 +22,9 @@ api_router.include_router(search.router, prefix="/search", tags=["search"])
 
 #매칭 API URL
 api_router.include_router(match.router, prefix="/match", tags=["match"])
+
+# 유사도 API URL
+api_router.include_router(similarity.router, prefix="/similarity", tags=["similarity"])
 
 @api_router.get("/")
 async def root():

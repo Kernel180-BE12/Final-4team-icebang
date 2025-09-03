@@ -1,3 +1,5 @@
+import urllib
+
 from ..model.schemas import RequestSadaguMatch
 
 def match_products(request: RequestSadaguMatch) -> dict:
@@ -7,6 +9,7 @@ def match_products(request: RequestSadaguMatch) -> dict:
     keyword = request.keyword
     products = request.search_results
 
+    # 키워드 매칭 로직 적용 해야함
     matched = [p for p in products if keyword in p["title"]]
 
     return {
