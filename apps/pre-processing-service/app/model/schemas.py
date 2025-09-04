@@ -24,7 +24,7 @@ class RequestNaverSearch(RequestBase):
     end_date : Optional[str] = None
 
 class ResponseNaverSearch(ResponseBase):
-    category: str
+    category: Optional[str] = None
     keyword: str
     total_keyword: dict[int, str]
 

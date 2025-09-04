@@ -1,6 +1,3 @@
-# app/api/endpoints/keywords.py
-from fastapi import APIRouter
-from app.decorators.logging import log_api_call
 from ...errors.CustomException import *
 from fastapi import APIRouter
 
@@ -14,8 +11,14 @@ async def root():
 
 @router.post("/rag/create", response_model=ResponseBlogCreate)
 async def rag_create(request: RequestBlogCreate):
+    """
+    RAG 기반 블로그 콘텐츠 생성
+    """
     return {"message": "blog API"}
 
 @router.post("/publish", response_model=RequestBlogPublish)
 async def publish(request: ResponseBlogPublish):
+    """
+    생성된 블로그 콘텐츠 배포
+    """
     return {"message": "blog API"}
