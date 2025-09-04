@@ -1,4 +1,4 @@
-from CustomException import CustomException
+from app.errors.CustomException import CustomException
 from typing import List
 
 class PageLoadTimeoutException(CustomException):
