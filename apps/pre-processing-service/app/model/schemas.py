@@ -28,14 +28,6 @@ class ResponseNaverSearch(ResponseBase):
     keyword: str
     total_keyword: dict[int, str]
 
-# #키워드 사다구몰 검증
-# class RequestSadaguValidate(RequestBase):
-#     tag: str
-#     category: str
-#
-# class ResponsetSadaguValidate(ResponseBase):
-#     keyword: str
-
 # 2단계: 검색
 class RequestSadaguSearch(RequestBase):
     keyword: str
@@ -57,6 +49,7 @@ class ResponseSadaguMatch(ResponseBase):
 class RequestSadaguSimilarity(RequestBase):
     keyword: str
     matched_products: list[dict]
+    search_results: Optional[list[dict]] = None  # 3단계에서 매칭 실패시 폴백용
 
 class ResponseSadaguSimilarity(ResponseBase):
     keyword: str
