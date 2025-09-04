@@ -24,18 +24,44 @@ class RequestNaverSearch(RequestBase):
     end_date : Optional[str] = None
 
 class ResponseNaverSearch(ResponseBase):
-    category: str
+    category: Optional[str] = None
     keyword: str
     total_keyword: dict[int, str]
 
+# #키워드 사다구몰 검증
+# class RequestSadaguValidate(RequestBase):
+#     tag: str
+#     category: str
+#
+# class ResponsetSadaguValidate(ResponseBase):
+#     keyword: str
 
-#키워드 사다구몰 검증
-class RequestSadaguValidate(RequestBase):
-    tag: str
-    category: str
-
-class ResponseSadaguValidate(ResponseBase):
+# 2단계: 검색
+class RequestSadaguSearch(RequestBase):
     keyword: str
+
+class ResponseSadaguSearch(ResponseBase):
+    keyword: str
+    search_results: list[dict]
+
+# 3단계: 매칭
+class RequestSadaguMatch(RequestBase):
+    keyword: str
+    search_results: list[dict]
+
+class ResponseSadaguMatch(ResponseBase):
+    keyword: str
+    matched_products: list[dict]
+
+# 4단계: 유사도
+class RequestSadaguSimilarity(RequestBase):
+    keyword: str
+    matched_products: list[dict]
+
+class ResponseSadaguSimilarity(ResponseBase):
+    keyword: str
+    selected_product: dict | None = None
+    reason: str | None = None
 
 #사다구몰 크롤링
 class RequestSadaguCrawl(RequestBase):
