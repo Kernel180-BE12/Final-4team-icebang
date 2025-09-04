@@ -14,7 +14,7 @@ def match_products(request: RequestSadaguMatch) -> dict:
         return {
             "job_id": request.job_id,
             "schedule_id": request.schedule_id,
-            "sschdule_his_id": request.sschdule_his_id,
+            "schedule_his_id": request.schedule_his_id,
             "keyword": keyword,
             "matched_products": [],
             "status": "success"
@@ -55,7 +55,7 @@ def match_products(request: RequestSadaguMatch) -> dict:
         return {
             "job_id": request.job_id,
             "schedule_id": request.schedule_id,
-            "sschdule_his_id": request.sschdule_his_id,
+            "schedule_his_id": request.schedule_his_id,
             "keyword": keyword,
             "matched_products": matched_products,
             "status": "success"

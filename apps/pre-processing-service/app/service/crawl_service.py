@@ -30,7 +30,7 @@ async def crawl_product_detail(request: RequestSadaguCrawl) -> dict:
         response_data = {
             "job_id": request.job_id,
             "schedule_id": request.schedule_id,
-            "sschdule_his_id": request.sschdule_his_id,
+            "schedule_his_id": request.schedule_his_id,
             "tag": request.tag,
             "product_url": str(request.product_url),
             "use_selenium": request.use_selenium,

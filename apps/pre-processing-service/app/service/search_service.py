@@ -24,7 +24,7 @@ async def search_products(request: RequestSadaguSearch) -> dict:
             return {
                 "job_id": request.job_id,
                 "schedule_id": request.schedule_id,
-                "sschdule_his_id": request.sschdule_his_id,
+                "schedule_his_id": request.schedule_his_id,
                 "keyword": keyword,
                 "search_results": [],
                 "status": "success"
@@ -67,7 +67,7 @@ async def search_products(request: RequestSadaguSearch) -> dict:
         return {
             "job_id": request.job_id,
             "schedule_id": request.schedule_id,
-            "sschdule_his_id": request.sschdule_his_id,
+            "schedule_his_id": request.schedule_his_id,
             "keyword": keyword,
             "search_results": enriched_results,
             "status": "success"

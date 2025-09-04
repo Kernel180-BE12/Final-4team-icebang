@@ -56,18 +56,25 @@ class ResponseSadaguSimilarity(ResponseBase):
     reason: Optional[str] = None
 
 # 사다구몰 크롤링
-class RequestSadaguCrawl(RequestBase):
+class RequestSadaguCrawl(BaseModel):
+    job_id: int = Field(..., description="작업 ID")
+    schedule_id: int = Field(..., description="스케줄 ID")
+    schedule_his_id: int = Field(..., description="스케줄 히스토리 ID")
     tag: str = Field(..., description="크롤링 태그 (예: 'detail')")
     product_url: HttpUrl = Field(..., description="크롤링할 상품의 URL")
     use_selenium: bool = Field(default=True, description="Selenium 사용 여부")
     include_images: bool = Field(default=False, description="이미지 정보 포함 여부")
 
-class ResponseSadaguCrawl(ResponseBase):
+class ResponseSadaguCrawl(BaseModel):
+    job_id: int
+    schedule_id: int
+    schedule_his_id: int
     tag: str
     product_url: str
     use_selenium: bool
     include_images: bool
     product_detail: Optional[Dict] = None
+    status: str
     crawled_at: Optional[str] = None
 
 # 블로그 생성

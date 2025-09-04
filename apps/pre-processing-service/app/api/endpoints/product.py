@@ -18,7 +18,7 @@ async def search(request: RequestSadaguSearch):
     """
     상품 검색 엔드포인트
     """
-    return search_products(request)
+    return await search_products(request)
 
 @router.post("/match", response_model=ResponseSadaguMatch)
 async def match(request: RequestSadaguMatch):
