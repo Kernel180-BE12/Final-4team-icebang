@@ -13,7 +13,7 @@ class BaseSettingsConfig(BaseSettings):
     db_user: str
     db_pass: str
     db_name: str
-    env_name: str = "dev"
+    env_name: str = ".dev"
 
     @property
     def db_url(self) -> str:
@@ -25,11 +25,11 @@ class BaseSettingsConfig(BaseSettings):
 
 # 환경별 설정 클래스
 class DevSettings(BaseSettingsConfig):
-    model_config = SettingsConfigDict(env_file=['.env', 'dev.env'])
+    model_config = SettingsConfigDict(env_file=['.env', '.dev.env'])
 
 
 class PrdSettings(BaseSettingsConfig):
-    model_config = SettingsConfigDict(env_file=['.env', 'prd.env'])
+    model_config = SettingsConfigDict(env_file=['.env', '.prd.env'])
 
 def get_settings() -> BaseSettingsConfig:
     """환경 변수에 따라 적절한 설정 객체를 반환하는 함수"""
