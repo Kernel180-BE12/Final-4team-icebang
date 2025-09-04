@@ -13,7 +13,7 @@ router = APIRouter()
 
 @router.get("/")
 async def root():
-    return {"message": "Items API"}
+    return {"message": "keyword API"}
 
 @router.post("/search",response_model=ResponseNaverSearch)
 async def search(request: RequestNaverSearch):

@@ -6,7 +6,7 @@ from ..core.config import settings
 api_router = APIRouter()
 
 # embedding API URL
-api_router.include_router(keywords.router, prefix="/keywords", tags=["keyword"])
+api_router.include_router(keywords.router, prefix="/keyword", tags=["keyword"])
 
 # processing API URL
 api_router.include_router(blog.router, prefix="/blog", tags=["blog"])
