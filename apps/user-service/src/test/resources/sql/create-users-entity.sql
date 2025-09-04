@@ -21,12 +21,13 @@ CREATE TABLE `organizations` (
 );
 
 CREATE TABLE `roles` (
-                         `id`	bigint unsigned	NOT NULL AUTO_INCREMENT,
-                         `organization_id`	bigint unsigned NULL,
-                         `name`	varchar(100)	NULL,
-                         `description`	varchar(500)	NULL,
+                         `id`    bigint unsigned    NOT NULL AUTO_INCREMENT,
+                         `organization_id`  bigint unsigned NULL,
+                         `name` varchar(100)   NULL,
+                         `description`  varchar(500)   NULL,
                          PRIMARY KEY (`id`),
-                         CONSTRAINT `fk_organizations_to_roles` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`)
+                         CONSTRAINT `fk_organizations_to_roles` FOREIGN KEY (`organization_id`)
+                             REFERENCES `organizations` (`id`) ON DELETE SET NULL
 );
 
 CREATE TABLE `users` (

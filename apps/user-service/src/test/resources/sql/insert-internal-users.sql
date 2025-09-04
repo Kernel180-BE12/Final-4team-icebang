@@ -1,47 +1,28 @@
--- 샘플 데이터 INSERT (AUTO_INCREMENT 안전 - 동적 참조)
+-- icebang 내부 직원 전체 INSERT
 
--- 1. 조직 데이터
+-- 1. icebang 조직
 INSERT INTO `organizations` (`name`, `domain_name`) VALUES
-                                                        ('테크이노베이션', 'techinnovation.co.kr'),
-                                                        ('디지털솔루션', 'digitalsolution.com'),
-                                                        ('크리에이티브웍스', 'creativeworks.net'),
-                                                        ('아이스뱅', 'icebang.site')
-;
+    ('icebang', 'icebang.site');
 
--- 2. 부서 데이터 (서브쿼리로 동적 참조)
+-- 2. icebang 부서들
 INSERT INTO `departments` (`organization_id`, `name`) VALUES
--- 테크이노베이션 부서들
-((SELECT id FROM organizations WHERE domain_name = 'techinnovation.co.kr'), '개발팀'),
-((SELECT id FROM organizations WHERE domain_name = 'techinnovation.co.kr'), '디자인팀'),
-((SELECT id FROM organizations WHERE domain_name = 'techinnovation.co.kr'), '인사팀'),
-((SELECT id FROM organizations WHERE domain_name = 'techinnovation.co.kr'), '마케팅팀'),
-((SELECT id FROM organizations WHERE domain_name = 'techinnovation.co.kr'), '영업팀'),
-((SELECT id FROM organizations WHERE domain_name = 'techinnovation.co.kr'), '재무팀'),
+                                                          ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'AI개발팀'),
+                                                          ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), '데이터팀'),
+                                                          ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), '콘텐츠팀'),
+                                                          ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), '마케팅팀'),
+                                                          ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), '운영팀'),
+                                                          ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), '기획팀');
 
--- 디지털솔루션 부서들
-((SELECT id FROM organizations WHERE domain_name = 'digitalsolution.com'), '개발팀'),
-((SELECT id FROM organizations WHERE domain_name = 'digitalsolution.com'), '기획팀'),
-((SELECT id FROM organizations WHERE domain_name = 'digitalsolution.com'), '운영팀'),
-
--- 크리에이티브웍스 부서들
-((SELECT id FROM organizations WHERE domain_name = 'creativeworks.net'), '디자인팀'),
-((SELECT id FROM organizations WHERE domain_name = 'creativeworks.net'), '마케팅팀'),
-((SELECT id FROM organizations WHERE domain_name = 'creativeworks.net'), '제작팀');
-
--- 3. 직책 데이터 (서브쿼리로 동적 참조)
+-- 3. icebang 직책들
 INSERT INTO `positions` (`organization_id`, `title`) VALUES
--- icebang 직책들
-((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'CEO'),
-((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'CTO'),
-((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), '팀장'),
-((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), '시니어'),
-((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), '주니어'),
-((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), '인턴');'), '주니어'),
-((SELECT id FROM organizations WHERE domain_name = 'creativeworks.net'), '시니어'),
-((SELECT id FROM organizations WHERE domain_name = 'creativeworks.net'), '리드'),
-((SELECT id FROM organizations WHERE domain_name = 'creativeworks.net'), '디렉터');
+                                                         ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'CEO'),
+                                                         ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'CTO'),
+                                                         ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), '팀장'),
+                                                         ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), '시니어'),
+                                                         ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), '주니어'),
+                                                         ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), '인턴');
 
--- 4. 권한 데이터 (바이럴 콘텐츠 자동화 워크플로우에 특화)
+-- 4. 바이럴 콘텐츠 워크플로우 권한들
 INSERT INTO `permissions` (`resource`, `description`) VALUES
 -- 사용자 관리
 ('users.create', '사용자 생성'),
@@ -135,39 +116,38 @@ INSERT INTO `permissions` (`resource`, `description`) VALUES
 ('system.backup.create', '시스템 백업 생성'),
 ('system.backup.restore', '시스템 백업 복원');
 
--- 5. 시스템 역할 (organization_id = NULL)
+-- 5. 시스템 공통 역할
 INSERT INTO `roles` (`organization_id`, `name`, `description`) VALUES
-(NULL, 'SUPER_ADMIN', '최고 관리자 - 모든 권한'),
-(NULL, 'SYSTEM_ADMIN', '시스템 관리자 - 시스템 설정 및 관리'),
-(NULL, 'ORG_ADMIN', '조직 관리자 - 조직 내 모든 권한'),
-(NULL, 'USER', '일반 사용자 - 기본 사용 권한'),
-(NULL, 'GUEST', '게스트 - 제한된 조회 권한');
+                                                                   (NULL, 'SUPER_ADMIN', '최고 관리자 - 모든 권한'),
+                                                                   (NULL, 'SYSTEM_ADMIN', '시스템 관리자 - 시스템 설정 및 관리'),
+                                                                   (NULL, 'ORG_ADMIN', '조직 관리자 - 조직 내 모든 권한'),
+                                                                   (NULL, 'USER', '일반 사용자 - 기본 사용 권한'),
+                                                                   (NULL, 'GUEST', '게스트 - 제한된 조회 권한');
 
--- 6. 조직별 커스텀 역할 (서브쿼리로 동적 참조)
+-- 6. icebang 전용 역할
 INSERT INTO `roles` (`organization_id`, `name`, `description`) VALUES
--- icebang 역할
-((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'AI_ENGINEER', 'AI 엔지니어 - AI 모델 개발 및 최적화'),
-((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'DATA_SCIENTIST', '데이터 사이언티스트 - 데이터 분석 및 인사이트 도출'),
-((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'CRAWLING_ENGINEER', '크롤링 엔지니어 - 웹 크롤링 시스템 개발'),
-((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'CONTENT_CREATOR', '콘텐츠 크리에이터 - 바이럴 콘텐츠 제작'),
-((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'CONTENT_MANAGER', '콘텐츠 매니저 - 콘텐츠 기획 및 관리'),
-((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'WORKFLOW_ADMIN', '워크플로우 관리자 - 자동화 프로세스 관리'),
-((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'MARKETING_ANALYST', '마케팅 분석가 - 마케팅 성과 분석'),
-((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'OPERATIONS_MANAGER', '운영 매니저 - 시스템 운영 및 모니터링');
+                                                                   ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'AI_ENGINEER', 'AI 엔지니어 - AI 모델 개발 및 최적화'),
+                                                                   ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'DATA_SCIENTIST', '데이터 사이언티스트 - 데이터 분석 및 인사이트 도출'),
+                                                                   ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'CRAWLING_ENGINEER', '크롤링 엔지니어 - 웹 크롤링 시스템 개발'),
+                                                                   ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'CONTENT_CREATOR', '콘텐츠 크리에이터 - 바이럴 콘텐츠 제작'),
+                                                                   ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'CONTENT_MANAGER', '콘텐츠 매니저 - 콘텐츠 기획 및 관리'),
+                                                                   ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'WORKFLOW_ADMIN', '워크플로우 관리자 - 자동화 프로세스 관리'),
+                                                                   ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'MARKETING_ANALYST', '마케팅 분석가 - 마케팅 성과 분석'),
+                                                                   ((SELECT id FROM organizations WHERE domain_name = 'icebang.site'), 'OPERATIONS_MANAGER', '운영 매니저 - 시스템 운영 및 모니터링');
 
--- 7. 사용자 데이터 (icebang 직원들)
+-- 7. icebang 직원들
 INSERT INTO `users` (`name`, `email`, `password`, `status`) VALUES
-('김아이스', 'ice.kim@icebang.site', '$2a$10$encrypted_password_hash1', 'ACTIVE'),
-('박방방', 'bang.park@icebang.site', '$2a$10$encrypted_password_hash2', 'ACTIVE'),
-('이트렌드', 'trend.lee@icebang.site', '$2a$10$encrypted_password_hash3', 'ACTIVE'),
-('정바이럴', 'viral.jung@icebang.site', '$2a$10$encrypted_password_hash4', 'ACTIVE'),
-('최콘텐츠', 'content.choi@icebang.site', '$2a$10$encrypted_password_hash5', 'ACTIVE'),
-('홍크롤러', 'crawler.hong@icebang.site', '$2a$10$encrypted_password_hash6', 'ACTIVE'),
-('서데이터', 'data.seo@icebang.site', '$2a$10$encrypted_password_hash7', 'ACTIVE'),
-('윤워크플로', 'workflow.yoon@icebang.site', '$2a$10$encrypted_password_hash8', 'ACTIVE'),
-('시스템관리자', 'admin@icebang.site', '$2a$10$encrypted_password_hash0', 'ACTIVE');
+                                                                ('김아이스', 'ice.kim@icebang.site', '$2a$10$encrypted_password_hash1', 'ACTIVE'),
+                                                                ('박방방', 'bang.park@icebang.site', '$2a$10$encrypted_password_hash2', 'ACTIVE'),
+                                                                ('이트렌드', 'trend.lee@icebang.site', '$2a$10$encrypted_password_hash3', 'ACTIVE'),
+                                                                ('정바이럴', 'viral.jung@icebang.site', '$2a$10$encrypted_password_hash4', 'ACTIVE'),
+                                                                ('최콘텐츠', 'content.choi@icebang.site', '$2a$10$encrypted_password_hash5', 'ACTIVE'),
+                                                                ('홍크롤러', 'crawler.hong@icebang.site', '$2a$10$encrypted_password_hash6', 'ACTIVE'),
+                                                                ('서데이터', 'data.seo@icebang.site', '$2a$10$encrypted_password_hash7', 'ACTIVE'),
+                                                                ('윤워크플로', 'workflow.yoon@icebang.site', '$2a$10$encrypted_password_hash8', 'ACTIVE'),
+                                                                ('시스템관리자', 'admin@icebang.site', '$2a$10$encrypted_password_hash0', 'ACTIVE');
 
--- 8. 사용자-조직 연결 (동적 사번 생성 포함)
+-- 8. icebang 직원-조직 연결
 INSERT INTO `user_organizations` (`user_id`, `organization_id`, `position_id`, `department_id`, `employee_number`, `status`) VALUES
 -- 김아이스 - CEO, 기획팀
 ((SELECT id FROM users WHERE email = 'ice.kim@icebang.site'),
@@ -223,48 +203,31 @@ INSERT INTO `user_organizations` (`user_id`, `organization_id`, `position_id`, `
  (SELECT id FROM organizations WHERE domain_name = 'icebang.site'),
  (SELECT id FROM positions WHERE title = '팀장' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
  (SELECT id FROM departments WHERE name = '운영팀' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
- 'OPS25001', 'ACTIVE');
+ 'OPS25001', 'ACTIVE'),
 
--- 9. SUPER_ADMIN 권한 할당 (모든 권한)
+-- 시스템관리자 - CTO, 운영팀
+((SELECT id FROM users WHERE email = 'admin@icebang.site'),
+ (SELECT id FROM organizations WHERE domain_name = 'icebang.site'),
+ (SELECT id FROM positions WHERE title = 'CTO' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
+ (SELECT id FROM departments WHERE name = '운영팀' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
+ 'OPS25000', 'ACTIVE');
+
+-- 9. 역할별 권한 할당
+
+-- SUPER_ADMIN 모든 권한
 INSERT INTO `role_permissions` (`role_id`, `permission_id`)
 SELECT
     (SELECT id FROM roles WHERE name = 'SUPER_ADMIN'),
     id
 FROM permissions;
 
--- 10. SYSTEM_ADMIN 권한 할당 (시스템 관리 권한)
-INSERT INTO `role_permissions` (`role_id`, `permission_id`)
-SELECT
-    (SELECT id FROM roles WHERE name = 'SYSTEM_ADMIN'),
-    id
-FROM permissions
-WHERE resource LIKE 'system.%'
-   OR resource LIKE 'users.%'
-   OR resource LIKE 'roles.%'
-   OR resource LIKE 'permissions.%'
-   OR resource LIKE 'organizations.%';
-
--- 11. ORG_ADMIN 권한 할당 (조직 내 모든 권한)
+-- ORG_ADMIN 조직 내 모든 권한 (시스템 권한 제외)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`)
 SELECT
     (SELECT id FROM roles WHERE name = 'ORG_ADMIN'),
     id
 FROM permissions
 WHERE resource NOT LIKE 'system.%';
-
--- 12. 일반 USER 권한 할당 (기본 사용 권한)
-INSERT INTO `role_permissions` (`role_id`, `permission_id`)
-SELECT
-    (SELECT id FROM roles WHERE name = 'USER'),
-    id
-FROM permissions
-WHERE resource IN (
-    'users.read.own', 'users.update.own',
-    'content.read', 'content.read.own',
-    'trends.read', 'analytics.read'
-);
-
--- 13. icebang 전용 역할별 권한 할당
 
 -- AI_ENGINEER 권한
 INSERT INTO `role_permissions` (`role_id`, `permission_id`)
@@ -285,31 +248,8 @@ SELECT
 FROM permissions
 WHERE resource LIKE 'trends.%'
    OR resource LIKE 'analytics.%'
-   OR resource LIKE 'crawling.read%'
    OR resource LIKE 'reports.%'
-   OR resource IN ('content.read', 'campaigns.read');
-
--- CRAWLING_ENGINEER 권한
-INSERT INTO `role_permissions` (`role_id`, `permission_id`)
-SELECT
-    (SELECT id FROM roles WHERE name = 'CRAWLING_ENGINEER' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
-    id
-FROM permissions
-WHERE resource LIKE 'crawling.%'
-   OR resource LIKE 'trends.read%'
-   OR resource LIKE 'workflows.%'
-   OR resource IN ('system.logs.read');
-
--- CONTENT_CREATOR 권한
-INSERT INTO `role_permissions` (`role_id`, `permission_id`)
-SELECT
-    (SELECT id FROM roles WHERE name = 'CONTENT_CREATOR' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
-    id
-FROM permissions
-WHERE resource LIKE 'content.%'
-   OR resource LIKE 'trends.read%'
-   OR resource LIKE 'campaigns.%'
-   OR resource IN ('analytics.read');
+   OR resource IN ('content.read', 'campaigns.read', 'crawling.read');
 
 -- CONTENT_MANAGER 권한
 INSERT INTO `role_permissions` (`role_id`, `permission_id`)
@@ -321,7 +261,6 @@ WHERE resource LIKE 'content.%'
    OR resource LIKE 'campaigns.%'
    OR resource LIKE 'trends.%'
    OR resource LIKE 'analytics.%'
-   OR resource LIKE 'workflows.read%'
    OR resource IN ('users.read.department');
 
 -- WORKFLOW_ADMIN 권한
@@ -336,48 +275,24 @@ WHERE resource LIKE 'workflows.%'
    OR resource LIKE 'system.%'
    OR resource IN ('content.read', 'trends.read', 'analytics.read');
 
--- MARKETING_ANALYST 권한
-INSERT INTO `role_permissions` (`role_id`, `permission_id`)
-SELECT
-    (SELECT id FROM roles WHERE name = 'MARKETING_ANALYST' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
-    id
-FROM permissions
-WHERE resource LIKE 'analytics.%'
-   OR resource LIKE 'reports.%'
-   OR resource LIKE 'campaigns.read%'
-   OR resource LIKE 'trends.%'
-   OR resource IN ('content.read');
+-- 10. icebang 직원별 역할 할당
 
--- OPERATIONS_MANAGER 권한
-INSERT INTO `role_permissions` (`role_id`, `permission_id`)
-SELECT
-    (SELECT id FROM roles WHERE name = 'OPERATIONS_MANAGER' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
-    id
-FROM permissions
-WHERE resource LIKE 'system.%'
-   OR resource LIKE 'workflows.%'
-   OR resource LIKE 'users.read%'
-   OR resource LIKE 'analytics.read%'
-   OR resource IN ('departments.read', 'roles.read');
-
--- 14. 사용자별 역할 할당
-
--- 김아이스(CEO)에게 ORG_ADMIN 역할
+-- 김아이스(CEO) - ORG_ADMIN
 INSERT INTO `user_roles` (`role_id`, `user_organization_id`)
 SELECT
     (SELECT id FROM roles WHERE name = 'ORG_ADMIN'),
     uo.id
 FROM user_organizations uo
-JOIN users u ON u.id = uo.user_id
+         JOIN users u ON u.id = uo.user_id
 WHERE u.email = 'ice.kim@icebang.site';
 
--- 박방방(CTO)에게 AI_ENGINEER + WORKFLOW_ADMIN 역할
+-- 박방방(CTO) - AI_ENGINEER + WORKFLOW_ADMIN
 INSERT INTO `user_roles` (`role_id`, `user_organization_id`)
 SELECT
     (SELECT id FROM roles WHERE name = 'AI_ENGINEER' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
     uo.id
 FROM user_organizations uo
-JOIN users u ON u.id = uo.user_id
+         JOIN users u ON u.id = uo.user_id
 WHERE u.email = 'bang.park@icebang.site';
 
 INSERT INTO `user_roles` (`role_id`, `user_organization_id`)
@@ -385,76 +300,32 @@ SELECT
     (SELECT id FROM roles WHERE name = 'WORKFLOW_ADMIN' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
     uo.id
 FROM user_organizations uo
-JOIN users u ON u.id = uo.user_id
+         JOIN users u ON u.id = uo.user_id
 WHERE u.email = 'bang.park@icebang.site';
 
--- 이트렌드(데이터팀장)에게 DATA_SCIENTIST 역할
-INSERT INTO `user_roles` (`role_id`, `user_organization_id`)
-SELECT
-    (SELECT id FROM roles WHERE name = 'DATA_SCIENTIST' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
-    uo.id
-FROM user_organizations uo
-JOIN users u ON u.id = uo.user_id
-WHERE u.email = 'trend.lee@icebang.site';
-
--- 정바이럴(콘텐츠팀장)에게 CONTENT_MANAGER 역할
+-- 정바이럴(콘텐츠팀장) - CONTENT_MANAGER
 INSERT INTO `user_roles` (`role_id`, `user_organization_id`)
 SELECT
     (SELECT id FROM roles WHERE name = 'CONTENT_MANAGER' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
     uo.id
 FROM user_organizations uo
-JOIN users u ON u.id = uo.user_id
+         JOIN users u ON u.id = uo.user_id
 WHERE u.email = 'viral.jung@icebang.site';
 
--- 최콘텐츠에게 CONTENT_CREATOR 역할
-INSERT INTO `user_roles` (`role_id`, `user_organization_id`)
-SELECT
-    (SELECT id FROM roles WHERE name = 'CONTENT_CREATOR' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
-    uo.id
-FROM user_organizations uo
-JOIN users u ON u.id = uo.user_id
-WHERE u.email = 'content.choi@icebang.site';
-
--- 홍크롤러에게 CRAWLING_ENGINEER 역할
-INSERT INTO `user_roles` (`role_id`, `user_organization_id`)
-SELECT
-    (SELECT id FROM roles WHERE name = 'CRAWLING_ENGINEER' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
-    uo.id
-FROM user_organizations uo
-JOIN users u ON u.id = uo.user_id
-WHERE u.email = 'crawler.hong@icebang.site';
-
--- 서데이터에게 DATA_SCIENTIST 역할
+-- 이트렌드(데이터팀장) - DATA_SCIENTIST
 INSERT INTO `user_roles` (`role_id`, `user_organization_id`)
 SELECT
     (SELECT id FROM roles WHERE name = 'DATA_SCIENTIST' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
     uo.id
 FROM user_organizations uo
-JOIN users u ON u.id = uo.user_id
-WHERE u.email = 'data.seo@icebang.site';
+         JOIN users u ON u.id = uo.user_id
+WHERE u.email = 'trend.lee@icebang.site';
 
--- 윤워크플로(운영팀장)에게 OPERATIONS_MANAGER 역할
-INSERT INTO `user_roles` (`role_id`, `user_organization_id`)
-SELECT
-    (SELECT id FROM roles WHERE name = 'OPERATIONS_MANAGER' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
-    uo.id
-FROM user_organizations uo
-JOIN users u ON u.id = uo.user_id
-WHERE u.email = 'workflow.yoon@icebang.site';
-
--- 시스템관리자에게 SUPER_ADMIN 역할
+-- 시스템관리자 - SUPER_ADMIN
 INSERT INTO `user_roles` (`role_id`, `user_organization_id`)
 SELECT
     (SELECT id FROM roles WHERE name = 'SUPER_ADMIN'),
     uo.id
 FROM user_organizations uo
-JOIN users u ON u.id = uo.user_id
+         JOIN users u ON u.id = uo.user_id
 WHERE u.email = 'admin@icebang.site';
-
--- 추가: 시스템관리자 사용자-조직 연결 (빠진 부분)
-INSERT INTO `user_organizations` (`user_id`, `organization_id`, `position_id`, `department_id`, `employee_number`, `status`) VALUES
-((SELECT id FROM users WHERE email = 'admin@icebang.site'),
- (SELECT id FROM organizations WHERE domain_name = 'icebang.site'),
- (SELECT id FROM positions WHERE title = 'CTO' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
- (SELECT id FROM departments WHERE name = '운영팀' AND organization_id = (SELECT id FROM organizations WHERE domain_name = 'icebang.site')),
- 'OPS25000', 'ACTIVE');email = 'minsu.park@techinnovation.co.kr';
