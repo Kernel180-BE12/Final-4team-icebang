@@ -6,14 +6,15 @@ from pydantic import BaseModel
 
 #기본 요청
 class RequestBase(BaseModel):
-    job_id: str
-    schedule_id: str
-    schedule_his_id: Optional[int] = None
+    job_id: int
+    schedule_id: int
+    sschdule_his_id: Optional[int] = None
 
 #기본 응답
 class ResponseBase(BaseModel):
-    job_id: str
-    schedule_id: str
+    job_id: int
+    schedule_id: int
+    sschdule_his_id : Optional[int] = None
     status: str
 
 
@@ -21,8 +22,8 @@ class ResponseBase(BaseModel):
 class RequestNaverSearch(RequestBase):
     tag: str
     category: Optional[str] = None
-    start_date : str
-    end_date : str
+    start_date : Optional[str] = None
+    end_date : Optional[str] = None
 
 class ResponseNaverSearch(ResponseBase):
     category: str
