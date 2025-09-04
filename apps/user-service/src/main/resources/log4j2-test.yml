@@ -38,7 +38,7 @@ Configuration:
           - ref: console-appender
 
       # 2. 애플리케이션 로그
-      - name: com.movement
+      - name: com.gltkorea.icebang
         additivity: "false"
         level: INFO
         AppenderRef:
