@@ -6,7 +6,7 @@ from app.decorators.logging import log_api_call
 from ...errors.CustomException import *
 from fastapi import APIRouter
 from ...errors.CustomException import  *
-from ...model.schemas import RequestNaverSearch, ResponseNaverSearch, RequestSadaguValidate, ResponsetSadaguValidate
+from ...model.schemas import RequestNaverSearch, ResponseNaverSearch, RequestSadaguValidate, ResponseSadaguValidate
 
 # 이 파일만의 독립적인 라우터를 생성합니다.
 router = APIRouter()
@@ -43,7 +43,7 @@ async def search(request: RequestNaverSearch):
         status="SUCCESS"
     )
 
-@router.post("/search/test",response_model=ResponsetSadaguValidate)
+@router.post("/search/test",response_model=ResponseSadaguValidate)
 async def search(request: RequestSadaguValidate):
     """
     이 엔드포인트는 아래와 같은 JSON 요청을 받습니다.
