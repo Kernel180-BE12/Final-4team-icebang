@@ -28,7 +28,7 @@ async def keyword_search(request: RequestNaverSearch) -> dict:
     response_data = request.model_dump()
     response_data["keyword"] = random.choice(list(trending_keywords.values()))
     response_data["total_keyword"] = trending_keywords
-    response_data["status"] = "200"
+    response_data["status"] = "success"
     return response_data
 
 async def search_naver_rank(category,start_date,end_date) -> dict[int,str]:
