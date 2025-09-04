@@ -6,6 +6,7 @@ import java.util.Set;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,4 +36,6 @@ public class RegisterDto {
 
   @NotNull(message = "역할 선택은 필수입니다")
   private Set<BigInteger> roleIds;
+
+  @Null private String password;
 }
