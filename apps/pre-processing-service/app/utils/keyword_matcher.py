@@ -1,3 +1,5 @@
+from app.core.config import settings  # pydantic_settings 기반
+
 try:
     import MeCab
 
@@ -18,12 +20,17 @@ class KeywordMatcher:
         # MeCab 사용 가능 여부 확인
         if MECAB_AVAILABLE:
             try:
-                self.mecab = MeCab.Tagger()
+                # 경로가 있으면 사용, 없으면 기본값
+                if settings.mecab_path:
+                    self.mecab = MeCab.Tagger(f"-d {settings.mecab_path}")
+                else:
+                    self.mecab = MeCab.Tagger()  # 기본 경로
+
                 # 테스트 실행
                 test_result = self.mecab.parse("테스트")
                 if test_result and test_result.strip():
                     self.konlpy_available = True
-                    print("MeCab 형태소 분석기 사용 가능")
+                    print(f"MeCab 형태소 분석기 사용 가능 (경로: {settings.mecab_path or '기본'})")
                 else:
                     print("MeCab 테스트 실패")
             except Exception as e:
