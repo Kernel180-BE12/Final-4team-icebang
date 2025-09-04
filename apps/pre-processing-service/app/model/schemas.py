@@ -33,7 +33,7 @@ class RequestSadaguValidate(RequestBase):
     tag: str
     category: str
 
-class ResponsetSadaguValidate(ResponseBase):
+class ResponseSadaguValidate(ResponseBase):
     keyword: str
 
 #사다구몰 크롤링
@@ -56,7 +56,7 @@ class RequestBlogCreate(RequestBase):
     tag: str
     category: str
 
-class ResponsetBlogCreate(ResponseBase):
+class ResponseBlogCreate(ResponseBase):
     pass
 
 #블로그 배포
@@ -64,5 +64,5 @@ class RequestBlogPublish(RequestBase):
     tag: str
     category: str
 
-class ResponsetBlogPublish(ResponseBase):
+class ResponseBlogPublish(ResponseBase):
     pass
