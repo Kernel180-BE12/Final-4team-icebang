@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.gltkorea.icebang.common.utils.RandomPasswordGenerator;
 import com.gltkorea.icebang.domain.auth.dto.RegisterDto;
-import com.gltkorea.icebang.domain.user.service.UserService;
+import com.gltkorea.icebang.mapper.AuthMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 public class AuthService {
-  private final UserService userService;
+  private final AuthMapper authMapper;
   private final RandomPasswordGenerator passwordGenerator;
   private final PasswordEncoder passwordEncoder;
 
