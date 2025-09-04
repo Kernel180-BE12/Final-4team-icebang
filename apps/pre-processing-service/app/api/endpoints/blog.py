@@ -12,10 +12,10 @@ router = APIRouter()
 async def root():
     return {"message": "blog API"}
 
-@router.post("/rag/create", response_model=ResponsetBlogCreate)
+@router.post("/rag/create", response_model=ResponseBlogCreate)
 async def rag_create(request: RequestBlogCreate):
     return {"message": "blog API"}
 
 @router.post("/publish", response_model=RequestBlogPublish)
-async def publish(request: ResponsetBlogPublish):
+async def publish(request: ResponseBlogPublish):
     return {"message": "blog API"}
