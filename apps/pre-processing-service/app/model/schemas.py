@@ -70,7 +70,7 @@ class RequestSadaguCrawl(RequestBase):
     tag: str
     category: str
 
-class ResponsetSadaguCrawl(ResponseBase):
+class ResponseSadaguCrawl(ResponseBase):
     pass
 
 #블로그 생성
@@ -78,7 +78,7 @@ class RequestBlogCreate(RequestBase):
     tag: str
     category: str
 
-class ResponsetBlogCreate(ResponseBase):
+class ResponseBlogCreate(ResponseBase):
     pass
 
 #블로그 배포
