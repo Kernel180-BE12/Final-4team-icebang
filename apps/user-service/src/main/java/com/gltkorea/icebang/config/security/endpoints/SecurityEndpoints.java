@@ -2,7 +2,15 @@ package com.gltkorea.icebang.config.security.endpoints;
 
 public enum SecurityEndpoints {
   PUBLIC(
-      "/", "/login", "/register", "/api/public/**", "/health", "/css/**", "/js/**", "/images/**"),
+      "/",
+      "/login",
+      "/register",
+      "/api/public/**",
+      "/health",
+      "/css/**",
+      "/js/**",
+      "/images/**",
+      "/v0/**"),
 
   // 데이터 관리 관련 엔드포인트
   DATA_ADMIN("/admin/**", "/api/admin/**", "/management/**", "/actuator/**"),
