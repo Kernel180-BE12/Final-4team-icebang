@@ -1,4 +1,5 @@
-from pydantic_settings import BaseSettings
+# pydantic_settings에서 SettingsConfigDict를 추가로 import 합니다.
+from pydantic_settings import BaseSettings, SettingsConfigDict
 import os
 from typing import Optional
 
@@ -19,19 +20,16 @@ class BaseSettingsConfig(BaseSettings):
         """개별 필드를 사용하여 DB URL을 동적으로 생성"""
         return f"postgresql://{self.db_user}:{self.db_pass}@{self.db_host}:{self.db_port}/{self.db_name}"
 
-    class Config:
-        env_file = ['.env']
+    model_config = SettingsConfigDict(env_file=['.env'])
 
 
 # 환경별 설정 클래스
 class DevSettings(BaseSettingsConfig):
-    class Config:
-        env_file = ['.env', 'dev.env']
+    model_config = SettingsConfigDict(env_file=['.env', 'dev.env'])
 
 
 class PrdSettings(BaseSettingsConfig):
-    class Config:
-        env_file = ['.env', 'prd.env']
+    model_config = SettingsConfigDict(env_file=['.env', 'prd.env'])
 
 def get_settings() -> BaseSettingsConfig:
     """환경 변수에 따라 적절한 설정 객체를 반환하는 함수"""
