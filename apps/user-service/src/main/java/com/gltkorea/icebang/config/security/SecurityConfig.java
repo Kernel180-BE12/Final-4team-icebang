@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,14 +32,33 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(SecurityEndpoints.PUBLIC.getMatchers())
                     .permitAll()
-                    .requestMatchers(SecurityEndpoints.ADMIN.getMatchers())
-                    .hasRole("ADMIN")
+                    .requestMatchers("/auth/login", "/auth/logout")
+                    .permitAll()
+                    .requestMatchers(SecurityEndpoints.DATA_ADMIN.getMatchers())
+                    .hasAuthority("SUPER_ADMIN")
+                    .requestMatchers(SecurityEndpoints.DATA_ENGINEER.getMatchers())
+                    .hasAnyAuthority(
+                        "SUPER_ADMIN", "ADMIN", "SENIOR_DATA_ENGINEER", "DATA_ENGINEER")
+                    .requestMatchers(SecurityEndpoints.ANALYST.getMatchers())
+                    .hasAnyAuthority(
+                        "SUPER_ADMIN",
+                        "ADMIN",
+                        "SENIOR_DATA_ENGINEER",
+                        "DATA_ENGINEER",
+                        "SENIOR_DATA_ANALYST",
+                        "DATA_ANALYST",
+                        "VIEWER")
+                    .requestMatchers(SecurityEndpoints.OPS.getMatchers())
+                    .hasAnyAuthority(
+                        "SUPER_ADMIN", "ADMIN", "SENIOR_DATA_ENGINEER", "DATA_ENGINEER")
                     .requestMatchers(SecurityEndpoints.USER.getMatchers())
-                    .hasRole("USER")
+                    .authenticated()
                     .anyRequest()
                     .authenticated())
-        .formLogin(form -> form.loginPage("/login").defaultSuccessUrl("/").permitAll())
-        .logout(logout -> logout.logoutSuccessUrl("/login").permitAll())
+        .formLogin(AbstractHttpConfigurer::disable)
+        .logout(
+            logout -> logout.logoutUrl("/auth/logout").logoutSuccessUrl("/auth/login").permitAll())
+        .csrf(AbstractHttpConfigurer::disable) // API 사용을 위해 CSRF 비활성화
         .build();
   }
 

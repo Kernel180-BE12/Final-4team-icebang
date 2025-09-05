@@ -3,6 +3,7 @@ import uvicorn
 from fastapi import FastAPI
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.exceptions import RequestValidationError
+from app.middleware.ServiceLoggerMiddleware import ServiceLoggerMiddleware
 
 # --- 애플리케이션 구성 요소 임포트 ---
 from app.api.router import api_router
@@ -25,6 +26,7 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
 # --- 미들웨어 등록 ---
+app.add_middleware(ServiceLoggerMiddleware)
 app.add_middleware(LoggingMiddleware)
 
 # --- 라우터 등록 ---
