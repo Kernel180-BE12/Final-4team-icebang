@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gltkorea.icebang.mapper.AuthMapper">
+    <insert id="registerUser" parameterType="com.gltkorea.icebang.domain.auth.dto.RegisterDto">
+        <selectKey keyProperty="id"  resultType="java.math.BigInteger"  order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO users (name, email, password)
+        VALUES (#{name}, #{email}, #{password})
+
+        INSERT INTO user_organizations (user_id, organization_id, department_id, position_id, status)
+        VALUES (#{id}, #{organizationId}, #{departmentId}, #{positionId}, #{status})
+
+        INSERT INTO user_roles (user_organization_id, role_id)
+        SELECT uo.id, #{roleId}
+        FROM user_organizations uo
+        WHERE uo.user_id = #{id}
+    </insert>
+</mapper>
