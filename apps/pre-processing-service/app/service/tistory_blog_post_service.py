@@ -26,8 +26,8 @@ class TistoryBlogPostService:
         self.crawling_service = CrawlingService()
         self.driver = self.crawling_service.get_driver()
         self.wait = self.crawling_service.get_wait()
-        self.id = os.getenv("BLOG_ID", "fair_05@nate.com")
-        self.password = os.getenv("BLOG_PASSWORD", "kdyn264105*")
+        self.id = os.getenv("BLOG_ID", "INSERT_YOUR_ID")
+        self.password = os.getenv("BLOG_PASSWORD", "INSERT_YOUR_PASSWORD")
 
     def login(self, url: str) -> bool:
         """
