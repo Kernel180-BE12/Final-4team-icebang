@@ -1,29 +1,24 @@
 package com.gltkorea.icebang.domain.auth.controller;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gltkorea.icebang.domain.auth.dto.LoginRequest;
-import com.gltkorea.icebang.domain.auth.service.AuthService;
+import com.gltkorea.icebang.common.dto.ApiResponse;
+import com.gltkorea.icebang.domain.auth.dto.RegisterDto;
 
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-@RequestMapping("/auth")
 @RestController
+@RequestMapping("/v0/auth")
 @RequiredArgsConstructor
 public class AuthController {
-  private final AuthService authService;
 
-  @PostMapping("/login")
-  public ResponseEntity<?> login(
-      @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
-    authService.login(loginRequest.getUserName(), loginRequest.getPassword());
+  @PostMapping("/register")
+  public ApiResponse<String> register(@Valid @RequestBody RegisterDto registerDto) {
 
-    request.getSession(true);
-    return ResponseEntity.ok("success"); // @TODO:: 201로 변경
+    throw new RuntimeException("Not implemented");
   }
 }

@@ -1,6 +1,6 @@
 # app/api/router.py
 from fastapi import APIRouter
-from .endpoints import keywords, blog,test,product
+from .endpoints import keywords, blog, product, test
 from ..core.config import settings
 
 api_router = APIRouter()
@@ -14,7 +14,7 @@ api_router.include_router(blog.router, prefix="/blog", tags=["blog"])
 #상품 API URL
 api_router.include_router(product.router, prefix="/product", tags=["product"])
 
-#모듈 테스터를 위한 endpoint
+#모듈 테스터를 위한 endpoint -> 추후 삭제 예정
 api_router.include_router(test.router, prefix="/test", tags=["Test"])
 
 @api_router.get("/")

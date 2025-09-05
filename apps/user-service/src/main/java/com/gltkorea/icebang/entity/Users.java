@@ -1,11 +1,21 @@
 package com.gltkorea.icebang.entity;
 
+import java.math.BigInteger;
+import java.time.LocalDateTime;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
-// @TODO:: 우리 User entity에 맞게 설계
-// @TODO:: 관련 테이블들도 구성해야함
+@Builder
+@AllArgsConstructor
 public class Users {
+  private BigInteger id;
+  private String name;
   private String email;
   private String password;
+  private String status;
+  private LocalDateTime createdAt;
+  private LocalDateTime updatedAt;
 }

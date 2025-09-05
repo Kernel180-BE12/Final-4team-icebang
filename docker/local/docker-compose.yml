@@ -1,38 +1,38 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15
-    container_name: postgres_db
+  mariadb:
+    image: mariadb:11.4
+    container_name: mariadb_db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: pre_process
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: qwer1234
+      MYSQL_ROOT_PASSWORD: qwer1234
+      MYSQL_DATABASE: pre_process
+      MYSQL_USER: mariadb
+      MYSQL_PASSWORD: qwer1234
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d
+      - mariadb_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pqwer1234"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: pgadmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: qwer1234
+      PMA_HOST: mariadb
+      PMA_USER: root
+      PMA_PASSWORD: qwer1234
     ports:
       - "8888:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
     depends_on:
-      - postgres
+      - mariadb
+
   pre-processing-service:
     build:
       context: ../../apps/pre-processing-service        # 프로젝트 루트 (Dockerfile이 루트에 없으면 맞게 조정)
@@ -47,5 +47,4 @@ services:
       - ../../apps/pre-processing-service/dev.env    # 개발
 
 volumes:
-  postgres_data:
-  pgadmin_data:
+  mariadb_data:
