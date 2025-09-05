@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.schedule.service;
+package com.gltkorea.icebang.domain.schedule.service;
 
 import java.time.LocalDateTime;
 import java.util.Map;
