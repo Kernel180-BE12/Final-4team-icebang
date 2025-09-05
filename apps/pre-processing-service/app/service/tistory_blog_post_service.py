@@ -8,19 +8,32 @@ from typing import List
 
 from app.service.crawling_service import CrawlingService
 
-class BlogPostService:
+class TistoryBlogPostService:
+
+    """
+    티스토리 블로그 포스팅 서비스 클래스
+    추후에 전략 패턴을 통해 네이버 블로그와 맞출 예정
+    """
 
     def __init__(self):
+        """
+        티스토리 블로그 포스팅 서비스 초기화
+        1. CrawlingService 인스턴스 생성
+        2. 셀레니움 웹 드라이버 및 대기 객체 설정
+        3. 환경 변수에서 티스토리 아이디 및 비밀번호 로드
+        """
+
         self.crawling_service = CrawlingService()
         self.driver = self.crawling_service.get_driver()
         self.wait = self.crawling_service.get_wait()
         self.id = os.getenv("BLOG_ID", "fair_05@nate.com")
         self.password = os.getenv("BLOG_PASSWORD", "kdyn264105*")
 
-    def login_up_to_password_input(self, url: str) -> bool:
+    def login(self, url: str) -> bool:
         """
-        티스토리 카카오톡 로그인 과정 중 아이디와 비밀번호 입력까지 자동화합니다.
-        로그인 버튼 클릭 직전까지 진행됩니다.
+        티스토리 로그인 자동화 메서드
+        :param url: 티스토리 로그인 페이지 URL
+        :return: 로그인 성공 여부
         """
         try:
             print("티스토리 홈페이지 접속 중...")
@@ -78,7 +91,14 @@ class BlogPostService:
             print(f"오류가 발생했습니다: {e}")
             return False
 
-    def write_content(self, title: str, content: str, tags: List[str] = None):
+    def write_content(self, title: str, content: str, tags: List[str] = None) -> bool:
+        """
+        티스토리 블로그 포스팅 자동화
+        :param title: 포스트 제목
+        :param content: 포스트 내용
+        :param tags: 포스트 태그 리스트
+        :return: 성공 여부
+        """
         print("글쓰기 페이지로 직접 이동 중...")
         current_url = self.driver.current_url
         if "tistory.com" in current_url:
@@ -221,6 +241,8 @@ class BlogPostService:
             print("🎉 블로그 포스트 작성 및 발행 완료!")
             return True
 
+        return True
+
     def post_content(self,
                      blog_type: str,
                      url: str,
@@ -229,30 +251,35 @@ class BlogPostService:
                      tags: List[str] = None):
         """
         블로그 포스트 작성
-        :param blog_type: 블로그 종류
-        :param url: 블로그 포스트 URL
-        :param title: 블로그 포스트 제목
-        :param content: 블로그 포스트 내용
-        :param tags: 블로그 포스트 태그 리스트
+        :param blog_type: 블로그 타입 (예: 'tistory')
+        :param url: 페이지 URL
+        :param title: 포스트 제목
+        :param content: 포스트 내용
+        :param tags: 포스트 태그 리스트
+        :return: 포스팅 성공 여부
         """
 
-        if not self.login_up_to_password_input(url):
+        if not self.login(url):
             print("로그인 과정에서 오류가 발생하여 게시물 작성을 중단합니다.")
             return False
 
-        self.write_content(title, content, tags)
+        if not self.write_content(title, content, tags):
+            print("글 작성 과정에서 오류가 발생하여 게시물 작성을 중단합니다.")
+            return False
+
         print("블로그 포스트 작성 완료")
         return True
 
-    def close_driver(self):
-        """드라이버 종료"""
+    def __del__(self):
+        """
+        드라이버 종료
+        """
         if self.driver:
             self.driver.quit()
             self.crawling_service.close()
 
-
 if __name__ == "__main__":
-    service = BlogPostService()
+    service = TistoryBlogPostService()
     try:
         success = service.post_content("tistory",
                                        "https://www.tistory.com",
