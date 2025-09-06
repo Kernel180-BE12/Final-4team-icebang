@@ -2,8 +2,8 @@ from ...errors.CustomException import *
 from fastapi import APIRouter
 
 from ...model.schemas import *
-from ...service.tistory_blog_post_service import TistoryBlogPostService
-from ...service.naver_blog_post_service import NaverBlogPostService
+from app.service.blog.tistory_blog_post_service import TistoryBlogPostService
+from app.service.blog.naver_blog_post_service import NaverBlogPostService
 
 # 이 파일만의 독립적인 라우터를 생성합니다.
 router = APIRouter()

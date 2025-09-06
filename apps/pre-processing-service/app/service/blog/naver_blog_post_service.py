@@ -1,55 +1,33 @@
 import os
 import time
+import pyperclip
 
-from app.service.crawling_service import CrawlingService
-from app.errors.CrawlingException import *
-from app.errors.BlogPostingException import *
-
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
-from typing import List, Optional
-import pyperclip
+from selenium.common.exceptions import TimeoutException
 
-class NaverBlogPostService:
-    """
-    네이버 블로그 포스팅 서비스 클래스
-    login, write_content, post_content 메서드 포함
-    1. _login: 네이버 로그인 자동화
-    2. _write_content: 블로그 포스팅 작성 및 발행 자동화
-    3. post_content: 로그인 및 포스팅 작성 통합 메서드
-    4. __del__: 드라이버 종료
-    """
+from app.errors.CrawlingException import *
+from app.errors.BlogPostingException import *
+from app.service.blog.base_blog_post_service import BaseBlogPostService
 
-    def __init__(self):
-        """
-        네이버 블로그 포스팅 서비스 초기화
-        1. CrawlingService 인스턴스 생성
-        2. 셀레니움 웹 드라이버 및 대기 객체 설정
-        3. 환경 변수에서 아이디, 비밀번호, URL 로드
-        """
+class NaverBlogPostService(BaseBlogPostService):
+    """네이버 블로그 포스팅 서비스 구현"""
 
-        try:
-            self.crawling_service = CrawlingService()
-            self.web_driver = self.crawling_service.get_driver()
-            self.wait_driver = self.crawling_service.get_wait()
-        except Exception:
-            raise WebDriverConnectionException()
+    def _load_config(self) -> None:
+        """네이버 블로그 설정 로드"""
 
         self.id = os.getenv("NAVER_ID", "all2641")
         self.password = os.getenv("NAVER_PASSWORD", "cjh83520*")
         self.login_url = "https://nid.naver.com/nidlogin.login"
         self.post_content_url = f"https://blog.naver.com/PostWriteForm.naver?blogId={self.id}&Redirect=Write&redirect=Write&widgetTypeCall=true&noTrackingCode=true&directAccess=false"
 
+    def _get_platform_name(self) -> str:
+        return "NAVER_BLOG"
+
     def _validate_content(self, title: str, content: str, tags: Optional[List[str]] = None) -> None:
-        """
-        포스트 콘텐츠 기본 유효성 검사
-        :param title: 포스트 제목
-        :param content: 포스트 내용
-        :param tags: 포스트 태그 리스트
-        """
+        """공통 유효성 검사 로직"""
+
         if not title or not title.strip():
             raise BlogContentValidationException("title", "제목이 비어있습니다")
 
@@ -59,14 +37,12 @@ class NaverBlogPostService:
         if tags is None:
             raise BlogContentValidationException("tags", "태그가 비어있습니다")
 
-    def _login(self):
-        """
-        네이버 로그인 자동화 메서드
-        :return: 로그인 성공 여부
-        """
+    def _login(self) -> None:
+        """네이버 로그인 구현"""
 
         try:
             self.web_driver.get(self.login_url)
+
             # 아이디 입력
             try:
                 id_input = self.wait_driver.until(
@@ -113,14 +89,14 @@ class NaverBlogPostService:
         except Exception as e:
             raise BlogLoginException("네이버 블로그", f"예상치 못한 오류: {str(e)}")
 
-    def _write_content(self, title: str, content: str, tags: List[str] = None) -> bool:
-        """
-        네이버 블로그 포스팅 자동화
-        :param title: 포스트 제목
-        :param content: 포스트 내용
-        :param tags: 포스트 태그 리스트
-        :return: 성공 여부
-        """
+    def _write_content(self, title: str, content: str, tags: List[str] = None) -> None:
+        """네이버 블로그 포스팅 작성 구현"""
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support import expected_conditions as EC
+        from selenium.webdriver.common.keys import Keys
+        from selenium.webdriver.common.action_chains import ActionChains
+        from selenium.common.exceptions import TimeoutException
+
         try:
             self.web_driver.get(self.post_content_url)
 
@@ -217,38 +193,3 @@ class NaverBlogPostService:
             raise BlogServiceUnavailableException("네이버 블로그", "페이지 로드 중 네트워크 오류")
         except Exception as e:
             raise BlogPostPublishException("네이버 블로그", f"예상치 못한 오류: {str(e)}")
-
-    def post_content(self,
-                     title: str,
-                     content: str,
-                     tags: List[str] = None) -> dict:
-        """
-        블로그 포스트 작성
-        :param title: 포스트 제목
-        :param content: 포스트 내용
-        :param tags: 포스트 태그 리스트
-        :return: 발행 결과 딕셔너리
-        """
-
-        # 1. 콘텐츠 유효성 검사
-        self._validate_content(title, content, tags)
-
-        # 2. 로그인
-        self._login()
-
-        # 3. 포스트 작성 및 발행
-        self._write_content(title, content, tags)
-
-        return {
-            "platform": "네이버 블로그",
-            "title": title,
-            "content_length": len(content),
-            "tags": tags or []
-        }
-
-    def __del__(self):
-        """
-        드라이버 종료
-        """
-        if self.web_driver:
-            self.web_driver.quit()

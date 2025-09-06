@@ -1,36 +1,19 @@
 import os
 import time
 
-from app.service.crawling_service import CrawlingService
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
+
 from app.errors.CrawlingException import *
 from app.errors.BlogPostingException import *
+from app.service.blog.base_blog_post_service import BaseBlogPostService
 
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import TimeoutException
-from typing import List, Optional
+class TistoryBlogPostService(BaseBlogPostService):
+    """티스토리 블로그 포스팅 서비스"""
 
-class TistoryBlogPostService:
-    """
-    티스토리 블로그 포스팅 서비스 클래스
-    추후에 전략 패턴을 통해 네이버 블로그와 맞출 예정
-    """
-
-    def __init__(self):
-        """
-        티스토리 블로그 포스팅 서비스 초기화
-        1. CrawlingService 인스턴스 생성
-        2. 셀레니움 웹 드라이버 및 대기 객체 설정
-        3. 환경 변수에서 티스토리 아이디 및 비밀번호 로드
-        """
-
-        try:
-            self.crawling_service = CrawlingService()
-            self.web_driver = self.crawling_service.get_driver()
-            self.wait_driver = self.crawling_service.get_wait()
-        except Exception:
-            raise WebDriverConnectionException()
+    def _load_config(self) -> None:
+        """티스토리 블로그 설정 로드"""
 
         self.blog_name = os.getenv("TISTORY_BLOG_NAME", "hoons2641")
         self.id = os.getenv("TISTORY_ID", "fair_05@nate.com")
@@ -38,13 +21,12 @@ class TistoryBlogPostService:
         self.login_url = "https://accounts.kakao.com/login/?continue=https%3A%2F%2Fkauth.kakao.com%2Foauth%2Fauthorize%3Fclient_id%3D3e6ddd834b023f24221217e370daed18%26state%3DaHR0cHM6Ly93d3cudGlzdG9yeS5jb20v%26redirect_uri%3Dhttps%253A%252F%252Fwww.tistory.com%252Fauth%252Fkakao%252Fredirect%26response_type%3Dcode%26auth_tran_id%3Dslj3F.mFC~2JNOiCOGi5HdGPKOA.Pce4l5tiS~3fZkInLGuEG3tMq~xZkxx4%26ka%3Dsdk%252F2.7.3%2520os%252Fjavascript%2520sdk_type%252Fjavascript%2520lang%252Fko-KR%2520device%252FMacIntel%2520origin%252Fhttps%25253A%25252F%25252Fwww.tistory.com%26is_popup%3Dfalse%26through_account%3Dtrue&talk_login=hidden#login"
         self.post_content_url = f"https://{self.blog_name}.tistory.com/manage/newpost"
 
+    def _get_platform_name(self) -> str:
+        return "TISTORY_BLOG"
+
     def _validate_content(self, title: str, content: str, tags: Optional[List[str]] = None) -> None:
-        """
-        포스트 콘텐츠 기본 유효성 검사
-        :param title: 포스트 제목
-        :param content: 포스트 내용
-        :param tags: 포스트 태그 리스트
-        """
+        """공통 유효성 검사 로직"""
+
         if not title or not title.strip():
             raise BlogContentValidationException("title", "제목이 비어있습니다")
 
@@ -54,11 +36,9 @@ class TistoryBlogPostService:
         if tags is None:
             raise BlogContentValidationException("tags", "태그가 비어있습니다")
 
-    def _login(self) -> bool:
-        """
-        티스토리 로그인 자동화 메서드
-        :return: 로그인 성공 여부
-        """
+    def _login(self) -> None:
+        """티스토리 로그인 구현"""
+
         try:
             self.web_driver.get(self.login_url)
 
@@ -105,14 +85,9 @@ class TistoryBlogPostService:
         except Exception as e:
             raise BlogLoginException("티스토리 블로그", f"예상치 못한 오류: {str(e)}")
 
-    def _write_content(self, title: str, content: str, tags: List[str] = None) -> bool:
-        """
-        티스토리 블로그 포스팅 자동화
-        :param title: 포스트 제목
-        :param content: 포스트 내용
-        :param tags: 포스트 태그 리스트
-        :return: 성공 여부
-        """
+    def _write_content(self, title: str, content: str, tags: List[str] = None) -> None:
+        """티스토리 블로그 포스팅 작성 구현"""
+
         try:
             self.web_driver.get(self.post_content_url)
             time.sleep(3)
@@ -241,38 +216,3 @@ class TistoryBlogPostService:
             raise BlogServiceUnavailableException("티스토리 블로그", "페이지 로드 중 네트워크 오류")
         except Exception as e:
             raise BlogPostPublishException("티스토리 블로그", f"예상치 못한 오류: {str(e)}")
-
-    def post_content(self,
-                     title: str,
-                     content: str,
-                     tags: List[str] = None) -> dict:
-        """
-        블로그 포스트 작성
-        :param title: 포스트 제목
-        :param content: 포스트 내용
-        :param tags: 포스트 태그 리스트
-        :return: 발행 결과 딕셔너리
-        """
-
-        # 1. 콘텐츠 유효성 검사
-        self._validate_content(title, content, tags)
-
-        # 2. 로그인
-        self._login()
-
-        # 3. 포스트 작성 및 발행
-        self._write_content(title, content, tags)
-
-        return {
-            "platform": "티스토리 블로그",
-            "title": title,
-            "content_length": len(content),
-            "tags": tags or []
-        }
-
-    def __del__(self):
-        """
-        드라이버 종료
-        """
-        if self.web_driver:
-            self.web_driver.quit()
