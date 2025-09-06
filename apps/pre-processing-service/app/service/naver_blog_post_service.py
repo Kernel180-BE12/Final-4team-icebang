@@ -189,12 +189,12 @@ class NaverBlogPostService:
     def post_content(self,
                      title: str,
                      content: str,
-                     tage: List[str] = None) -> bool:
+                     tags: List[str] = None) -> bool:
         """
         블로그 포스트 작성
         :param title: 포스트 제목
         :param content: 포스트 내용
-        :param tage: 포스트 태그 리스트
+        :param tags: 포스트 태그 리스트
         :return: 포스팅 성공 여부
         """
 
@@ -204,7 +204,7 @@ class NaverBlogPostService:
             print("네이버 로그인 실패")
             raise Exception("네이버 로그인 실패")
 
-        if self._write_content(title, content, tage):
+        if self._write_content(title, content, tags):
             print("네이버 블로그 포스팅 성공")
         else:
             print("네이버 블로그 포스팅 실패")
