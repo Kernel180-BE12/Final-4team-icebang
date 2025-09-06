@@ -54,12 +54,3 @@ class CrawlingService:
             self.get_driver()
 
         return WebDriverWait(self.driver, timeout)
-
-    def close(self):
-        """
-        셀레니움 웹 드라이버 종료
-        """
-
-        if self.driver:
-            self.driver.quit()
-            self.driver = None

@@ -24,38 +24,27 @@ class TistoryBlogPostService:
         """
 
         self.crawling_service = CrawlingService()
-        self.driver = self.crawling_service.get_driver()
-        self.wait = self.crawling_service.get_wait()
-        self.id = os.getenv("BLOG_ID", "INSERT_YOUR_ID")
-        self.password = os.getenv("BLOG_PASSWORD", "INSERT_YOUR_PASSWORD")
+        self.web_driver = self.crawling_service.get_driver()
+        self.wait_driver = self.crawling_service.get_wait()
 
-    def login(self, url: str) -> bool:
+        self.blog_name = os.getenv("TISTORY_BLOG_NAME", "hoons2641")
+        self.id = os.getenv("TISTORY_ID", "fair_05@nate.com")
+        self.password = os.getenv("TISTORY_PASSWORD", "kdyn264105*")
+        self.login_url = "https://accounts.kakao.com/login/?continue=https%3A%2F%2Fkauth.kakao.com%2Foauth%2Fauthorize%3Fclient_id%3D3e6ddd834b023f24221217e370daed18%26state%3DaHR0cHM6Ly93d3cudGlzdG9yeS5jb20v%26redirect_uri%3Dhttps%253A%252F%252Fwww.tistory.com%252Fauth%252Fkakao%252Fredirect%26response_type%3Dcode%26auth_tran_id%3Dslj3F.mFC~2JNOiCOGi5HdGPKOA.Pce4l5tiS~3fZkInLGuEG3tMq~xZkxx4%26ka%3Dsdk%252F2.7.3%2520os%252Fjavascript%2520sdk_type%252Fjavascript%2520lang%252Fko-KR%2520device%252FMacIntel%2520origin%252Fhttps%25253A%25252F%25252Fwww.tistory.com%26is_popup%3Dfalse%26through_account%3Dtrue&talk_login=hidden#login"
+        self.post_content_url = f"https://{self.blog_name}.tistory.com/manage/newpost"
+
+    def _login(self) -> bool:
         """
         티스토리 로그인 자동화 메서드
-        :param url: 티스토리 로그인 페이지 URL
         :return: 로그인 성공 여부
         """
         try:
             print("티스토리 홈페이지 접속 중...")
-            self.driver.get(url)
+            self.web_driver.get(self.login_url)
             time.sleep(3)
 
-            print("\"카카오계정으로 시작하기\" 버튼 찾는 중...")
-            login_button = self.wait.until(
-                EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), '카카오계정으로 시작하기')]"))
-            )
-            login_button.click()
-            time.sleep(2)
-
-            print("\"카카오계정으로 로그인\" 버튼 클릭 중...")
-            kakao_login_button = self.wait.until(
-                EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), '카카오계정으로 로그인')]"))
-            )
-            kakao_login_button.click()
-            time.sleep(2)
-
             print("아이디 입력 중...")
-            id_input = self.wait.until(
+            id_input = self.wait_driver.until(
                 EC.presence_of_element_located((By.ID, "loginId--1"))
             )
             id_input.clear()
@@ -63,7 +52,7 @@ class TistoryBlogPostService:
             time.sleep(1)
 
             print("비밀번호 입력 중...")
-            password_input = self.wait.until(
+            password_input = self.wait_driver.until(
                 EC.presence_of_element_located((By.ID, "password--2"))
             )
             password_input.clear()
@@ -73,7 +62,7 @@ class TistoryBlogPostService:
             print("아이디와 비밀번호 입력 완료")
 
             print("로그인 버튼 찾는 중...")
-            login_button = self.wait.until(
+            login_button = self.wait_driver.until(
                 EC.element_to_be_clickable((By.XPATH, "//*[text()='로그인']"))
             )
             login_button.click()
@@ -91,7 +80,7 @@ class TistoryBlogPostService:
             print(f"오류가 발생했습니다: {e}")
             return False
 
-    def write_content(self, title: str, content: str, tags: List[str] = None) -> bool:
+    def _write_content(self, title: str, content: str, tags: List[str] = None) -> bool:
         """
         티스토리 블로그 포스팅 자동화
         :param title: 포스트 제목
@@ -100,19 +89,12 @@ class TistoryBlogPostService:
         :return: 성공 여부
         """
         print("글쓰기 페이지로 직접 이동 중...")
-        current_url = self.driver.current_url
-        if "tistory.com" in current_url:
-            if current_url.startswith("https://www.tistory.com"):
-                blog_url = "https://hoons2641.tistory.com/manage/newpost"
-            else:
-                blog_url = "https://hoons2641.tistory.com/manage/newpost"
-
-        self.driver.get(blog_url)
+        self.web_driver.get(self.post_content_url)
         time.sleep(5)
 
         print("제목 입력 중...")
         try:
-            title_input = self.wait.until(
+            title_input = self.wait_driver.until(
                 EC.presence_of_element_located((By.TAG_NAME, "textarea"))
             )
             title_input.clear()
@@ -124,19 +106,19 @@ class TistoryBlogPostService:
 
         print("내용 입력 중...")
         try:
-            iframe = self.wait.until(
+            iframe = self.wait_driver.until(
                 EC.presence_of_element_located(
                     (By.XPATH, "//iframe[contains(@title, 'Rich Text Area') or contains(@id, 'editor')]"))
             )
-            self.driver.switch_to.frame(iframe)
+            self.web_driver.switch_to.frame(iframe)
 
-            body = self.wait.until(
+            body = self.wait_driver.until(
                 EC.presence_of_element_located((By.TAG_NAME, "body"))
             )
             body.clear()
             body.send_keys(content)
 
-            self.driver.switch_to.default_content()
+            self.web_driver.switch_to.default_content()
             print("✅ 내용 입력 완료!")
 
         except Exception as e:
@@ -152,7 +134,7 @@ class TistoryBlogPostService:
                 content_area = None
                 for selector in content_selectors:
                     try:
-                        content_area = self.driver.find_element(By.XPATH, selector)
+                        content_area = self.web_driver.find_element(By.XPATH, selector)
                         break
                     except:
                         continue
@@ -170,7 +152,7 @@ class TistoryBlogPostService:
         if tags and len(tags) > 0:
             print(f"태그 입력 중: {tags}")
             try:
-                tag_input = self.wait.until(
+                tag_input = self.wait_driver.until(
                     EC.presence_of_element_located(
                         (By.XPATH, "//input[@placeholder='태그입력' or contains(@placeholder, '태그')]"))
                 )
@@ -189,7 +171,7 @@ class TistoryBlogPostService:
 
             print("완료 버튼 클릭 중...")
             try:
-                complete_button = self.wait.until(
+                complete_button = self.wait_driver.until(
                     EC.element_to_be_clickable((By.XPATH, "//*[text()='완료']"))
                 )
                 complete_button.click()
@@ -202,14 +184,14 @@ class TistoryBlogPostService:
 
             print("발행 설정 중...")
             try:
-                public_option = self.wait.until(
+                public_option = self.wait_driver.until(
                     EC.element_to_be_clickable((By.XPATH, "//*[text()='공개']"))
                 )
                 public_option.click()
                 time.sleep(1)
                 print("✅ 공개 설정 완료!")
 
-                publish_button = self.wait.until(
+                publish_button = self.wait_driver.until(
                     EC.element_to_be_clickable((By.XPATH, "//*[text()='공개 발행']"))
                 )
                 publish_button.click()
@@ -227,7 +209,7 @@ class TistoryBlogPostService:
 
                     for selector in publish_selectors:
                         try:
-                            publish_btn = self.driver.find_element(By.XPATH, selector)
+                            publish_btn = self.web_driver.find_element(By.XPATH, selector)
                             publish_btn.click()
                             print("✅ 대체 발행 버튼 클릭 완료!")
                             break
@@ -244,26 +226,22 @@ class TistoryBlogPostService:
         return True
 
     def post_content(self,
-                     blog_type: str,
-                     url: str,
                      title: str,
                      content: str,
                      tags: List[str] = None):
         """
         블로그 포스트 작성
-        :param blog_type: 블로그 타입 (예: 'tistory')
-        :param url: 페이지 URL
         :param title: 포스트 제목
         :param content: 포스트 내용
         :param tags: 포스트 태그 리스트
         :return: 포스팅 성공 여부
         """
 
-        if not self.login(url):
+        if not self._login():
             print("로그인 과정에서 오류가 발생하여 게시물 작성을 중단합니다.")
             return False
 
-        if not self.write_content(title, content, tags):
+        if not self._write_content(title, content, tags):
             print("글 작성 과정에서 오류가 발생하여 게시물 작성을 중단합니다.")
             return False
 
@@ -274,24 +252,13 @@ class TistoryBlogPostService:
         """
         드라이버 종료
         """
-        if self.driver:
-            self.driver.quit()
-            self.crawling_service.close()
+        if self.web_driver:
+            self.web_driver.quit()
 
 if __name__ == "__main__":
     service = TistoryBlogPostService()
-    try:
-        success = service.post_content("tistory",
-                                       "https://www.tistory.com",
-                                       "안녕하세요",
-                                       "Hello World",
-                                       ["테스트", "자동화"])
-        if success:
-            print("블로그 포스트 작성이 완료되었습니다.")
-        else:
-            print("블로그 포스트 작성에 실패했습니다.")
-    except KeyboardInterrupt:
-        print("\n프로그램이 중단되었습니다.")
-    finally:
-        input("Enter 키를 누르면 브라우저를 닫습니다...")
-        service.close_driver()
+    service.post_content(
+        title="테스트 제목",
+        content="테스트 내용입니다.",
+        tags=["테스트", "자동화", "티스토리"]
+    )
