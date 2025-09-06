@@ -90,5 +90,10 @@ class RequestBlogPublish(RequestBase):
     tag: str
     category: str
 
+    # 임의로 추가
+    title: str
+    content: str
+    tags: List[str]
+
 class ResponseBlogPublish(ResponseBase):
     pass
