@@ -1,15 +1,17 @@
 import os
 import time
 
+from app.service.crawling_service import CrawlingService
+from app.errors.CrawlingException import *
+from app.errors.BlogPostingException import *
+
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from typing import List
-
-from app.service.crawling_service import CrawlingService
+from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import TimeoutException
+from typing import List, Optional
 
 class TistoryBlogPostService:
-
     """
     티스토리 블로그 포스팅 서비스 클래스
     추후에 전략 패턴을 통해 네이버 블로그와 맞출 예정
@@ -23,9 +25,12 @@ class TistoryBlogPostService:
         3. 환경 변수에서 티스토리 아이디 및 비밀번호 로드
         """
 
-        self.crawling_service = CrawlingService()
-        self.web_driver = self.crawling_service.get_driver()
-        self.wait_driver = self.crawling_service.get_wait()
+        try:
+            self.crawling_service = CrawlingService()
+            self.web_driver = self.crawling_service.get_driver()
+            self.wait_driver = self.crawling_service.get_wait()
+        except Exception:
+            raise WebDriverConnectionException()
 
         self.blog_name = os.getenv("TISTORY_BLOG_NAME", "hoons2641")
         self.id = os.getenv("TISTORY_ID", "fair_05@nate.com")
@@ -33,52 +38,72 @@ class TistoryBlogPostService:
         self.login_url = "https://accounts.kakao.com/login/?continue=https%3A%2F%2Fkauth.kakao.com%2Foauth%2Fauthorize%3Fclient_id%3D3e6ddd834b023f24221217e370daed18%26state%3DaHR0cHM6Ly93d3cudGlzdG9yeS5jb20v%26redirect_uri%3Dhttps%253A%252F%252Fwww.tistory.com%252Fauth%252Fkakao%252Fredirect%26response_type%3Dcode%26auth_tran_id%3Dslj3F.mFC~2JNOiCOGi5HdGPKOA.Pce4l5tiS~3fZkInLGuEG3tMq~xZkxx4%26ka%3Dsdk%252F2.7.3%2520os%252Fjavascript%2520sdk_type%252Fjavascript%2520lang%252Fko-KR%2520device%252FMacIntel%2520origin%252Fhttps%25253A%25252F%25252Fwww.tistory.com%26is_popup%3Dfalse%26through_account%3Dtrue&talk_login=hidden#login"
         self.post_content_url = f"https://{self.blog_name}.tistory.com/manage/newpost"
 
+    def _validate_content(self, title: str, content: str, tags: Optional[List[str]] = None) -> None:
+        """
+        포스트 콘텐츠 기본 유효성 검사
+        :param title: 포스트 제목
+        :param content: 포스트 내용
+        :param tags: 포스트 태그 리스트
+        """
+        if not title or not title.strip():
+            raise BlogContentValidationException("title", "제목이 비어있습니다")
+
+        if not content or not content.strip():
+            raise BlogContentValidationException("content", "내용이 비어있습니다")
+
+        if tags is None:
+            raise BlogContentValidationException("tags", "태그가 비어있습니다")
+
     def _login(self) -> bool:
         """
         티스토리 로그인 자동화 메서드
         :return: 로그인 성공 여부
         """
         try:
-            print("티스토리 홈페이지 접속 중...")
             self.web_driver.get(self.login_url)
-            time.sleep(3)
 
-            print("아이디 입력 중...")
-            id_input = self.wait_driver.until(
-                EC.presence_of_element_located((By.ID, "loginId--1"))
-            )
+            # 아이디 입력
+            try:
+                id_input = self.wait_driver.until(
+                    EC.presence_of_element_located((By.ID, "loginId--1"))
+                )
+            except TimeoutException:
+                raise ElementNotFoundException("loginId--1")
+
             id_input.clear()
             id_input.send_keys(self.id)
             time.sleep(1)
 
-            print("비밀번호 입력 중...")
-            password_input = self.wait_driver.until(
-                EC.presence_of_element_located((By.ID, "password--2"))
-            )
+            # 비밀번호 입력
+            try:
+                password_input = self.wait_driver.until(
+                    EC.presence_of_element_located((By.ID, "password--2"))
+                )
+            except TimeoutException:
+                raise ElementNotFoundException("password--2")
+
             password_input.clear()
             password_input.send_keys(self.password)
             time.sleep(1)
 
-            print("아이디와 비밀번호 입력 완료")
+            # 로그인 버튼 클릭
+            try:
+                login_button = self.wait_driver.until(
+                    EC.element_to_be_clickable((By.XPATH, "//*[text()='로그인']"))
+                )
+                login_button.click()
+                time.sleep(2)
+            except TimeoutException:
+                raise ElementNotFoundException("로그인 버튼")
 
-            print("로그인 버튼 찾는 중...")
-            login_button = self.wait_driver.until(
-                EC.element_to_be_clickable((By.XPATH, "//*[text()='로그인']"))
-            )
-            login_button.click()
-            time.sleep(2)
-
-            return True
-
-        except TimeoutException as e:
-            print(f"요소를 찾는 데 시간이 초과되었습니다: {e}")
-            return False
-        except NoSuchElementException as e:
-            print(f"요소를 찾을 수 없습니다: {e}")
-            return False
+        except (ElementNotFoundException, BlogLoginException):
+            raise
+        except TimeoutException:
+            raise PageLoadTimeoutException(self.login_url)
+        except WebDriverConnectionException:
+            raise BlogServiceUnavailableException("티스토리 블로그", "네트워크 연결 오류 또는 페이지 로드 실패")
         except Exception as e:
-            print(f"오류가 발생했습니다: {e}")
-            return False
+            raise BlogLoginException("티스토리 블로그", f"예상치 못한 오류: {str(e)}")
 
     def _write_content(self, title: str, content: str, tags: List[str] = None) -> bool:
         """
@@ -88,118 +113,106 @@ class TistoryBlogPostService:
         :param tags: 포스트 태그 리스트
         :return: 성공 여부
         """
-        print("글쓰기 페이지로 직접 이동 중...")
-        self.web_driver.get(self.post_content_url)
-        time.sleep(5)
-
-        print("제목 입력 중...")
         try:
-            title_input = self.wait_driver.until(
-                EC.presence_of_element_located((By.TAG_NAME, "textarea"))
-            )
-            title_input.clear()
-            title_input.send_keys(title)
-            print("✅ 제목 입력 완료!")
-        except Exception as e:
-            print(f"❌ 제목 입력 실패: {e}")
-            return False
+            self.web_driver.get(self.post_content_url)
+            time.sleep(3)
 
-        print("내용 입력 중...")
-        try:
-            iframe = self.wait_driver.until(
-                EC.presence_of_element_located(
-                    (By.XPATH, "//iframe[contains(@title, 'Rich Text Area') or contains(@id, 'editor')]"))
-            )
-            self.web_driver.switch_to.frame(iframe)
-
-            body = self.wait_driver.until(
-                EC.presence_of_element_located((By.TAG_NAME, "body"))
-            )
-            body.clear()
-            body.send_keys(content)
-
-            self.web_driver.switch_to.default_content()
-            print("✅ 내용 입력 완료!")
-
-        except Exception as e:
-            print(f"⚠️ iframe 방식 실패, 다른 방법 시도: {e}")
+            # 제목 입력
             try:
-                # 일반 textarea나 div 에디터 찾기
-                content_selectors = [
-                    "//div[@contenteditable='true']",
-                    "//textarea[contains(@class, 'editor')]",
-                    "//div[contains(@class, 'editor')]"
-                ]
-
-                content_area = None
-                for selector in content_selectors:
-                    try:
-                        content_area = self.web_driver.find_element(By.XPATH, selector)
-                        break
-                    except:
-                        continue
-
-                if content_area:
-                    content_area.clear()
-                    content_area.send_keys(content)
-                    print("✅ 내용 입력 완료!")
-                else:
-                    print("⚠️ 내용 입력란을 찾지 못했습니다.")
-
-            except Exception as e2:
-                print(f"⚠️ 내용 입력 실패: {e2}")
-
-        if tags and len(tags) > 0:
-            print(f"태그 입력 중: {tags}")
-            try:
-                tag_input = self.wait_driver.until(
-                    EC.presence_of_element_located(
-                        (By.XPATH, "//input[@placeholder='태그입력' or contains(@placeholder, '태그')]"))
+                title_input = self.wait_driver.until(
+                    EC.presence_of_element_located((By.TAG_NAME, "textarea"))
                 )
-                tag_input.clear()
+                title_input.clear()
+                title_input.send_keys(title)
+                time.sleep(1)
+            except TimeoutException:
+                raise BlogElementInteractionException("제목 입력 필드", "제목 입력")
 
-                for i, tag in enumerate(tags):
-                    tag_input.send_keys(tag)
-                    if i < len(tags) - 1:
-                        tag_input.send_keys(",")
-                    time.sleep(0.5)
+            # 내용 입력
+            try:
+                iframe = self.wait_driver.until(
+                    EC.presence_of_element_located(
+                        (By.XPATH, "//iframe[contains(@title, 'Rich Text Area') or contains(@id, 'editor')]"))
+                )
+                self.web_driver.switch_to.frame(iframe)
 
-                print("✅ 태그 입력 완료!")
+                body = self.wait_driver.until(
+                    EC.presence_of_element_located((By.TAG_NAME, "body"))
+                )
+                body.clear()
+                body.send_keys(content)
 
-            except Exception as e:
-                print(f"⚠️ 태그 입력 실패: {e}")
+                self.web_driver.switch_to.default_content()
 
-            print("완료 버튼 클릭 중...")
+            except Exception:
+                try:
+                    # 일반 textarea나 div 에디터 찾기
+                    content_selectors = [
+                        "//div[@contenteditable='true']",
+                        "//textarea[contains(@class, 'editor')]",
+                        "//div[contains(@class, 'editor')]"
+                    ]
+
+                    content_area = None
+                    for selector in content_selectors:
+                        try:
+                            content_area = self.web_driver.find_element(By.XPATH, selector)
+                            break
+                        except:
+                            continue
+
+                    if content_area:
+                        content_area.clear()
+                        content_area.send_keys(content)
+                    else:
+                        raise BlogElementInteractionException("본문 입력 필드", "본문 입력")
+
+                except Exception:
+                    raise BlogElementInteractionException("본문 입력 필드", "본문 입력")
+
+            # 태그 입력
+            if tags and len(tags) > 0:
+                try:
+                    tag_input = self.wait_driver.until(
+                        EC.presence_of_element_located(
+                            (By.XPATH, "//input[@placeholder='태그입력' or contains(@placeholder, '태그')]"))
+                    )
+                    tag_input.clear()
+
+                    for i, tag in enumerate(tags):
+                        tag_input.send_keys(tag)
+                        if i < len(tags) - 1:
+                            tag_input.send_keys(",")
+                        time.sleep(0.5)
+
+                except Exception:
+                    raise BlogElementInteractionException("태그 입력 필드", "태그 입력")
+
+            # 완료 버튼 클릭
             try:
                 complete_button = self.wait_driver.until(
                     EC.element_to_be_clickable((By.XPATH, "//*[text()='완료']"))
                 )
                 complete_button.click()
-                time.sleep(3)  # 팝업이 나타날 시간 대기
-                print("✅ 완료 버튼 클릭 완료!")
+                time.sleep(3)
+            except TimeoutException:
+                raise BlogElementInteractionException("완료 버튼", "버튼 클릭")
 
-            except Exception as e:
-                print(f"❌ 완료 버튼 클릭 실패: {e}")
-                return False
-
-            print("발행 설정 중...")
+            # 발행 설정
             try:
                 public_option = self.wait_driver.until(
                     EC.element_to_be_clickable((By.XPATH, "//*[text()='공개']"))
                 )
                 public_option.click()
                 time.sleep(1)
-                print("✅ 공개 설정 완료!")
 
                 publish_button = self.wait_driver.until(
                     EC.element_to_be_clickable((By.XPATH, "//*[text()='공개 발행']"))
                 )
                 publish_button.click()
                 time.sleep(3)
-                print("✅ 공개 발행 완료!")
 
-            except Exception as e:
-                print(f"❌ 발행 설정 실패: {e}")
+            except Exception:
                 try:
                     publish_selectors = [
                         "//button[contains(text(), '발행')]",
@@ -211,42 +224,51 @@ class TistoryBlogPostService:
                         try:
                             publish_btn = self.web_driver.find_element(By.XPATH, selector)
                             publish_btn.click()
-                            print("✅ 대체 발행 버튼 클릭 완료!")
                             break
                         except:
                             continue
+                    else:
+                        raise BlogPostPublishException("티스토리 블로그", "발행 버튼을 찾을 수 없습니다")
 
-                except Exception as e2:
-                    print(f"❌ 대체 발행 방법도 실패: {e2}")
-                    return False
+                except Exception:
+                    raise BlogPostPublishException("티스토리 블로그", "발행 과정에서 오류가 발생했습니다")
 
-            print("🎉 블로그 포스트 작성 및 발행 완료!")
-            return True
-
-        return True
+        except (BlogElementInteractionException, BlogPostPublishException):
+            raise
+        except TimeoutException:
+            raise PageLoadTimeoutException(self.post_content_url)
+        except WebDriverConnectionException:
+            raise BlogServiceUnavailableException("티스토리 블로그", "페이지 로드 중 네트워크 오류")
+        except Exception as e:
+            raise BlogPostPublishException("티스토리 블로그", f"예상치 못한 오류: {str(e)}")
 
     def post_content(self,
                      title: str,
                      content: str,
-                     tags: List[str] = None):
+                     tags: List[str] = None) -> dict:
         """
         블로그 포스트 작성
         :param title: 포스트 제목
         :param content: 포스트 내용
         :param tags: 포스트 태그 리스트
-        :return: 포스팅 성공 여부
+        :return: 발행 결과 딕셔너리
         """
 
-        if not self._login():
-            print("로그인 과정에서 오류가 발생하여 게시물 작성을 중단합니다.")
-            return False
+        # 1. 콘텐츠 유효성 검사
+        self._validate_content(title, content, tags)
 
-        if not self._write_content(title, content, tags):
-            print("글 작성 과정에서 오류가 발생하여 게시물 작성을 중단합니다.")
-            return False
+        # 2. 로그인
+        self._login()
 
-        print("블로그 포스트 작성 완료")
-        return True
+        # 3. 포스트 작성 및 발행
+        self._write_content(title, content, tags)
+
+        return {
+            "platform": "티스토리 블로그",
+            "title": title,
+            "content_length": len(content),
+            "tags": tags or []
+        }
 
     def __del__(self):
         """
@@ -254,11 +276,3 @@ class TistoryBlogPostService:
         """
         if self.web_driver:
             self.web_driver.quit()
-
-if __name__ == "__main__":
-    service = TistoryBlogPostService()
-    service.post_content(
-        title="테스트 제목",
-        content="테스트 내용입니다.",
-        tags=["테스트", "자동화", "티스토리"]
-    )

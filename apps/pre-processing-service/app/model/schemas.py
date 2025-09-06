@@ -1,6 +1,7 @@
 from datetime import datetime
-from typing import Optional, List, Dict, Union
+from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field, HttpUrl
+
 
 # 기본 요청
 class RequestBase(BaseModel):
@@ -96,4 +97,4 @@ class RequestBlogPublish(RequestBase):
     tags: List[str]
 
 class ResponseBlogPublish(ResponseBase):
-    pass
+    metadata: Optional[Dict[str, Any]]
