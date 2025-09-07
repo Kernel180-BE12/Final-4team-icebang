@@ -25,7 +25,7 @@
 // @SpringBootTest
 // @Import(TestcontainersConfiguration.class)
 // @AutoConfigureTestDatabase(replace = Replace.NONE)
-// @ActiveProfiles("test") // application-test.yml 설정을 활성화
+// @ActiveProfiles("test") // application-test-unit.yml 설정을 활성화
 // @Transactional // 테스트 후 데이터 롤백
 // @Sql(
 //    scripts = {"classpath:sql/create-schema.sql", "classpath:sql/insert-user-data.sql"},
