@@ -70,6 +70,27 @@ dependencies {
 }
 
 tasks.named('test') {
+	useJUnitPlatform {
+		// 기본적으로는 e2e 태그 제외하고 실행
+		excludeTags 'e2e'
+	}
+	systemProperty 'spring.profiles.active', 'test-unit'
+}
+
+// E2E 테스트 전용 task 추가
+tasks.register('e2eTest', Test) {
+	useJUnitPlatform {
+		includeTags 'e2e'
+	}
+
+	systemProperty 'spring.profiles.active', 'test-e2e'
+
+	// E2E 테스트는 더 긴 시간 허용
+	timeout = Duration.ofMinutes(10)
+}
+
+// 모든 테스트 실행 task
+tasks.register('allTests', Test) {
 	useJUnitPlatform()
 }
 
