@@ -1,5 +1,5 @@
 -- MariaDB 최적화된 스키마 (소문자, VARCHAR 크기 지정)
-CREATE TABLE `permissions` (
+CREATE TABLE IF NOT EXISTS `permissions` (
                                `id`	int unsigned	NOT NULL AUTO_INCREMENT,
                                `resource`	varchar(100)	NULL,
                                `description`	varchar(255)	NULL,
@@ -11,7 +11,7 @@ CREATE TABLE `permissions` (
                                PRIMARY KEY (`id`)
 );
 
-CREATE TABLE `organizations` (
+CREATE TABLE IF NOT EXISTS `organizations` (
                                  `id`	bigint unsigned	NOT NULL AUTO_INCREMENT,
                                  `name`	varchar(150)	NULL,
                                  `domain_name`	varchar(100)	NULL,
@@ -20,7 +20,7 @@ CREATE TABLE `organizations` (
                                  PRIMARY KEY (`id`)
 );
 
-CREATE TABLE `roles` (
+CREATE TABLE IF NOT EXISTS `roles` (
                          `id`    bigint unsigned    NOT NULL AUTO_INCREMENT,
                          `organization_id`  bigint unsigned NULL,
                          `name` varchar(100)   NULL,
@@ -30,7 +30,7 @@ CREATE TABLE `roles` (
                              REFERENCES `organizations` (`id`) ON DELETE SET NULL
 );
 
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
                          `id`	bigint unsigned	NOT NULL AUTO_INCREMENT,
                          `name`	varchar(50)	NULL,
                          `email`	varchar(100)	NULL,
@@ -41,7 +41,7 @@ CREATE TABLE `users` (
                          PRIMARY KEY (`id`)
 );
 
-CREATE TABLE `departments` (
+CREATE TABLE IF NOT EXISTS `departments` (
                                `id`	bigint unsigned	NOT NULL AUTO_INCREMENT,
                                `organization_id`	bigint unsigned	NOT NULL,
                                `name`	varchar(100)	NULL,
@@ -49,7 +49,7 @@ CREATE TABLE `departments` (
                                CONSTRAINT `fk_organizations_to_departments` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`)
 );
 
-CREATE TABLE `positions` (
+CREATE TABLE IF NOT EXISTS `positions` (
                              `id`	bigint unsigned	NOT NULL AUTO_INCREMENT,
                              `organization_id`	bigint unsigned	NOT NULL,
                              `title`	varchar(100)	NULL,
@@ -57,7 +57,7 @@ CREATE TABLE `positions` (
                              CONSTRAINT `fk_organizations_to_positions` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`)
 );
 
-CREATE TABLE `user_organizations` (
+CREATE TABLE IF NOT EXISTS `user_organizations` (
                                       `id`	bigint unsigned	NOT NULL AUTO_INCREMENT,
                                       `user_id`	bigint unsigned	NOT NULL,
                                       `organization_id`	bigint unsigned	NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE `user_organizations` (
                                       CONSTRAINT `fk_departments_to_user_organizations` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`)
 );
 
-CREATE TABLE `role_permissions` (
+CREATE TABLE IF NOT EXISTS `role_permissions` (
                                     `id`	bigint unsigned	NOT NULL AUTO_INCREMENT,
                                     `role_id`	bigint unsigned	NOT NULL,
                                     `permission_id`	int unsigned	NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE `role_permissions` (
                                     UNIQUE KEY `uk_role_permission` (`role_id`, `permission_id`)
 );
 
-CREATE TABLE `user_roles` (
+CREATE TABLE IF NOT EXISTS `user_roles` (
                               `id`	bigint unsigned	NOT NULL AUTO_INCREMENT,
                               `role_id`	bigint unsigned	NOT NULL,
                               `user_organization_id`	bigint unsigned	NOT NULL,
@@ -95,11 +95,19 @@ CREATE TABLE `user_roles` (
 );
 
 -- 성능 최적화를 위한 인덱스
-CREATE INDEX `idx_users_email` ON `users` (`email`);
-CREATE INDEX `idx_users_status` ON `users` (`status`);
-CREATE INDEX `idx_user_organizations_user` ON `user_organizations` (`user_id`);
-CREATE INDEX `idx_user_organizations_org` ON `user_organizations` (`organization_id`);
-CREATE INDEX `idx_user_organizations_status` ON `user_organizations` (`status`);
-CREATE INDEX `idx_roles_org` ON `roles` (`organization_id`);
-CREATE INDEX `idx_permissions_resource` ON `permissions` (`resource`);
-CREATE INDEX `idx_permissions_active` ON `permissions` (`is_active`);
+CREATE INDEX IF NOT EXISTS
+ `idx_users_email` ON `users` (`email`);
+CREATE INDEX IF NOT EXISTS
+ `idx_users_status` ON `users` (`status`);
+CREATE INDEX IF NOT EXISTS
+ `idx_user_organizations_user` ON `user_organizations` (`user_id`);
+CREATE INDEX IF NOT EXISTS
+ `idx_user_organizations_org` ON `user_organizations` (`organization_id`);
+CREATE INDEX IF NOT EXISTS
+ `idx_user_organizations_status` ON `user_organizations` (`status`);
+CREATE INDEX IF NOT EXISTS
+ `idx_roles_org` ON `roles` (`organization_id`);
+CREATE INDEX IF NOT EXISTS
+ `idx_permissions_resource` ON `permissions` (`resource`);
+CREATE INDEX IF NOT EXISTS
+ `idx_permissions_active` ON `permissions` (`is_active`);
