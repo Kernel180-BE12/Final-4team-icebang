@@ -73,14 +73,15 @@ jobs:
         run: ./gradlew build -x test
         working-directory: apps/user-service
 
-#      - name: Run Tests
-#        run: |
-#          if [ "${{ github.base_ref }}" == "main" ]; then
-#            ./gradlew test
-#          else
-#            ./gradlew prTest
-#          fi
-#        working-directory: apps/user-service
+      - name: Run Tests
+        run: |
+          if [ "${{ github.base_ref }}" == "main" ]; then
+            ./gradlew allTests
+          else
+            ./gradlew test
+          fi
+        working-directory: apps/user-service
+
       - name: Upload build artifacts
         if: matrix.java-version == '21' && github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: actions/upload-artifact@v4
