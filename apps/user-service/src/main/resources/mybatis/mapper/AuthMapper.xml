@@ -4,6 +4,15 @@
 
 <mapper namespace="com.gltkorea.icebang.mapper.AuthMapper">
 
+    <!-- 이메일 중복 여부 확인 -->
+    <select id="existsByEmail" parameterType="string" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1
+            FROM users
+            WHERE email = #{email}
+        )
+    </select>
+
     <!-- 1. users INSERT & PK 반환 -->
     <insert id="insertUser" parameterType="com.gltkorea.icebang.domain.auth.dto.RegisterDto" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO users (name, email, password)
@@ -24,6 +33,5 @@
             (#{userOrgId}, #{roleId})
         </foreach>
     </insert>
-
 
 </mapper>

@@ -22,6 +22,9 @@ public class AuthService {
   private final EmailService emailService;
 
   public void registerUser(RegisterDto registerDto) {
+    if (authMapper.existsByEmail(registerDto.getEmail())) {
+      throw new IllegalArgumentException("이미 가입된 이메일입니다.");
+    }
     String randomPassword = passwordGenerator.generate();
     String hashedPassword = passwordEncoder.encode(randomPassword);
 

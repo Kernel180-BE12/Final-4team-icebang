@@ -1,9 +1,7 @@
 package com.gltkorea.icebang.domain.auth.controller;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import com.gltkorea.icebang.common.dto.ApiResponse;
 import com.gltkorea.icebang.domain.auth.dto.RegisterDto;
@@ -19,6 +17,7 @@ public class AuthController {
   private final AuthService authService;
 
   @PostMapping("/register")
+  @ResponseStatus(HttpStatus.CREATED)
   public ApiResponse<Void> register(@Valid @RequestBody RegisterDto registerDto) {
     authService.registerUser(registerDto);
     return ApiResponse.success(null);
