@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from loguru import logger
 
 
 class SearchCrawler:
@@ -35,9 +36,9 @@ class SearchCrawler:
         try:
             self.driver = webdriver.Chrome(options=chrome_options)
             self.wait = WebDriverWait(self.driver, 10)
-            print("Selenium WebDriver 초기화 완료")
+            logger.info("Selenium WebDriver 초기화 완료")
         except Exception as e:
-            print(f"Selenium 초기화 실패, httpx로 대체: {e}")
+            logger.warning(f"Selenium 초기화 실패, httpx로 대체: {e}")
             self.use_selenium = False
             self._setup_httpx()
 
@@ -49,6 +50,7 @@ class SearchCrawler:
             },
             timeout=30.0
         )
+        logger.info("httpx 클라이언트 초기화 완료")
 
     async def search_products_selenium(self, keyword: str) -> list[dict]:
         """Selenium을 사용한 상품 검색"""
@@ -56,6 +58,7 @@ class SearchCrawler:
         search_url = f"{self.base_url}/shop/search.php?ss_tx={encoded_keyword}"
 
         try:
+            logger.info(f"Selenium 상품 검색 시작: keyword='{keyword}', url='{search_url}'")
             self.driver.get(search_url)
             time.sleep(5)
 
@@ -86,11 +89,11 @@ class SearchCrawler:
                     seen_urls.add(product['url'])
                     unique_products.append(product)
 
-            print(f"Selenium으로 발견한 상품 링크: {len(unique_products)}개")
+            logger.info(f"Selenium으로 발견한 상품 링크: {len(unique_products)}개 (중복 제거 전: {len(product_links)}개)")
             return unique_products[:20]
 
         except Exception as e:
-            print(f"Selenium 검색 오류: {e}")
+            logger.error(f"Selenium 검색 오류: keyword='{keyword}', error='{e}'")
             return []
 
     async def search_products_httpx(self, keyword: str) -> list[dict]:
@@ -99,6 +102,7 @@ class SearchCrawler:
         search_url = f"{self.base_url}/shop/search.php?ss_tx={encoded_keyword}"
 
         try:
+            logger.info(f"httpx 상품 검색 시작: keyword='{keyword}', url='{search_url}'")
             response = await self.client.get(search_url)
             response.raise_for_status()
             soup = BeautifulSoup(response.content, 'html.parser')
@@ -117,16 +121,18 @@ class SearchCrawler:
                         'title': title
                     })
 
-            print(f"httpx로 발견한 상품 링크: {len(product_links)}개")
+            logger.info(f"httpx로 발견한 상품 링크: {len(product_links)}개")
             return product_links[:20]
 
         except Exception as e:
-            print(f"httpx 검색 오류: {e}")
+            logger.error(f"httpx 검색 오류: keyword='{keyword}', error='{e}'")
             return []
 
     async def get_basic_product_info(self, product_url: str) -> dict:
         """기본 상품 정보만 크롤링"""
         try:
+            logger.debug(f"기본 상품 정보 크롤링 시작: url='{product_url}'")
+
             if self.use_selenium:
                 self.driver.get(product_url)
                 self.wait.until(lambda driver: driver.execute_script("return document.readyState") == "complete")
@@ -139,13 +145,14 @@ class SearchCrawler:
             title_element = soup.find('h1', {'id': 'kakaotitle'})
             title = title_element.get_text(strip=True) if title_element else "제목 없음"
 
+            logger.debug(f"기본 상품 정보 크롤링 완료: title='{title[:50]}'")
             return {
                 'url': product_url,
                 'title': title
             }
 
         except Exception as e:
-            print(f"기본 상품 크롤링 오류 ({product_url}): {e}")
+            logger.error(f"기본 상품 크롤링 오류: url='{product_url}', error='{e}'")
             return None
 
     async def close(self):
@@ -153,13 +160,15 @@ class SearchCrawler:
         if self.use_selenium and hasattr(self, 'driver'):
             try:
                 self.driver.quit()
-            except Exception:
-                pass
+                logger.info("Selenium WebDriver 종료 완료")
+            except Exception as e:
+                logger.warning(f"Selenium WebDriver 종료 중 오류: {e}")
         elif hasattr(self, 'client'):
             try:
                 await self.client.aclose()
-            except Exception:
-                pass
+                logger.info("httpx 클라이언트 종료 완료")
+            except Exception as e:
+                logger.warning(f"httpx 클라이언트 종료 중 오류: {e}")
 
 
 class DetailCrawler(SearchCrawler):
@@ -168,6 +177,8 @@ class DetailCrawler(SearchCrawler):
     async def crawl_detail(self, product_url: str, include_images: bool = False) -> dict:
         """상품 상세 정보 크롤링"""
         try:
+            logger.info(f"상품 상세 크롤링 시작: url='{product_url}', include_images={include_images}")
+
             if self.use_selenium:
                 soup = await self._get_soup_selenium(product_url)
             else:
@@ -190,43 +201,55 @@ class DetailCrawler(SearchCrawler):
                 'crawled_at': time.strftime('%Y-%m-%d %H:%M:%S')
             }
 
+            logger.info(
+                f"기본 상품 정보 추출 완료: title='{title[:50]}', price={price}, rating={rating}, options_count={len(options)}")
+
             if include_images:
-                print("이미지 정보 추출 중...")
+                logger.info("이미지 정보 추출 중...")
                 product_images = self._extract_images(soup)
                 product_data['product_images'] = [{'original_url': img_url} for img_url in product_images]
-                print(f"추출된 이미지: {len(product_images)}개")
+                logger.info(f"추출된 이미지: {len(product_images)}개")
             else:
                 product_data['product_images'] = []
 
+            logger.info(f"상품 상세 크롤링 완료: url='{product_url}'")
             return product_data
 
         except Exception as e:
-            print(f"크롤링 오류: {e}")
+            logger.error(f"상품 상세 크롤링 오류: url='{product_url}', error='{e}'")
             raise Exception(f"크롤링 실패: {str(e)}")
 
     async def _get_soup_selenium(self, product_url: str) -> BeautifulSoup:
         """Selenium으로 HTML 가져오기"""
         try:
+            logger.debug(f"Selenium HTML 로딩 시작: url='{product_url}'")
             self.driver.get(product_url)
             self.wait.until(lambda driver: driver.execute_script("return document.readyState") == "complete")
             time.sleep(2)
+            logger.debug("Selenium HTML 로딩 완료")
             return BeautifulSoup(self.driver.page_source, 'html.parser')
         except Exception as e:
+            logger.error(f"Selenium HTML 로딩 실패: url='{product_url}', error='{e}'")
             raise Exception(f"Selenium HTML 로딩 실패: {e}")
 
     async def _get_soup_httpx(self, product_url: str) -> BeautifulSoup:
         """httpx로 HTML 가져오기"""
         try:
+            logger.debug(f"httpx HTML 요청 시작: url='{product_url}'")
             response = await self.client.get(product_url)
             response.raise_for_status()
+            logger.debug("httpx HTML 요청 완료")
             return BeautifulSoup(response.content, 'html.parser')
         except Exception as e:
+            logger.error(f"httpx HTML 요청 실패: url='{product_url}', error='{e}'")
             raise Exception(f"HTTP 요청 실패: {e}")
 
     def _extract_title(self, soup: BeautifulSoup) -> str:
         """제목 추출"""
         title_element = soup.find('h1', {'id': 'kakaotitle'})
-        return title_element.get_text(strip=True) if title_element else "제목 없음"
+        title = title_element.get_text(strip=True) if title_element else "제목 없음"
+        logger.debug(f"제목 추출: '{title[:50]}'")
+        return title
 
     def _extract_price(self, soup: BeautifulSoup) -> int:
         """가격 추출"""
@@ -245,7 +268,12 @@ class DetailCrawler(SearchCrawler):
                 price_match = re.search(r'(\d+)', price_text)
                 if price_match:
                     price = int(price_match.group(1))
+                    logger.debug(f"가격 추출 성공: {price}원 (selector: {selector})")
                     break
+
+        if price == 0:
+            logger.debug("가격 추출 실패 - 0원으로 설정")
+
         return price
 
     def _extract_rating(self, soup: BeautifulSoup) -> float:
@@ -266,7 +294,13 @@ class DetailCrawler(SearchCrawler):
                         rating += 1
                     elif 'icon_star_half.svg' in src:
                         rating += 0.5
-                break
+                if rating > 0:
+                    logger.debug(f"평점 추출 성공: {rating}점")
+                    break
+
+        if rating == 0.0:
+            logger.debug("평점 추출 실패 - 0.0점으로 설정")
+
         return rating
 
     def _extract_options(self, soup: BeautifulSoup) -> list[dict]:
@@ -276,6 +310,8 @@ class DetailCrawler(SearchCrawler):
 
         if sku_list:
             option_items = sku_list.find_all('li', class_=re.compile(r'imgWrapper'))
+            logger.debug(f"옵션 항목 발견: {len(option_items)}개")
+
             for item in option_items:
                 title_element = item.find('a', title=True)
                 if title_element:
@@ -300,7 +336,9 @@ class DetailCrawler(SearchCrawler):
                             'stock': stock,
                             'image_url': image_url
                         })
+                        logger.debug(f"옵션 추출: name='{option_name}', stock={stock}")
 
+        logger.info(f"총 {len(options)}개 옵션 추출 완료")
         return options
 
     def _extract_material_info(self, soup: BeautifulSoup) -> dict:
@@ -316,7 +354,9 @@ class DetailCrawler(SearchCrawler):
                 title = title_element.get_text(strip=True)
                 info = info_element.get_text(strip=True)
                 material_info[title] = info
+                logger.debug(f"소재 정보 추출: {title}='{info}'")
 
+        logger.info(f"총 {len(material_info)}개 소재 정보 추출 완료")
         return material_info
 
     def _extract_images(self, soup: BeautifulSoup) -> list[str]:
@@ -336,5 +376,7 @@ class DetailCrawler(SearchCrawler):
                 else:
                     continue
                 images.append(src)
+                logger.debug(f"이미지 URL 추출: {src}")
 
+        logger.info(f"총 {len(images)}개 이미지 URL 추출 완료")
         return images
