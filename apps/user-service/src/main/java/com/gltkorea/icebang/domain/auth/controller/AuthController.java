@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gltkorea.icebang.common.dto.ApiResponse;
 import com.gltkorea.icebang.domain.auth.dto.RegisterDto;
+import com.gltkorea.icebang.domain.auth.service.AuthService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +16,11 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/v0/auth")
 @RequiredArgsConstructor
 public class AuthController {
+  private final AuthService authService;
 
   @PostMapping("/register")
-  public ApiResponse<String> register(@Valid @RequestBody RegisterDto registerDto) {
-
-    throw new RuntimeException("Not implemented");
+  public ApiResponse<Void> register(@Valid @RequestBody RegisterDto registerDto) {
+    authService.registerUser(registerDto);
+    return ApiResponse.success(null);
   }
 }
