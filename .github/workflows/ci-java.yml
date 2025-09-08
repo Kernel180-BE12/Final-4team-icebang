@@ -24,6 +24,7 @@ permissions:
 
 jobs:
   spotless-check:
+    if: github.event.pull_request.draft == false
     name: Lint Check
     runs-on: ubuntu-latest
 

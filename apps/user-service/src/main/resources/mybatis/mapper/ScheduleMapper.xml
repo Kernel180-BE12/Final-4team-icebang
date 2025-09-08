@@ -4,12 +4,12 @@
 <mapper namespace="com.gltkorea.icebang.mapper.ScheduleMapper">
 
     <select id="findAllByIsActive" resultType="com.gltkorea.icebang.domain.schedule.model.Schedule"> SELECT
-                                                                                                         schedule_id AS scheduleId,
+                                                                                                         id AS scheduleId,
                                                                                                          workflow_id AS workflowId,
                                                                                                          cron_expression AS cronExpression,
                                                                                                          is_active AS isActive
                                                                                                      FROM
-                                                                                                         schedule
+                                                                                                         schedules
                                                                                                      WHERE
                                                                                                          is_active = #{isActive}
     </select>
