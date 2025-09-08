@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gltkorea.icebang.mapper.OrganizationMapper">
+
+    <select id="findAllOrganizations"
+            resultType="com.gltkorea.icebang.domain.organization.dto.OrganizationCardDto">
+        SELECT
+            id,
+            name as organizationName
+        FROM organizations
+        ORDER BY name
+    </select>
+
+    <select id="findDepartmentsByOrganizationId"
+            resultType="com.gltkorea.icebang.domain.department.dto.DepartmentsCardDto">
+        SELECT
+            id,
+            name
+        FROM departments
+        WHERE organization_id = #{organizationId}
+        ORDER BY name
+    </select>
+
+    <select id="findPositionsByOrganizationId"
+            resultType="com.gltkorea.icebang.domain.position.dto.PositionCardDto">
+        SELECT
+            id,
+            title
+        FROM positions
+        WHERE organization_id = #{organizationId}
+        ORDER BY title
+    </select>
+
+    <select id="findRolesByOrganizationId"
+            resultType="com.gltkorea.icebang.domain.roles.dto.RolesCardDto">
+        SELECT
+            id,
+            name,
+            description
+        FROM roles
+        WHERE organization_id = #{organizationId}
+        ORDER BY name
+    </select>
+
+</mapper>
