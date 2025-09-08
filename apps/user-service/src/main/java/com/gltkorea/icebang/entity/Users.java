@@ -10,6 +10,7 @@ import lombok.Data;
 @Data
 @Builder
 @AllArgsConstructor
+@Deprecated
 public class Users {
   private BigInteger id;
   private String name;
