@@ -43,7 +43,6 @@ class NaverBlogPostService(BaseBlogPostService):
         try:
             self.web_driver.get(self.login_url)
 
-            # 아이디 입력
             try:
                 id_input = self.wait_driver.until(
                     EC.presence_of_element_located((By.ID, "id"))
