@@ -2,7 +2,12 @@ spring:
   config:
     activate:
       on-profile: develop
-  
+
+  docker:
+    compose:
+      file: docker/local/docker-compose.yml # IDE에서 final-4team-icebang을 root로 열어야 합니다.
+      lifecycle-management: start_only
+
   # MariaDB 데이터베이스 연결 설정
   datasource:
     url: jdbc:mariadb://localhost:3306/pre_process

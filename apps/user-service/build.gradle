@@ -62,6 +62,9 @@ dependencies {
 	runtimeOnly 'com.h2database:h2'
 	implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
 
+	// Development dependencies
+	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+
 	// Test Dependencies
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'

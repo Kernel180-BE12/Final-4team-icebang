@@ -15,7 +15,7 @@ services:
     volumes:
       - mariadb_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pqwer1234"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "mariadb", "-pqwer1234"]
       interval: 10s
       timeout: 5s
       retries: 5
