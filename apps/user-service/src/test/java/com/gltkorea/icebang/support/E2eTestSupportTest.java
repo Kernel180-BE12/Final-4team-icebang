@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
 
-@Sql(scripts = "classpath:sql/create-users-entity.sql")
+@Sql(scripts = "classpath:sql/schema.sql")
 class E2eTestSupportTest extends E2eTestSupport {
 
   @Test
