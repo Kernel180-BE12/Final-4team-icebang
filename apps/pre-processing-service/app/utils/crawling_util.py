@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 
-class CrawlingService:
+class CrawlingUtil:
 
     def __init__(self):
         self.options = self._get_chrome_options()
@@ -54,12 +54,3 @@ class CrawlingService:
             self.get_driver()
 
         return WebDriverWait(self.driver, timeout)
-
-    def close(self):
-        """
-        셀레니움 웹 드라이버 종료
-        """
-
-        if self.driver:
-            self.driver.quit()
-            self.driver = None
