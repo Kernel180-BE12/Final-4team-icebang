@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.domain.batch.tasklet;
+package com.gltkorea.icebang.batch.tasklet;
 
 import java.util.List;
 

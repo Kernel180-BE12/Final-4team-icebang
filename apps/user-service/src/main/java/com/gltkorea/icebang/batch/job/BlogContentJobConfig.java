@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.domain.batch.job;
+package com.gltkorea.icebang.batch.job;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import com.gltkorea.icebang.domain.batch.tasklet.ContentGenerationTasklet;
-import com.gltkorea.icebang.domain.batch.tasklet.KeywordExtractionTasklet;
+import com.gltkorea.icebang.batch.tasklet.ContentGenerationTasklet;
+import com.gltkorea.icebang.batch.tasklet.KeywordExtractionTasklet;
 
 import lombok.RequiredArgsConstructor;
 
