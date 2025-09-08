@@ -36,7 +36,9 @@ spring:
   # SQL 스크립트 초기화 설정
   sql:
     init:
-      mode: embedded
+      mode: always
+      schema-locations: classpath:sql/schema.sql
+      encoding: UTF-8
 
 mybatis:
   mapper-locations: classpath:mybatis/mapper/**/*.xml
