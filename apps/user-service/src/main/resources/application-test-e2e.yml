@@ -1,0 +1,19 @@
+spring:
+  config:
+    activate:
+      on-profile: test-e2e
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:sql/schema.sql
+      encoding: UTF-8
+
+mybatis:
+  mapper-locations: classpath:mybatis/mapper/**/*.xml
+  type-aliases-package: com.gltkorea.icebang.dto
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  config: classpath:log4j2-production.yml
