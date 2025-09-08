@@ -3,6 +3,14 @@ from fastapi import APIRouter
 from app.decorators.logging import log_api_call
 from ...errors.CustomException import *
 from fastapi import APIRouter
+from typing import Mapping, Any, Dict
+from ...model.schemas import *
+from ...service.blog.naver_blog_post_service import NaverBlogPostService
+from ...service.blog.tistory_blog_post_service import TistoryBlogPostService
+from ...service.keyword_service import keyword_search
+from ...service.match_service import match_products
+from ...service.search_service import search_products
+from ...service.similarity_service import select_product_by_similarity
 
 # 이 파일만의 독립적인 라우터를 생성합니다.
 router = APIRouter()
@@ -32,4 +40,69 @@ async def trigger_error(item_id: int):
         raise ValueError("이것은 테스트용 값 오류입니다.")
 
 
-    return {"result": item_id}
+    return {"result": item_id}\
+
+
+
+def with_meta(data: Mapping[str, Any], meta: Mapping[str, Any]) -> Dict[str, Any]:
+    """요청 payload + 공통 meta 머지"""
+    return {**meta, **data}
+
+@router.get("/tester",response_model=None)
+async def processing_tester():
+    meta = {
+        "job_id": 1,
+        "schedule_id": 1,
+        "schedule_his_id": 1,   # ✅ 타이포 수정
+    }
+    request_dict =    {
+        "tag":"naver",
+        "category":"50000000",
+        "start_date":"2025-09-01",
+        "end_date":"2025-09-02"
+    }
+    #네이버 키워드 검색
+    naver_request = RequestNaverSearch(**with_meta(meta,request_dict))
+    response_data = await keyword_search(naver_request)
+    keyword = response_data.get("keyword")
+    print(keyword)
+
+    keyword ={
+        "keyword" : keyword,
+    }
+    #싸다구 상품 검색
+    sadagu_request = RequestSadaguSearch(**with_meta(meta, keyword))
+    keyword_result = await search_products(sadagu_request)
+    print(keyword_result)
+
+    #싸다구 상품 매치
+    keyword["search_results"] = keyword_result.get("search_results")
+    keyword_match_request = RequestSadaguMatch(**with_meta(meta, keyword))
+    keyword_match_response = match_products(keyword_match_request)
+    print(keyword_match_response)
+
+    #싸다구 상품 유사도 분석
+    keyword["matched_products"] = keyword_match_response.get("matched_products")
+    keyword_similarity_request = RequestSadaguSimilarity(**with_meta(meta, keyword))
+    keyword_similarity_response = select_product_by_similarity(keyword_similarity_request)
+    print(keyword_similarity_response)
+
+    #싸다구 상품 크롤링
+
+
+
+    #블로그 생성
+
+
+
+    #블로그 배포
+    tistory_service = TistoryBlogPostService()
+    result = tistory_service.post_content(
+        title = "안녕하살법",
+        content = "안녕하살법 받아치기",
+        tags= ["퉁퉁퉁사후르","짜라짜라"]
+    )
+    print(result)
+
+
+    return "구웃"
