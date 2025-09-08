@@ -18,6 +18,18 @@ spring:
     minimum-idle: 5
     pool-name: HikariCP-MyBatis
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: dev.icebang4@gmail.com
+    password: jbhf szdj vpfo sgmf
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 mybatis:
   mapper-locations: classpath:mybatis/mapper/**/*.xml
   type-aliases-package: com.gltkorea.icebang.dto
