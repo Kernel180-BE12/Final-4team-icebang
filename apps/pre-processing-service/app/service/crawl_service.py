@@ -1,4 +1,3 @@
-# app/service/crawl_service.py
 import time
 from app.utils.crawler_utils import DetailCrawler
 from app.errors.CustomException import InvalidItemDataException
@@ -14,7 +13,7 @@ class CrawlService:
         선택된 상품의 상세 정보를 크롤링하는 비즈니스 로직입니다. (5단계)
         상품 URL을 입력받아 상세 정보를 크롤링하여 딕셔너리로 반환합니다.
         """
-        crawler = DetailCrawler(use_selenium=request.use_selenium)
+        crawler = DetailCrawler(use_selenium=True)
 
         try:
             print(f"상품 상세 크롤링 시작: {request.product_url}")
@@ -22,7 +21,7 @@ class CrawlService:
             # 상세 정보 크롤링 실행
             product_detail = await crawler.crawl_detail(
                 product_url=str(request.product_url),
-                include_images=request.include_images
+                include_images=False
             )
 
             if not product_detail:
@@ -37,8 +36,6 @@ class CrawlService:
                 "schedule_his_id": request.schedule_his_id,
                 "tag": request.tag,
                 "product_url": str(request.product_url),
-                "use_selenium": request.use_selenium,
-                "include_images": request.include_images,
                 "product_detail": product_detail,
                 "status": "success",
                 "crawled_at": time.strftime('%Y-%m-%d %H:%M:%S')
