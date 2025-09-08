@@ -182,6 +182,7 @@ CREATE TABLE IF NOT EXISTS `task_io_data` (
     `data_type` varchar(50) NULL,
     `data_value` json NULL,
     `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+    `task_run_id` bigint unsigned NULL,
     PRIMARY KEY (`id`),
     INDEX `idx_trace_id` (`trace_id`)
     );
@@ -230,3 +231,63 @@ CREATE UNIQUE INDEX IF NOT EXISTS `uk_job_name` ON `job` (`name`);
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_task_name` ON `task` (`name`);
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_workflow_name` ON `workflow` (`name`);
 CREATE INDEX IF NOT EXISTS `idx_user_config_user` ON `user_config` (`user_id`);
+
+
+
+-- 워크플로우 실행 테이블
+CREATE TABLE IF NOT EXISTS `workflow_run` (
+                                              `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+                                              `workflow_id` bigint unsigned NOT NULL,
+                                              `trace_id` char(36) NOT NULL,
+    `run_number` varchar(20) NULL,
+    `status` varchar(20) NULL COMMENT 'pending, running, success, failed, cancelled',
+    `trigger_type` varchar(20) NULL COMMENT 'manual, schedule, push, pull_request',
+    `branch` varchar(100) NULL,
+    `commit_sha` varchar(40) NULL,
+    `commit_message` text NULL,
+    `started_at` timestamp NULL,
+    `finished_at` timestamp NULL,
+    `created_by` bigint unsigned NULL,
+    `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_workflow_run_trace` (`trace_id`),
+    INDEX `idx_workflow_run_status` (`status`),
+    INDEX `idx_workflow_run_workflow_id` (`workflow_id`),
+    INDEX `idx_workflow_run_created_at` (`created_at`)
+    );
+
+-- Job 실행 테이블
+CREATE TABLE IF NOT EXISTS `job_run` (
+                                         `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+                                         `workflow_run_id` bigint unsigned NOT NULL,
+                                         `job_id` bigint unsigned NOT NULL,
+                                         `status` varchar(20) NULL COMMENT 'pending, running, success, failed, cancelled, skipped',
+    `started_at` timestamp NULL,
+    `finished_at` timestamp NULL,
+    `execution_order` int NULL,
+    `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_job_run_workflow_run_id` (`workflow_run_id`),
+    INDEX `idx_job_run_status` (`status`),
+    INDEX `idx_job_run_job_id` (`job_id`)
+    );
+
+-- Task 실행 테이블
+CREATE TABLE IF NOT EXISTS `task_run` (
+                                          `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+                                          `job_run_id` bigint unsigned NOT NULL,
+                                          `task_id` bigint unsigned NOT NULL,
+                                          `status` varchar(20) NULL COMMENT 'pending, running, success, failed, cancelled, skipped',
+    `started_at` timestamp NULL,
+    `finished_at` timestamp NULL,
+    `execution_order` int NULL,
+    `output_data` json NULL,
+    `error_message` text NULL,
+    `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_task_run_job_run_id` (`job_run_id`),
+    INDEX `idx_task_run_status` (`status`),
+    INDEX `idx_task_run_task_id` (`task_id`)
+    );
+
+CREATE INDEX IF NOT EXISTS `idx_task_io_data_task_run_id` ON `task_io_data` (`task_run_id`);
