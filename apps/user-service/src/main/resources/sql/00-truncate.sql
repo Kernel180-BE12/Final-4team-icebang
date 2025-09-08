@@ -1,15 +1,12 @@
--- 데이터 초기화 전에 추가
-SET FOREIGN_KEY_CHECKS = 0;
+-- 데이터 초기화 스크립트 (외래 키 제약조건이 없는 스키마용)
 
--- 역순으로 TRUNCATE (참조되는 테이블을 나중에)
-TRUNCATE TABLE user_roles;
-TRUNCATE TABLE role_permissions;
-TRUNCATE TABLE user_organizations;
-TRUNCATE TABLE users;
-TRUNCATE TABLE positions;
-TRUNCATE TABLE departments;
-TRUNCATE TABLE roles;
-TRUNCATE TABLE permissions;
-TRUNCATE TABLE organizations;
-
-SET FOREIGN_KEY_CHECKS = 1;
+-- 사용자 및 조직 관련 테이블
+TRUNCATE TABLE `user_role`;
+TRUNCATE TABLE `role_permission`;
+TRUNCATE TABLE `user_organization`;
+TRUNCATE TABLE `user`;
+TRUNCATE TABLE `position`;
+TRUNCATE TABLE `department`;
+TRUNCATE TABLE `role`;
+TRUNCATE TABLE `permission`;
+TRUNCATE TABLE `organization`;
