@@ -22,12 +22,24 @@ public class AuthService {
   private final EmailService emailService;
 
   public void registerUser(RegisterDto registerDto) {
+    if (authMapper.existsByEmail(registerDto.getEmail())) {
+      throw new IllegalArgumentException("이미 가입된 이메일입니다.");
+    }
     String randomPassword = passwordGenerator.generate();
     String hashedPassword = passwordEncoder.encode(randomPassword);
 
     registerDto.setPassword(hashedPassword);
+    registerDto.setStatus("PENDING");
 
-    // @TODO:: Auth mapper 호출하여 insert
+    authMapper.insertUser(registerDto);
+
+    // 2. user_organizations insert → userOrgId 반환
+    authMapper.insertUserOrganization(registerDto);
+
+    // 3. user_roles insert (foreach)
+    if (registerDto.getRoleIds() != null && !registerDto.getRoleIds().isEmpty()) {
+      authMapper.insertUserRoles(registerDto);
+    }
 
     EmailRequest emailRequest =
         EmailRequest.builder()

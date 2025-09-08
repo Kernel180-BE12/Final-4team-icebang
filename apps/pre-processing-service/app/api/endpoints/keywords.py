@@ -29,3 +29,7 @@ async def search(request: RequestNaverSearch):
     """
     response_data= await keyword_search(request)
     return response_data
+
+@router.post("/ssadagu/validate",response_model=ResponseNaverSearch)
+async def ssadagu_validate(request: RequestNaverSearch):
+    return ResponseNaverSearch()

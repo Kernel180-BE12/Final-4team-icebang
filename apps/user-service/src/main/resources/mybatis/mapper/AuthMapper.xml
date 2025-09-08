@@ -3,19 +3,35 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.gltkorea.icebang.mapper.AuthMapper">
-    <insert id="registerUser" parameterType="com.gltkorea.icebang.domain.auth.dto.RegisterDto">
-        <selectKey keyProperty="id"  resultType="java.math.BigInteger"  order="AFTER">
-            SELECT LAST_INSERT_ID()
-        </selectKey>
+
+    <!-- 이메일 중복 여부 확인 -->
+    <select id="existsByEmail" parameterType="string" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1
+            FROM users
+            WHERE email = #{email}
+        )
+    </select>
+
+    <!-- 1. users INSERT & PK 반환 -->
+    <insert id="insertUser" parameterType="com.gltkorea.icebang.domain.auth.dto.RegisterDto" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO users (name, email, password)
-        VALUES (#{name}, #{email}, #{password})
-
-        INSERT INTO user_organizations (user_id, organization_id, department_id, position_id, status)
-        VALUES (#{id}, #{organizationId}, #{departmentId}, #{positionId}, #{status})
-
-        INSERT INTO user_roles (user_organization_id, role_id)
-        SELECT uo.id, #{roleId}
-        FROM user_organizations uo
-        WHERE uo.user_id = #{id}
+        VALUES (#{name}, #{email}, #{password});
     </insert>
+
+    <!-- 2. user_organizations INSERT -->
+    <insert id="insertUserOrganization" parameterType="com.gltkorea.icebang.domain.auth.dto.RegisterDto" useGeneratedKeys="true" keyProperty="userOrgId">
+        INSERT INTO user_organizations (user_id, organization_id, department_id, position_id, status)
+        VALUES (#{id}, #{orgId}, #{deptId}, #{positionId}, #{status});
+    </insert>
+
+    <!-- 3. user_roles INSERT (foreach) -->
+    <insert id="insertUserRoles" parameterType="com.gltkorea.icebang.domain.auth.dto.RegisterDto">
+        INSERT INTO user_roles (user_organization_id, role_id)
+        VALUES
+        <foreach collection="roleIds" item="roleId" separator=",">
+            (#{userOrgId}, #{roleId})
+        </foreach>
+    </insert>
+
 </mapper>

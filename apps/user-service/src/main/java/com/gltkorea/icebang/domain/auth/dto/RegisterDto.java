@@ -17,13 +17,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RegisterDto {
+  @Null private BigInteger id;
 
   @NotBlank(message = "사용자명은 필수입니다")
-  private String userName;
+  private String name;
 
   @NotBlank(message = "이메일은 필수입니다")
   @Email(message = "올바른 이메일 형식이 아닙니다")
   private String email;
+
+  @Null private BigInteger userOrgId;
 
   @NotNull(message = "조직 선택은 필수입니다")
   private BigInteger orgId;
@@ -38,4 +41,6 @@ public class RegisterDto {
   private Set<BigInteger> roleIds;
 
   @Null private String password;
+
+  @Null private String status;
 }

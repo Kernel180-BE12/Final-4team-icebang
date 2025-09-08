@@ -39,6 +39,11 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
                 "service_type": "NAVER_CRAWLING",
                 "track_params": ["keyword", "category", "startDate", "endDate", "job_id", "schedule_id"],
                 "response_trackers": ["keyword", "total_keywords", "results_count"]
+            },
+            "/blogs/publish": {
+            "service_type": "BLOG_PUBLISH",
+            "track_params": ["tag", "title", "content", "tags", "job_id", "schedule_id", "schedule_his_id"],
+            "response_trackers": ["job_id", "schedule_id", "schedule_his_id", "status", "metadata"]
             }
         }
 

@@ -8,7 +8,7 @@ import com.gltkorea.icebang.domain.email.dto.EmailRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
-@Profile({"unit-test", "local"})
+@Profile({"test-test","test-e2e", "local"})
 @Slf4j
 public class MockEmailService implements EmailService {
 
