@@ -80,7 +80,6 @@ class BaseSettingsConfig(BaseSettings):
     # MeCab 사전 경로 (자동 감지)
     mecab_path: Optional[str] = None
 
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
