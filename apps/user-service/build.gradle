@@ -4,6 +4,7 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'com.diffplug.spotless' version '7.2.1'
 	id 'org.asciidoctor.jvm.convert' version '3.3.2'
+	id 'com.epages.restdocs-api-spec' version '0.18.2'
 }
 
 group = 'com.gltkorea'
@@ -82,6 +83,7 @@ dependencies {
 	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 	testImplementation 'org.springframework.restdocs:spring-restdocs-webtestclient'
 	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+	testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.18.2'
 }
 
 // REST Docs 스니펫 디렉토리 설정
@@ -164,4 +166,12 @@ spotless {
 		indentWithTabs()
 		endWithNewline()
 	}
+}
+
+openapi3 {
+	server = 'http://localhost:8080'
+	title = 'IceBang API'
+	description = 'IceBang API Documentation'
+	version = '0.0.1-alpha-snapshot'
+	format = 'yaml'
 }

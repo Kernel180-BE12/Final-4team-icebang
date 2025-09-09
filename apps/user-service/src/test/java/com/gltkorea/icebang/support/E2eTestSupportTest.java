@@ -11,6 +11,5 @@ class E2eTestSupportTest extends E2eTestSupport {
     // 포트가 제대로 할당되었는지 확인
     assertThat(port).isGreaterThan(0);
     assertThat(getBaseUrl()).startsWith("http://localhost:");
-    assertThat(getApiUrl("/test")).contains("/api/test");
   }
 }

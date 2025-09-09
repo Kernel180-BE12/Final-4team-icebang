@@ -1,8 +1,9 @@
 package com.gltkorea.icebang.domain.auth.controller;
 
+import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
+import static com.epages.restdocs.apispec.ResourceDocumentation.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
@@ -18,9 +19,9 @@ import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.jdbc.Sql;
 
+import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.gltkorea.icebang.support.E2eTestSupport;
 
-// @Rollback
 @Sql("classpath:sql/01-insert-internal-users.sql")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AuthControllerE2eTest extends E2eTestSupport {
@@ -33,7 +34,7 @@ class AuthControllerE2eTest extends E2eTestSupport {
     loginRequest.put("email", "admin@icebang.site");
     loginRequest.put("password", "qwer1234!A");
 
-    // MockMvc로 REST Docs 생성
+    // MockMvc로 REST Docs + OpenAPI 생성
     mockMvc
         .perform(
             post(getApiUrlForDocs("/v0/auth/login"))
@@ -51,20 +52,31 @@ class AuthControllerE2eTest extends E2eTestSupport {
                 "auth-login",
                 preprocessRequest(prettyPrint()),
                 preprocessResponse(prettyPrint()),
-                requestHeaders(
-                    headerWithName("Content-Type").description("요청 컨텐츠 타입"),
-                    headerWithName("Origin").description("요청 Origin (CORS)").optional(),
-                    headerWithName("Referer").description("요청 Referer").optional()),
-                requestFields(
-                    fieldWithPath("email").type(JsonFieldType.STRING).description("사용자 이메일 주소"),
-                    fieldWithPath("password").type(JsonFieldType.STRING).description("사용자 비밀번호")),
-                responseHeaders(headerWithName("Content-Type").description("응답 컨텐츠 타입").optional()),
-                responseFields(
-                    fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("요청 성공 여부"),
-                    fieldWithPath("data")
-                        .type(JsonFieldType.NULL)
-                        .description("응답 데이터 (로그인 성공 시 null)"),
-                    fieldWithPath("message").type(JsonFieldType.STRING).description("응답 메시지"),
-                    fieldWithPath("status").type(JsonFieldType.STRING).description("HTTP 상태"))));
+                resource(
+                    ResourceSnippetParameters.builder()
+                        .tag("Authentication")
+                        .summary("사용자 로그인")
+                        .description("이메일과 비밀번호로 사용자 인증을 수행합니다")
+                        .requestFields(
+                            fieldWithPath("email")
+                                .type(JsonFieldType.STRING)
+                                .description("사용자 이메일 주소"),
+                            fieldWithPath("password")
+                                .type(JsonFieldType.STRING)
+                                .description("사용자 비밀번호"))
+                        .responseFields(
+                            fieldWithPath("success")
+                                .type(JsonFieldType.BOOLEAN)
+                                .description("요청 성공 여부"),
+                            fieldWithPath("data")
+                                .type(JsonFieldType.NULL)
+                                .description("응답 데이터 (로그인 성공 시 null)"),
+                            fieldWithPath("message")
+                                .type(JsonFieldType.STRING)
+                                .description("응답 메시지"),
+                            fieldWithPath("status")
+                                .type(JsonFieldType.STRING)
+                                .description("HTTP 상태"))
+                        .build())));
   }
 }
