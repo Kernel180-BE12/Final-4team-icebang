@@ -124,3 +124,10 @@ Configuration:
         AppenderRef:
           - ref: console-appender
           - ref: file-info-appender
+
+      - name: com.gltkorea.icebang.domain.auth.mapper
+        level: DEBUG
+        additivity: "false"
+        AppenderRef:
+          - ref: console-appender
+          - ref: file-info-appender

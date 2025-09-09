@@ -57,31 +57,46 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/auth/login", "/auth/logout")
                     .permitAll()
-                    .requestMatchers(SecurityEndpoints.DATA_ADMIN.getMatchers())
-                    .hasAuthority("SUPER_ADMIN")
-                    .requestMatchers(SecurityEndpoints.DATA_ENGINEER.getMatchers())
-                    .hasAnyAuthority(
-                        "SUPER_ADMIN", "ADMIN", "SENIOR_DATA_ENGINEER", "DATA_ENGINEER")
-                    .requestMatchers(SecurityEndpoints.ANALYST.getMatchers())
-                    .hasAnyAuthority(
-                        "SUPER_ADMIN",
-                        "ADMIN",
-                        "SENIOR_DATA_ENGINEER",
-                        "DATA_ENGINEER",
-                        "SENIOR_DATA_ANALYST",
-                        "DATA_ANALYST",
-                        "VIEWER")
-                    .requestMatchers(SecurityEndpoints.OPS.getMatchers())
-                    .hasAnyAuthority(
-                        "SUPER_ADMIN", "ADMIN", "SENIOR_DATA_ENGINEER", "DATA_ENGINEER")
-                    .requestMatchers(SecurityEndpoints.USER.getMatchers())
+                    .requestMatchers("/v0/auth/check-session")
                     .authenticated()
+                    .requestMatchers(SecurityEndpoints.DATA_ADMIN.getMatchers())
+                    .hasRole("SUPER_ADMIN") // hasAuthority -> hasRole
+                    .requestMatchers(SecurityEndpoints.DATA_ENGINEER.getMatchers())
+                    .hasAnyRole(
+                        "SUPER_ADMIN",
+                        "SYSTEM_ADMIN",
+                        "AI_ENGINEER",
+                        "DATA_SCIENTIST",
+                        "CRAWLING_ENGINEER",
+                        "TECH_LEAD",
+                        "DEVOPS")
+                    .requestMatchers(SecurityEndpoints.ANALYST.getMatchers())
+                    .hasAnyRole(
+                        "SUPER_ADMIN",
+                        "SYSTEM_ADMIN",
+                        "ORG_ADMIN",
+                        "DATA_SCIENTIST",
+                        "MARKETING_ANALYST",
+                        "QA_ENGINEER",
+                        "PROJECT_MANAGER",
+                        "PRODUCT_OWNER",
+                        "USER")
+                    .requestMatchers(SecurityEndpoints.OPS.getMatchers())
+                    .hasAnyRole(
+                        "SUPER_ADMIN",
+                        "SYSTEM_ADMIN",
+                        "WORKFLOW_ADMIN",
+                        "OPERATIONS_MANAGER",
+                        "DEVOPS",
+                        "TECH_LEAD")
+                    .requestMatchers(SecurityEndpoints.USER.getMatchers())
+                    .hasAnyRole("SUPER_ADMIN", "SYSTEM_ADMIN", "ORG_ADMIN", "USER")
                     .anyRequest()
                     .authenticated())
         .formLogin(AbstractHttpConfigurer::disable)
         .logout(
             logout -> logout.logoutUrl("/auth/logout").logoutSuccessUrl("/auth/login").permitAll())
-        .csrf(AbstractHttpConfigurer::disable) // API 사용을 위해 CSRF 비활성화
+        .csrf(AbstractHttpConfigurer::disable)
         .build();
   }
 
