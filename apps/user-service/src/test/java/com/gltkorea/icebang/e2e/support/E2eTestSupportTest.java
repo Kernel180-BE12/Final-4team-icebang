@@ -3,7 +3,9 @@ package com.gltkorea.icebang.e2e.support;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.test.annotation.DirtiesContext;
 
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class E2eTestSupportTest extends E2eTestSupport {
 
   @Test
