@@ -3,6 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '3.5.4'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'com.diffplug.spotless' version '7.2.1'
+	id 'org.asciidoctor.jvm.convert' version '3.3.2'
 }
 
 group = 'com.gltkorea'
@@ -23,6 +24,8 @@ configurations {
 	all {
 		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
 	}
+	// AsciiDoctor Extension for REST Docs
+	asciidoctorExt
 }
 
 repositories {
@@ -74,9 +77,20 @@ dependencies {
 	testImplementation 'org.testcontainers:mariadb'
 	testImplementation 'com.h2database:h2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// Spring REST Docs
+	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+	testImplementation 'org.springframework.restdocs:spring-restdocs-webtestclient'
+	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+}
+
+// REST Docs 스니펫 디렉토리 설정
+ext {
+	snippetsDir = file('build/generated-snippets')
 }
 
 tasks.named('test') {
+	outputs.dir snippetsDir
 	useJUnitPlatform {
 		// 기본적으로는 e2e 태그 제외하고 실행
 		excludeTags 'e2e'
@@ -86,6 +100,7 @@ tasks.named('test') {
 
 // E2E 테스트 전용 task 추가
 tasks.register('e2eTest', Test) {
+	outputs.dir snippetsDir
 	useJUnitPlatform {
 		includeTags 'e2e'
 	}
@@ -98,7 +113,39 @@ tasks.register('e2eTest', Test) {
 
 // 모든 테스트 실행 task
 tasks.register('allTests', Test) {
+	outputs.dir snippetsDir
 	useJUnitPlatform()
+}
+
+// AsciiDoctor 설정 (REST Docs 문서 생성)
+asciidoctor {
+	inputs.dir snippetsDir
+	configurations 'asciidoctorExt'
+	dependsOn test
+
+	baseDirFollowsSourceDir()
+
+	attributes(
+			'snippets': snippetsDir,
+			'source-highlighter': 'coderay',
+			'toc': 'left',
+			'toclevels': '3',
+			'sectlinks': 'true',
+			'operation-curl-request-title': 'Example request',
+			'operation-http-response-title': 'Example response'
+	)
+}
+
+asciidoctor.doFirst {
+	delete file('src/docs/asciidoc')
+}
+
+// JAR에 생성된 문서 포함
+bootJar {
+	dependsOn asciidoctor
+	from ("${asciidoctor.outputDir}/html5") {
+		into 'static/docs'
+	}
 }
 
 spotless {

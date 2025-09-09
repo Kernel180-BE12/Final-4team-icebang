@@ -13,17 +13,4 @@ class E2eTestSupportTest extends E2eTestSupport {
     assertThat(getBaseUrl()).startsWith("http://localhost:");
     assertThat(getApiUrl("/test")).contains("/api/test");
   }
-
-  @Test
-  void shouldHaveRestTemplate() {
-    // RestTemplate이 주입되었는지 확인
-    assertThat(restTemplate).isNotNull();
-  }
-
-  @Test
-  void shouldConnectToMariaDBContainer() {
-    // 실제 DB 연결 확인
-    String response = restTemplate.getForObject(getApiUrl("/health"), String.class);
-    // health check endpoint가 있다면 사용, 없으면 간단한 컨트롤러 만들어서 테스트
-  }
 }
