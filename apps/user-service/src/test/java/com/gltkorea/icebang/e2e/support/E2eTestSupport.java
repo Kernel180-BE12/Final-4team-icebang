@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.support;
+package com.gltkorea.icebang.e2e.support;
 
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
@@ -16,8 +16,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.gltkorea.icebang.annotation.E2eTest;
-import com.gltkorea.icebang.config.E2eTestConfiguration;
+import com.gltkorea.icebang.e2e.annotation.E2eTest;
+import com.gltkorea.icebang.e2e.config.E2eTestConfiguration;
 
 @Import(E2eTestConfiguration.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

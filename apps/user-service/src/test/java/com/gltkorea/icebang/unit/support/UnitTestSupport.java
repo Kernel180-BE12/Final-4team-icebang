@@ -1,8 +1,8 @@
-package com.gltkorea.icebang.support;
+package com.gltkorea.icebang.unit.support;
 
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.gltkorea.icebang.annotation.UnitTest;
+import com.gltkorea.icebang.unit.annotation.UnitTest;
 
 @SpringBootTest
 @UnitTest
