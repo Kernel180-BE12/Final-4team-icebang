@@ -49,7 +49,7 @@ public class AuthController {
         HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
         SecurityContextHolder.getContext());
 
-    return ApiResponse.success(auth);
+    return ApiResponse.success(null);
   }
 
   @GetMapping("/check-session")
