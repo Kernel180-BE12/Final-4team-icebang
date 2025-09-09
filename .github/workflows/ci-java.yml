@@ -81,7 +81,7 @@ jobs:
           if [ "${{ github.base_ref }}" == "main" ]; then
             ./gradlew allTests
           else
-            ./gradlew test
+            ./gradlew allTests
           fi
         working-directory: apps/user-service
 
