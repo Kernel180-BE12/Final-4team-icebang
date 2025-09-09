@@ -3,7 +3,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 SET @tables = NULL;
 
 -- 1. 데이터베이스 내 모든 테이블 목록을 가져와 변수에 저장
-SELECT GROUP_CONCAT('`', table_name, '`') INTO @tables
+SELECT GROUP_CONCAT(table_name SEPARATOR ',') INTO @tables
 FROM information_schema.tables
 WHERE table_schema = (SELECT DATABASE());
 
