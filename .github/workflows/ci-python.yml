@@ -2,148 +2,215 @@ name: CI (Python/FastAPI)
 
 on:
   push:
-    branches:
-      - feature/python-ci
-      - main
+    branches: [feature/python-ci, main]
     paths:
-      - "apps/pre-processing-service/**" # Python 서비스 경로
+      - "apps/pre-processing-service/**"
       - ".github/workflows/ci-python.yml"
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    branches:
-      - main
-      - develop
-      - release/**
+    branches: [main, develop, release/**]
     paths:
-      - "apps/pre-processing-service/**" # Python 서비스 경로
+      - "apps/pre-processing-service/**"
 
+# 불필요한 전역 권한 제거(최소 권한 원칙)
 permissions:
   contents: read
-  packages: write
-  security-events: write
-  checks: write
-  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_DIR: apps/pre-processing-service
+  PY_VER: "3.11"
+  POETRY_VERSION: "2.1.3"
+  POETRY_VIRTUALENVS_IN_PROJECT: "true" # .venv 프로젝트 내 생성
+  POETRY_NO_INTERACTION: "1"
 
 jobs:
-  lint:
-    if: github.event.pull_request.draft == false
-    name: Lint & Format Check
+  # ---------- 공통 셋업(재사용) ----------
+  setup:
+    name: Prepare (Checkout / Python / Poetry / Cache)
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: apps/pre-processing-service
-
+    outputs:
+      cache-hit: ${{ steps.cache.outputs.cache-hit }}
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PY_VER }}
+          cache: "pip" # pip 캐시(간접적으로 poetry 설치 등에 도움)
 
-      - name: Install Poetry
+      - name: Install Poetry (${{ env.POETRY_VERSION }})
         uses: snok/install-poetry@v1
         with:
+          version: ${{ env.POETRY_VERSION }}
           virtualenvs-create: true
           virtualenvs-in-project: true
           installer-parallel: true
 
-      - name: Load cached venv
-        id: cached-poetry-dependencies
+      - name: Cache venv
+        id: cache
         uses: actions/cache@v4
         with:
-          path: apps/pre-processing-service/.venv
-          key: venv-${{ runner.os }}-${{ hashFiles('apps/pre-processing-service/poetry.lock') }}
+          path: ${{ env.APP_DIR }}/.venv
+          key: venv-${{ runner.os }}-${{ env.PY_VER }}-${{ hashFiles(format('{0}/poetry.lock', env.APP_DIR)) }}-${{ hashFiles(format('{0}/pyproject.toml', env.APP_DIR)) }}
+          restore-keys: |
+            venv-${{ runner.os }}-${{ env.PY_VER }}-
 
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
+      - name: Install deps (poetry)
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: ${{ env.APP_DIR }}
+        run: poetry install --no-root
 
-      - name: Run Formatter Check (Black)
+  # ---------- Lint ----------
+  lint:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+    needs: setup
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    defaults:
+      run:
+        working-directory: ${{ env.APP_DIR }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use cached venv
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.APP_DIR }}/.venv
+          key: venv-${{ runner.os }}-${{ env.PY_VER }}-${{ hashFiles(format('{0}/poetry.lock', env.APP_DIR)) }}-${{ hashFiles(format('{0}/pyproject.toml', env.APP_DIR)) }}
+
+      - name: Install Poetry (shim)
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Black (check)
         run: poetry run black --check .
 
-      # - name: Run Linter (Ruff)
-      #   run: poetry run ruff check .
+      - name: Ruff (lint)
+        run: poetry run ruff check .
 
+      # 필요 시 타입체크 활성화
+      # - name: mypy
+      #   run: poetry run mypy .
+
+  # ---------- Test ----------
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    needs: lint
-
+    needs: [setup, lint]
     defaults:
       run:
-        working-directory: apps/pre-processing-service
-
+        working-directory: ${{ env.APP_DIR }}
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - name: Use cached venv
+        uses: actions/cache@v4
         with:
-          python-version: "3.11"
+          path: ${{ env.APP_DIR }}/.venv
+          key: venv-${{ runner.os }}-${{ env.PY_VER }}-${{ hashFiles(format('{0}/poetry.lock', env.APP_DIR)) }}-${{ hashFiles(format('{0}/pyproject.toml', env.APP_DIR)) }}
 
-      - name: Install Poetry
+      - name: Install Poetry (shim)
         uses: snok/install-poetry@v1
         with:
+          version: ${{ env.POETRY_VERSION }}
           virtualenvs-create: true
           virtualenvs-in-project: true
           installer-parallel: true
 
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
-        with:
-          path: apps/pre-processing-service/.venv
-          key: venv-${{ runner.os }}-${{ hashFiles('apps/pre-processing-service/poetry.lock') }}
+      # 통합테스트가 실제 DB 필요하면 MySQL 서비스 주석 해제
+      # services:
+      #   mysql:
+      #     image: mysql:8
+      #     env:
+      #       MYSQL_ROOT_PASSWORD: root
+      #       MYSQL_DATABASE: test_db
+      #       MYSQL_USER: test_user
+      #       MYSQL_PASSWORD: test_pass
+      #     ports: [ "3306:3306" ]
+      #     options: >-
+      #       --health-cmd="mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD"
+      #       --health-interval=10s --health-timeout=5s --health-retries=5
 
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-
-      - name: Run tests with Pytest
+      - name: Pytest
         env:
-          DB_HOST: localhost
+          DB_HOST: 127.0.0.1
           DB_PORT: 3306
           DB_USER: test_user
           DB_PASS: test_pass
           DB_NAME: test_db
           ENV_NAME: test
-        run: poetry run pytest
+          PYTHONWARNINGS: default
+        run: |
+          poetry run pytest -q --maxfail=1 --disable-warnings --durations=10 --junitxml=pytest-report.xml
 
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-report
+          path: ${{ env.APP_DIR }}/pytest-report.xml
+
+  # ---------- Docker Build & Push ----------
   build-and-push-docker:
-    name: Build Docker Image and push to registry
+    name: Build & Push Docker (GHCR)
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/feature/python-ci' && github.event_name == 'push'
-    needs:
-      - test
-
+    needs: test
+    permissions:
+      contents: read
+      packages: write # GHCR 푸시에 필요
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Login to Docker Registry
+      - name: Set repo lowercase
+        run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set repo lowercase
-        run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          context: ./apps/pre-processing-service # Dockerfile이 있는 경로
-          push: true
+          images: ghcr.io/${{ env.REPO_LC }}/pre-processing-service
           tags: |
-            ghcr.io/${{ env.REPO_LC }}/pre-processing-service:latest
-            ghcr.io/${{ env.REPO_LC }}/pre-processing-service:${{ github.sha }}
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
+            type=sha
 
-      - name: Analyze image layers
-        run: |
-          echo "=== Image Layer Analysis ==="
-          docker history ghcr.io/${{ env.REPO_LC }}/pre-processing-service:latest --human --no-trunc
+      - name: Build & Push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/pre-processing-service
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Show image history
+        run: docker history $(echo "${{ steps.meta.outputs.tags }}" | head -n 1) --human --no-trunc
