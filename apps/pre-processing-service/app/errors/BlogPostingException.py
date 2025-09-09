@@ -77,3 +77,16 @@ class BlogConfigurationException(CustomException):
             detail=f"블로그 서비스 설정 오류: {config_item}",
             code="BLOG_CONFIGURATION_ERROR"
         )
+
+class BloggerApiException(CustomException):
+    """
+    Blogger API 관련 오류 예외
+    @:param reason: 실패 이유
+    @:param detail: 상세 오류 메시지
+    """
+    def __init__(self, reason: str, detail: str):
+        super().__init__(
+            status_code=500,
+            detail=f"Blogger API 오류: {reason} ({detail})",
+            code="BLOGGER_API_ERROR"
+        )
