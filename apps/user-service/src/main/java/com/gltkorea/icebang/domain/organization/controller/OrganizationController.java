@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gltkorea.icebang.common.dto.ApiResponse;
 import com.gltkorea.icebang.domain.organization.dto.OrganizationCardDto;
-import com.gltkorea.icebang.domain.organization.dto.OrganizationOptionsDto;
+import com.gltkorea.icebang.domain.organization.dto.OrganizationOptionDto;
 import com.gltkorea.icebang.domain.organization.service.OrganizationService;
 
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class OrganizationController {
   }
 
   @GetMapping("/{id}/options")
-  public ResponseEntity<ApiResponse<OrganizationOptionsDto>> getOrganizationDetails(
+  public ResponseEntity<ApiResponse<OrganizationOptionDto>> getOrganizationDetails(
       @PathVariable BigInteger id) {
     return ResponseEntity.ok(ApiResponse.success(organizationService.getOrganizationOptions(id)));
   }

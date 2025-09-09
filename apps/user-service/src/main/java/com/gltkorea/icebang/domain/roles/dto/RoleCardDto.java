@@ -1,15 +1,18 @@
-package com.gltkorea.icebang.domain.department.dto;
+package com.gltkorea.icebang.domain.roles.dto;
 
 import java.math.BigInteger;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
 @AllArgsConstructor
-public class DepartmentsCardDto {
+@NoArgsConstructor
+public class RoleCardDto {
   private BigInteger id;
   private String name;
+  private String description;
 }

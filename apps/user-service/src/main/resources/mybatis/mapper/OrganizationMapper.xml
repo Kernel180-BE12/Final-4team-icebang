@@ -14,7 +14,7 @@
     </select>
 
     <select id="findDepartmentsByOrganizationId"
-            resultType="com.gltkorea.icebang.domain.department.dto.DepartmentsCardDto">
+            resultType="com.gltkorea.icebang.domain.department.dto.DepartmentCardDo">
         SELECT
             id,
             name
@@ -34,7 +34,7 @@
     </select>
 
     <select id="findRolesByOrganizationId"
-            resultType="com.gltkorea.icebang.domain.roles.dto.RolesCardDto">
+            resultType="com.gltkorea.icebang.domain.roles.dto.RoleCardDto">
         SELECT
             id,
             name,

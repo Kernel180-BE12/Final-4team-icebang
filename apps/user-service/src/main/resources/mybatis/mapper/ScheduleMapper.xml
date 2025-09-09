@@ -9,7 +9,7 @@
                                                                                                          cron_expression AS cronExpression,
                                                                                                          is_active AS isActive
                                                                                                      FROM
-                                                                                                         schedules
+                                                                                                         schedule
                                                                                                      WHERE
                                                                                                          is_active = #{isActive}
     </select>
