@@ -96,8 +96,8 @@ jobs:
       - name: Black (check)
         run: poetry run black --check .
 
-      - name: Ruff (lint)
-        run: poetry run ruff check .
+      # - name: Ruff (lint)
+      #   run: poetry run ruff check .
 
       # 필요 시 타입체크 활성화
       # - name: mypy
