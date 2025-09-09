@@ -5,28 +5,28 @@ from pydantic import BaseModel, Field, HttpUrl
 
 # 기본 요청
 class RequestBase(BaseModel):
-    job_id: int
-    schedule_id: int
-    schedule_his_id: Optional[int] = None
+    job_id: int = Field(..., title="작업 ID", description="현재 실행 중인 작업의 고유 식별자")
+    schedule_id: int = Field(..., title="스케줄 ID", description="예약된 스케줄의 고유 식별자")
+    schedule_his_id: Optional[int] = Field(None, title="스케줄 히스토리 ID", description="스케줄 실행 이력의 고유 식별자")
 
 # 기본 응답
 class ResponseBase(BaseModel):
-    job_id: int
-    schedule_id: int
-    schedule_his_id: Optional[int] = None
-    status: str
+    job_id: int = Field(..., title="작업 ID", description="현재 실행 중인 작업의 고유 식별자")
+    schedule_id: int = Field(..., title="스케줄 ID", description="예약된 스케줄의 고유 식별자")
+    schedule_his_id: Optional[int] = Field(None, title="스케줄 히스토리 ID", description="스케줄 실행 이력의 고유 식별자")
+    status: str = Field(..., title="상태", description="요청 처리 상태")
 
 # 네이버 키워드 추출
 class RequestNaverSearch(RequestBase):
-    tag: str
-    category: Optional[str] = None
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
+    tag: str = Field(..., title="태그", description="데이터랩/스토어 태그 구분")
+    category: Optional[str] = Field(None, title="카테고리", description="검색할 카테고리")
+    start_date: Optional[str] = Field(None, title="시작일", description="검색 시작 날짜 (YYYY-MM-DD)")
+    end_date: Optional[str] = Field(None, title="종료일", description="검색 종료 날짜 (YYYY-MM-DD)")
 
 class ResponseNaverSearch(ResponseBase):
-    category: Optional[str] = None
-    keyword: str
-    total_keyword: Dict[int, str]
+    category: Optional[str] = Field(None, title="카테고리", description="검색 카테고리")
+    keyword: str = Field(..., title="키워드", description="검색에 사용된 키워드")
+    total_keyword: Dict[int, str] = Field(..., title="총 키워드", description="키워드별 총 검색 결과")
 
 # 2단계: 검색
 class RequestSadaguSearch(RequestBase):
@@ -74,23 +74,25 @@ class ResponseSadaguCrawl(BaseModel):
     status: str = Field(..., title="처리 상태", description="크롤링 처리 결과 상태")
     crawled_at: Optional[str] = Field(None, title="크롤링 시간", description="크롤링 완료 시간")
 
-# 블로그 생성
+# 블로그 콘텐츠 생성
 class RequestBlogCreate(RequestBase):
-    tag: str
-    category: str
+    tag: str = Field(..., title="블로그 태그", description="블로그 플랫폼 종류 태그")
+    category: str = Field(..., title="카테고리", description="검색(상품) 카테고리")
 
 class ResponseBlogCreate(ResponseBase):
     pass
 
 # 블로그 배포
 class RequestBlogPublish(RequestBase):
-    tag: str
-    category: str
-
-    # 임의로 추가
-    title: str
-    content: str
-    tags: List[str]
+    blog_id: str = Field(..., description= "블로그 아이디")
+    blog_pw: str = Field(..., description= "블로그 비밀번호")
+    post_title: str = Field(..., description= "포스팅 제목")
+    post_content: str = Field(..., description= "포스팅 내용")
+    post_tags: List[str] = Field(default=[], description= "포스팅 태그 목록")
 
 class ResponseBlogPublish(ResponseBase):
-    metadata: Optional[Dict[str, Any]]
+    # 디버깅 용
+    metadata: Optional[Dict[str, Any]] = Field(None, description= "포스팅 관련 메타데이터")
+
+    # 프로덕션 용
+    # post_url: str = Field(..., description="포스팅 URL")
