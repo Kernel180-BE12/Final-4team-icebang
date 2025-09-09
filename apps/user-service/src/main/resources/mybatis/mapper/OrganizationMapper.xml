@@ -9,7 +9,7 @@
         SELECT
             id,
             name as organizationName
-        FROM organizations
+        FROM organization
         ORDER BY name
     </select>
 
@@ -18,7 +18,7 @@
         SELECT
             id,
             name
-        FROM departments
+        FROM department
         WHERE organization_id = #{organizationId}
         ORDER BY name
     </select>
@@ -28,7 +28,7 @@
         SELECT
             id,
             title
-        FROM positions
+        FROM position
         WHERE organization_id = #{organizationId}
         ORDER BY title
     </select>
@@ -39,7 +39,7 @@
             id,
             name,
             description
-        FROM roles
+        FROM role
         WHERE organization_id = #{organizationId}
         ORDER BY name
     </select>

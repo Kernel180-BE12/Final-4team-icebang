@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.config;
+package com.gltkorea.icebang.e2e.config;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;

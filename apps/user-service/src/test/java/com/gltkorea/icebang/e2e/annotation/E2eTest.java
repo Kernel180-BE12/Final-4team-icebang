@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.annotation;
+package com.gltkorea.icebang.e2e.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,6 +10,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Tag("unit")
-@ActiveProfiles("test-unit")
-public @interface UnitTest {}
+@Tag("e2e")
+@ActiveProfiles("test-e2e")
+public @interface E2eTest {}

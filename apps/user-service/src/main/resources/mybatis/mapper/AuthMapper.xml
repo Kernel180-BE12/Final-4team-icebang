@@ -37,7 +37,7 @@
 
     <insert id="insertUserOrganization" parameterType="com.gltkorea.icebang.domain.auth.dto.RegisterDto" useGeneratedKeys="true" keyProperty="userOrgId">
         INSERT INTO user_organization (user_id, organization_id, department_id, position_id, status)
-        VALUES (#{id}, #{organizationId}, #{departmentId}, #{positionId}, #{status});
+        VALUES (#{id}, #{orgId}, #{deptId}, #{positionId}, #{status});
     </insert>
 
     <insert id="insertUserRoles" parameterType="com.gltkorea.icebang.domain.auth.dto.RegisterDto">
