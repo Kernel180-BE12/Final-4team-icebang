@@ -1,12 +1,13 @@
 from app.core.config import settings  # pydantic_settings 기반
+from loguru import logger
 
 try:
     import MeCab
 
-    print("MeCab 라이브러리 로딩 성공")
+    logger.info("MeCab 라이브러리 로딩 성공")
     MECAB_AVAILABLE = True
 except ImportError:
-    print("MeCab 라이브러리를 찾을 수 없습니다. pip install mecab-python3 를 실행해주세요.")
+    logger.warning("MeCab 라이브러리를 찾을 수 없습니다. pip install mecab-python3 를 실행해주세요.")
     MeCab = None
     MECAB_AVAILABLE = False
 
@@ -30,22 +31,25 @@ class KeywordMatcher:
                 test_result = self.mecab.parse("테스트")
                 if test_result and test_result.strip():
                     self.konlpy_available = True
-                    print(f"MeCab 형태소 분석기 사용 가능 (경로: {settings.mecab_path or '기본'})")
+                    logger.info(f"MeCab 형태소 분석기 사용 가능 (경로: {settings.mecab_path or '기본'})")
                 else:
-                    print("MeCab 테스트 실패")
+                    logger.warning("MeCab 테스트 실패")
             except Exception as e:
-                print(f"MeCab 사용 불가 (규칙 기반으로 대체): {e}")
+                logger.error(f"MeCab 사용 불가 (규칙 기반으로 대체): {e}")
         else:
-            print("MeCab 라이브러리가 설치되지 않았습니다. 규칙 기반으로 대체합니다.")
+            logger.warning("MeCab 라이브러리가 설치되지 않았습니다. 규칙 기반으로 대체합니다.")
 
     def analyze_keyword_match(self, title: str, keyword: str) -> dict:
         """키워드 매칭 분석 결과 반환"""
         title_lower = title.lower().strip()
         keyword_lower = keyword.lower().strip()
 
+        logger.debug(f"키워드 매칭 분석 시작: title='{title[:50]}', keyword='{keyword}'")
+
         # 1. 완전 포함 검사
         exact_match = keyword_lower in title_lower
         if exact_match:
+            logger.info(f"완전 포함 매칭 성공: keyword='{keyword}' in title='{title[:50]}'")
             return {
                 'is_match': True,
                 'match_type': 'exact',
@@ -57,15 +61,23 @@ class KeywordMatcher:
         if self.konlpy_available:
             morphological_result = self._morphological_match(title_lower, keyword_lower)
             if morphological_result['is_match']:
+                logger.info(f"형태소 분석 매칭 성공: {morphological_result['reason']}")
                 return morphological_result
 
         # 3. 규칙 기반 분석 (MeCab 실패시)
         simple_result = self._simple_keyword_match(title_lower, keyword_lower)
+        if simple_result['is_match']:
+            logger.info(f"규칙 기반 매칭 성공: {simple_result['reason']}")
+        else:
+            logger.debug(f"매칭 실패: {simple_result['reason']}")
+
         return simple_result
 
     def _morphological_match(self, title: str, keyword: str) -> dict:
         """형태소 분석 기반 매칭"""
         try:
+            logger.debug(f"형태소 분석 시작: title='{title[:30]}', keyword='{keyword}'")
+
             # 키워드 형태소 분석
             keyword_result = self.mecab.parse(keyword)
             keyword_morphs = []
@@ -90,6 +102,8 @@ class KeywordMatcher:
                     if len(morph) >= 1:
                         title_morphs.append(morph)
 
+            logger.debug(f"형태소 추출 완료: keyword_morphs={keyword_morphs}, title_morphs={title_morphs}")
+
             # 형태소 매칭
             matched = 0
             for kw in keyword_morphs:
@@ -97,10 +111,14 @@ class KeywordMatcher:
                     for tw in title_morphs:
                         if kw == tw or kw in tw or tw in kw:
                             matched += 1
+                            logger.debug(f"형태소 매칭: '{kw}' <-> '{tw}'")
                             break
 
             match_ratio = matched / len(keyword_morphs) if keyword_morphs else 0
             threshold = 0.4
+
+            logger.debug(
+                f"형태소 매칭 결과: matched={matched}, total={len(keyword_morphs)}, ratio={match_ratio:.3f}, threshold={threshold}")
 
             if match_ratio >= threshold:
                 return {
@@ -111,15 +129,19 @@ class KeywordMatcher:
                 }
 
         except Exception as e:
-            print(f"형태소 분석 오류: {e}")
+            logger.error(f"형태소 분석 오류: keyword='{keyword}', title='{title[:30]}', error='{e}'")
 
         return {'is_match': False, 'match_type': 'morphological', 'score': 0.0, 'reason': '형태소 분석 실패'}
 
     def _simple_keyword_match(self, title: str, keyword: str) -> dict:
         """간단한 키워드 매칭"""
+        logger.debug(f"규칙 기반 매칭 시작: title='{title[:30]}', keyword='{keyword}'")
+
         # 공백으로 분리
         title_words = title.split()
         keyword_words = keyword.split()
+
+        logger.debug(f"단어 분리 완료: title_words={title_words}, keyword_words={keyword_words}")
 
         matched = 0
         for kw in keyword_words:
@@ -127,10 +149,14 @@ class KeywordMatcher:
                 for tw in title_words:
                     if kw in tw or tw in kw:
                         matched += 1
+                        logger.debug(f"규칙 기반 매칭: '{kw}' <-> '{tw}'")
                         break
 
         match_ratio = matched / len(keyword_words) if keyword_words else 0
         threshold = 0.3
+
+        logger.debug(
+            f"규칙 기반 매칭 결과: matched={matched}, total={len(keyword_words)}, ratio={match_ratio:.3f}, threshold={threshold}")
 
         if match_ratio >= threshold:
             return {

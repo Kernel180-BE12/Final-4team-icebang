@@ -19,7 +19,7 @@ public class UserService {
   public void registerUser(RegisterDto registerDto) {
     Users user =
         Users.builder()
-            .name(registerDto.getUserName())
+            .name(registerDto.getName())
             .email(registerDto.getEmail())
             .password(registerDto.getPassword())
             .status("PENDING")
