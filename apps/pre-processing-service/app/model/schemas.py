@@ -57,21 +57,14 @@ class ResponseSadaguSimilarity(ResponseBase):
     reason: Optional[str] = Field(None, title="선택 이유", description="상품 선택 근거 및 점수 정보")
 
 # 사다구몰 크롤링
-class RequestSadaguCrawl(BaseModel):
-    job_id: int = Field(..., title="작업 ID", description="현재 실행중인 작업의 고유 식별자")
-    schedule_id: int = Field(..., title="스케줄 ID", description="예약된 스케줄의 고유 식별자")
-    schedule_his_id: int = Field(..., title="스케줄 히스토리 ID", description="스케줄 실행 이력의 고유 식별자")
+class RequestSadaguCrawl(RequestBase):
     tag: str = Field(..., title="크롤링 태그", description="크롤링 유형을 구분하는 태그 (예: 'detail')")
     product_url: HttpUrl = Field(..., title="상품 URL", description="크롤링할 상품 페이지의 URL")
 
-class ResponseSadaguCrawl(BaseModel):
-    job_id: int = Field(..., title="작업 ID", description="작업 식별자")
-    schedule_id: int = Field(..., title="스케줄 ID", description="스케줄 식별자")
-    schedule_his_id: int = Field(..., title="스케줄 히스토리 ID", description="스케줄 이력 식별자")
+class ResponseSadaguCrawl(ResponseBase):
     tag: str = Field(..., title="크롤링 태그", description="크롤링 유형 태그")
     product_url: str = Field(..., title="상품 URL", description="크롤링된 상품 URL")
     product_detail: Optional[Dict] = Field(None, title="상품 상세정보", description="크롤링된 상품의 상세 정보")
-    status: str = Field(..., title="처리 상태", description="크롤링 처리 결과 상태")
     crawled_at: Optional[str] = Field(None, title="크롤링 시간", description="크롤링 완료 시간")
 
 # 블로그 콘텐츠 생성
