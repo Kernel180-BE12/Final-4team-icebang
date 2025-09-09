@@ -117,7 +117,7 @@ async def processing_tester():
     tistory_service = TistoryBlogPostService()
     result = tistory_service.post_content(
         title="안녕하살법",
-        content="안녕하살법 받아치기러기",
+        content="안녕하살법 받아치기러기 코드 받아치기",
         tags=["퉁퉁퉁사후르", "짜라짜라"],
     )
     loguru.logger.info(result)
