@@ -1,6 +1,7 @@
 -- MariaDB 최적화된 스키마 (단수형 테이블 네이밍, 외래 키 제약조건 제거 버전)
 
-CREATE TABLE IF NOT EXISTS `permission` (
+-- 윗줄에 drop 테이블 쿼리 or schema 분리
+CREATE TABLE `permission` (
                                             `id` int unsigned NOT NULL AUTO_INCREMENT,
                                             `resource` varchar(100) NULL,
     `description` varchar(255) NULL,
@@ -12,7 +13,7 @@ CREATE TABLE IF NOT EXISTS `permission` (
     PRIMARY KEY (`id`)
     );
 
-CREATE TABLE IF NOT EXISTS `organization` (
+CREATE TABLE `organization` (
                                               `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                               `name` varchar(150) NULL,
     `domain_name` varchar(100) NULL,
@@ -21,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `organization` (
     PRIMARY KEY (`id`)
     );
 
-CREATE TABLE IF NOT EXISTS `role` (
+CREATE TABLE `role` (
                                       `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                       `organization_id` bigint unsigned NULL,
                                       `name` varchar(100) NULL,
@@ -29,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `role` (
     PRIMARY KEY (`id`)
     );
 
-CREATE TABLE IF NOT EXISTS `user` (
+CREATE TABLE `user` (
                                       `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                       `name` varchar(50) NULL,
     `email` varchar(100) NULL,
@@ -40,21 +41,21 @@ CREATE TABLE IF NOT EXISTS `user` (
     PRIMARY KEY (`id`)
     );
 
-CREATE TABLE IF NOT EXISTS `department` (
+CREATE TABLE `department` (
                                             `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                             `organization_id` bigint unsigned NOT NULL,
                                             `name` varchar(100) NULL,
     PRIMARY KEY (`id`)
     );
 
-CREATE TABLE IF NOT EXISTS `position` (
+CREATE TABLE `position` (
                                           `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                           `organization_id` bigint unsigned NOT NULL,
                                           `title` varchar(100) NULL,
     PRIMARY KEY (`id`)
     );
 
-CREATE TABLE IF NOT EXISTS `user_organization` (
+CREATE TABLE `user_organization` (
                                                    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                                    `user_id` bigint unsigned NOT NULL,
                                                    `organization_id` bigint unsigned NOT NULL,
@@ -67,7 +68,7 @@ CREATE TABLE IF NOT EXISTS `user_organization` (
     PRIMARY KEY (`id`)
     );
 
-CREATE TABLE IF NOT EXISTS `role_permission` (
+CREATE TABLE `role_permission` (
                                                  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                                  `role_id` bigint unsigned NOT NULL,
                                                  `permission_id` int unsigned NOT NULL,
@@ -75,7 +76,7 @@ CREATE TABLE IF NOT EXISTS `role_permission` (
     UNIQUE KEY `uk_role_permission` (`role_id`, `permission_id`)
     );
 
-CREATE TABLE IF NOT EXISTS `user_role` (
+CREATE TABLE `user_role` (
                                            `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                            `role_id` bigint unsigned NOT NULL,
                                            `user_organization_id` bigint unsigned NOT NULL,
@@ -84,18 +85,18 @@ CREATE TABLE IF NOT EXISTS `user_role` (
     );
 
 -- 성능 최적화를 위한 인덱스
-CREATE INDEX IF NOT EXISTS `idx_user_email` ON `user` (`email`);
-CREATE INDEX IF NOT EXISTS `idx_user_status` ON `user` (`status`);
-CREATE INDEX IF NOT EXISTS `idx_user_organization_user` ON `user_organization` (`user_id`);
-CREATE INDEX IF NOT EXISTS `idx_user_organization_org` ON `user_organization` (`organization_id`);
-CREATE INDEX IF NOT EXISTS `idx_user_organization_status` ON `user_organization` (`status`);
-CREATE INDEX IF NOT EXISTS `idx_role_org` ON `role` (`organization_id`);
-CREATE INDEX IF NOT EXISTS `idx_permission_resource` ON `permission` (`resource`);
-CREATE INDEX IF NOT EXISTS `idx_permission_active` ON `permission` (`is_active`);
+CREATE INDEX `idx_user_email` ON `user` (`email`);
+CREATE INDEX `idx_user_status` ON `user` (`status`);
+CREATE INDEX `idx_user_organization_user` ON `user_organization` (`user_id`);
+CREATE INDEX `idx_user_organization_org` ON `user_organization` (`organization_id`);
+CREATE INDEX `idx_user_organization_status` ON `user_organization` (`status`);
+CREATE INDEX `idx_role_org` ON `role` (`organization_id`);
+CREATE INDEX `idx_permission_resource` ON `permission` (`resource`);
+CREATE INDEX `idx_permission_active` ON `permission` (`is_active`);
 
 
 
-CREATE TABLE IF NOT EXISTS `workflow` (
+CREATE TABLE `workflow` (
                                           `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                           `name` varchar(100) NOT NULL UNIQUE,
     `description` text NULL,
@@ -107,7 +108,7 @@ CREATE TABLE IF NOT EXISTS `workflow` (
     PRIMARY KEY (`id`)
     );
 
-CREATE TABLE IF NOT EXISTS `schedule` (
+CREATE TABLE `schedule` (
                                           `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                           `workflow_id` bigint unsigned NOT NULL,
                                           `cron_expression` varchar(50) NULL,
@@ -122,7 +123,7 @@ CREATE TABLE IF NOT EXISTS `schedule` (
     PRIMARY KEY (`id`)
     );
 
-CREATE TABLE IF NOT EXISTS `job` (
+CREATE TABLE `job` (
                                      `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                      `name` varchar(100) NOT NULL UNIQUE,
     `description` text NULL,
@@ -134,7 +135,7 @@ CREATE TABLE IF NOT EXISTS `job` (
     PRIMARY KEY (`id`)
     );
 
-CREATE TABLE IF NOT EXISTS `task` (
+CREATE TABLE `task` (
                                       `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                       `name` varchar(100) NOT NULL UNIQUE,
     `type` varchar(50) NULL,
@@ -144,7 +145,7 @@ CREATE TABLE IF NOT EXISTS `task` (
     PRIMARY KEY (`id`)
     );
 
-CREATE TABLE IF NOT EXISTS `workflow_job` (
+CREATE TABLE `workflow_job` (
                                               `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                               `workflow_id` bigint unsigned NOT NULL,
                                               `job_id` bigint unsigned NOT NULL,
@@ -152,7 +153,7 @@ CREATE TABLE IF NOT EXISTS `workflow_job` (
     UNIQUE KEY `uk_workflow_job` (`workflow_id`, `job_id`)
     );
 
-CREATE TABLE IF NOT EXISTS `job_task` (
+CREATE TABLE `job_task` (
                                           `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                           `job_id` bigint unsigned NOT NULL,
                                           `task_id` bigint unsigned NOT NULL,
@@ -161,7 +162,7 @@ CREATE TABLE IF NOT EXISTS `job_task` (
     UNIQUE KEY `uk_job_task` (`job_id`, `task_id`)
     );
 
-CREATE TABLE IF NOT EXISTS `execution_log` (
+CREATE TABLE `execution_log` (
                                                `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                                `execution_type` varchar(20) NULL COMMENT 'task, schedule, job, workflow',
     `source_id` bigint unsigned NULL COMMENT '모든 데이터에 대한 ID ex: job_id, schedule_id, task_id, ...',
@@ -174,7 +175,7 @@ CREATE TABLE IF NOT EXISTS `execution_log` (
     INDEX `idx_source_id_type` (`source_id`, `execution_type`)
     );
 
-CREATE TABLE IF NOT EXISTS `task_io_data` (
+CREATE TABLE `task_io_data` (
                                               `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                               `task_run_id` bigint unsigned NOT NULL,
                                               `io_type` varchar(10) NOT NULL COMMENT 'INPUT, OUTPUT',
@@ -189,7 +190,7 @@ CREATE TABLE IF NOT EXISTS `task_io_data` (
     INDEX `idx_task_io_name` (`name`)
     );
 
-CREATE TABLE IF NOT EXISTS `config` (
+CREATE TABLE `config` (
                                         `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                         `target_type` varchar(50) NULL COMMENT 'user, job, workflow',
     `target_id` bigint unsigned NULL,
@@ -202,7 +203,7 @@ CREATE TABLE IF NOT EXISTS `config` (
     UNIQUE KEY `uk_config_target` (`target_type`, `target_id`)
     );
 
-CREATE TABLE IF NOT EXISTS `category` (
+CREATE TABLE `category` (
                                           `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                           `name` varchar(100) NULL,
     `description` text NULL,
@@ -211,7 +212,7 @@ CREATE TABLE IF NOT EXISTS `category` (
     PRIMARY KEY (`id`)
     );
 
-CREATE TABLE IF NOT EXISTS `user_config` (
+CREATE TABLE `user_config` (
                                              `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                              `user_id` bigint unsigned NOT NULL,
                                              `type` varchar(50) NULL,
@@ -224,20 +225,20 @@ CREATE TABLE IF NOT EXISTS `user_config` (
     );
 
 -- 인덱스 추가 (성능 최적화)
-CREATE INDEX IF NOT EXISTS `idx_schedule_workflow` ON `schedule` (`workflow_id`);
-CREATE INDEX IF NOT EXISTS `idx_job_enabled` ON `job` (`is_enabled`);
-CREATE INDEX IF NOT EXISTS `idx_task_type` ON `task` (`type`);
-CREATE INDEX IF NOT EXISTS `idx_workflow_enabled` ON `workflow` (`is_enabled`);
-CREATE UNIQUE INDEX IF NOT EXISTS `uk_schedule_workflow` ON `schedule` (`workflow_id`);
-CREATE UNIQUE INDEX IF NOT EXISTS `uk_job_name` ON `job` (`name`);
-CREATE UNIQUE INDEX IF NOT EXISTS `uk_task_name` ON `task` (`name`);
-CREATE UNIQUE INDEX IF NOT EXISTS `uk_workflow_name` ON `workflow` (`name`);
-CREATE INDEX IF NOT EXISTS `idx_user_config_user` ON `user_config` (`user_id`);
+CREATE INDEX `idx_schedule_workflow` ON `schedule` (`workflow_id`);
+CREATE INDEX `idx_job_enabled` ON `job` (`is_enabled`);
+CREATE INDEX `idx_task_type` ON `task` (`type`);
+CREATE INDEX `idx_workflow_enabled` ON `workflow` (`is_enabled`);
+CREATE UNIQUE INDEX `uk_schedule_workflow` ON `schedule` (`workflow_id`);
+CREATE UNIQUE INDEX `uk_job_name` ON `job` (`name`);
+CREATE UNIQUE INDEX `uk_task_name` ON `task` (`name`);
+CREATE UNIQUE INDEX `uk_workflow_name` ON `workflow` (`name`);
+CREATE INDEX `idx_user_config_user` ON `user_config` (`user_id`);
 
 
 
 -- 워크플로우 실행 테이블
-CREATE TABLE IF NOT EXISTS `workflow_run` (
+CREATE TABLE `workflow_run` (
                                               `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                               `workflow_id` bigint unsigned NOT NULL,
                                               `trace_id` char(36) NOT NULL,
@@ -256,7 +257,7 @@ CREATE TABLE IF NOT EXISTS `workflow_run` (
     );
 
 -- Job 실행 테이블
-CREATE TABLE IF NOT EXISTS `job_run` (
+CREATE TABLE `job_run` (
                                          `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                          `workflow_run_id` bigint unsigned NOT NULL,
                                          `job_id` bigint unsigned NOT NULL,
@@ -272,7 +273,7 @@ CREATE TABLE IF NOT EXISTS `job_run` (
     );
 
 -- Task 실행 테이블
-CREATE TABLE IF NOT EXISTS `task_run` (
+CREATE TABLE `task_run` (
                                           `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                           `job_run_id` bigint unsigned NOT NULL,
                                           `task_id` bigint unsigned NOT NULL,
@@ -287,4 +288,4 @@ CREATE TABLE IF NOT EXISTS `task_run` (
     INDEX `idx_task_run_task_id` (`task_id`)
     );
 
-CREATE INDEX IF NOT EXISTS `idx_task_io_data_task_run_id` ON `task_io_data` (`task_run_id`);
+CREATE INDEX `idx_task_io_data_task_run_id` ON `task_io_data` (`task_run_id`);
