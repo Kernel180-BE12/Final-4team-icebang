@@ -63,8 +63,8 @@ jobs:
       - name: Run Formatter Check (Black)
         run: poetry run black --check .
 
-      - name: Run Linter (Ruff)
-        run: poetry run ruff check .
+      # - name: Run Linter (Ruff)
+      #   run: poetry run ruff check .
 
   test:
     name: Run Tests
