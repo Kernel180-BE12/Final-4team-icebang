@@ -44,7 +44,6 @@ public class AuthController {
 
     SecurityContextHolder.getContext().setAuthentication(auth);
 
-    // 세션에 SecurityContext 저장 (중요!)
     HttpSession session = httpRequest.getSession(true);
     session.setAttribute(
         HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
@@ -56,5 +55,10 @@ public class AuthController {
   @GetMapping("/check-session")
   public ApiResponse<Boolean> checkSession(@AuthenticationPrincipal AuthCredential user) {
     return ApiResponse.success(user != null);
+  }
+
+  @GetMapping("/permissions")
+  public ApiResponse<AuthCredential> getPermissions(@AuthenticationPrincipal AuthCredential user) {
+    return ApiResponse.success(user);
   }
 }
