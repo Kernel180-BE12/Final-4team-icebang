@@ -159,11 +159,12 @@ jobs:
       - name: Generate Swagger UI
         uses: Legion2/swagger-ui-action@v1
         with:
-          output: swagger-ui
+          output: user-service-swagger-ui
           spec-file: openapi-spec/openapi3.yaml
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./swagger-ui
+          publish_dir: ./user-service-docs
+          destination_dir: user-service
