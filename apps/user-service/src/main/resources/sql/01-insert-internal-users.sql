@@ -147,7 +147,7 @@ INSERT INTO `user` (`name`, `email`, `password`, `status`) VALUES
                                                                ('홍크롤러', 'crawler.hong@icebang.site', '$2a$10$encrypted_password_hash6', 'ACTIVE'),
                                                                ('서데이터', 'data.seo@icebang.site', '$2a$10$encrypted_password_hash7', 'ACTIVE'),
                                                                ('윤워크플로', 'workflow.yoon@icebang.site', '$2a$10$encrypted_password_hash8', 'ACTIVE'),
-                                                               ('시스템관리자', 'admin@icebang.site', '$2a$10$encrypted_password_hash0', 'ACTIVE');
+                                                               ('시스템관리자', 'admin@icebang.site', 'qwer1234!A', 'ACTIVE');
 
 -- 8. icebang 직원-조직 연결
 INSERT INTO `user_organization` (`user_id`, `organization_id`, `position_id`, `department_id`, `employee_number`, `status`) VALUES
