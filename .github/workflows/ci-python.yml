@@ -3,7 +3,8 @@ name: CI (Python/FastAPI)
 on:
   push:
     branches:
-      - feature/python-ci # 필요시 브랜치명 변경
+      - feature/python-ci
+      - main
     paths:
       - "apps/pre-processing-service/**" # Python 서비스 경로
   pull_request:

@@ -1,4 +1,5 @@
 # app/api/endpoints/embedding.py
+import loguru
 from fastapi import APIRouter
 from sqlalchemy import text
 
@@ -76,7 +77,7 @@ async def processing_tester():
     naver_request = RequestNaverSearch(**with_meta(meta,request_dict))
     response_data = await keyword_search(naver_request)
     keyword = response_data.get("keyword")
-    print(keyword)
+    loguru.logger.info(keyword)
 
     keyword ={
         "keyword" : keyword,
@@ -86,14 +87,14 @@ async def processing_tester():
     sadagu_request = RequestSadaguSearch(**with_meta(meta, keyword))
     search_service = SearchService()
     keyword_result = await search_service.search_products(sadagu_request)
-    print(keyword_result)
+    loguru.logger.info(keyword_result)
 
     #싸다구 상품 매치
     keyword["search_results"] = keyword_result.get("search_results")
     keyword_match_request = RequestSadaguMatch(**with_meta(meta, keyword))
     match_service = MatchService()
     keyword_match_response = match_service.match_products(keyword_match_request)
-    print(keyword_match_response)
+    loguru.logger.info(keyword_match_response)
 
     #싸다구 상품 유사도 분석
     keyword["matched_products"] = keyword_match_response.get("matched_products")
@@ -102,7 +103,7 @@ async def processing_tester():
     keyword_similarity_response = similarity_service.select_product_by_similarity(
         keyword_similarity_request
     )
-    print(keyword_similarity_response)
+    loguru.logger.info(keyword_similarity_response)
 
     #싸다구 상품 크롤링
 
@@ -119,7 +120,7 @@ async def processing_tester():
         content = "안녕하살법 받아치기",
         tags= ["퉁퉁퉁사후르","짜라짜라"]
     )
-    print(result)
+    loguru.logger.info(result)
 
 
     return "구웃"
