@@ -10,9 +10,9 @@ from ...model.schemas import *
 from ...service.blog.naver_blog_post_service import NaverBlogPostService
 from ...service.blog.tistory_blog_post_service import TistoryBlogPostService
 from ...service.keyword_service import keyword_search
-from ...service.match_service import match_products
-from ...service.search_service import search_products
-from ...service.similarity_service import select_product_by_similarity
+from ...service.match_service import MatchService
+from ...service.search_service import SearchService
+from ...service.similarity_service import SimilarityService
 from ...db.db_connecter import engine   # ✅ 우리가 만든 DB 유틸 임포트
 # 이 파일만의 독립적인 라우터를 생성합니다.
 router = APIRouter()
@@ -81,21 +81,27 @@ async def processing_tester():
     keyword ={
         "keyword" : keyword,
     }
+
     #싸다구 상품 검색
     sadagu_request = RequestSadaguSearch(**with_meta(meta, keyword))
-    keyword_result = await search_products(sadagu_request)
+    search_service = SearchService()
+    keyword_result = await search_service.search_products(sadagu_request)
     print(keyword_result)
 
     #싸다구 상품 매치
     keyword["search_results"] = keyword_result.get("search_results")
     keyword_match_request = RequestSadaguMatch(**with_meta(meta, keyword))
-    keyword_match_response = match_products(keyword_match_request)
+    match_service = MatchService()
+    keyword_match_response = match_service.match_products(keyword_match_request)
     print(keyword_match_response)
 
     #싸다구 상품 유사도 분석
     keyword["matched_products"] = keyword_match_response.get("matched_products")
     keyword_similarity_request = RequestSadaguSimilarity(**with_meta(meta, keyword))
-    keyword_similarity_response = select_product_by_similarity(keyword_similarity_request)
+    similarity_service = SimilarityService()
+    keyword_similarity_response = similarity_service.select_product_by_similarity(
+        keyword_similarity_request
+    )
     print(keyword_similarity_response)
 
     #싸다구 상품 크롤링
