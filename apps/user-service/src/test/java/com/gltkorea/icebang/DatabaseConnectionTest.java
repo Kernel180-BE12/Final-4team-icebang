@@ -28,7 +28,7 @@
 // @ActiveProfiles("test") // application-test-unit.yml 설정을 활성화
 // @Transactional // 테스트 후 데이터 롤백
 // @Sql(
-//    scripts = {"classpath:sql/create-schema.sql", "classpath:sql/insert-user-data.sql"},
+//    scripts = {"classpath:sql/create-01-schema.sql", "classpath:sql/insert-user-data.sql"},
 //    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 // class DatabaseConnectionTest {
 //

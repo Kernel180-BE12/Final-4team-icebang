@@ -4,30 +4,26 @@
 
 <mapper namespace="com.gltkorea.icebang.mapper.AuthMapper">
 
-    <!-- 이메일 중복 여부 확인 -->
     <select id="existsByEmail" parameterType="string" resultType="boolean">
         SELECT EXISTS(
             SELECT 1
-            FROM users
+            FROM user
             WHERE email = #{email}
         )
     </select>
 
-    <!-- 1. users INSERT & PK 반환 -->
     <insert id="insertUser" parameterType="com.gltkorea.icebang.domain.auth.dto.RegisterDto" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO users (name, email, password)
+        INSERT INTO user (name, email, password)
         VALUES (#{name}, #{email}, #{password});
     </insert>
 
-    <!-- 2. user_organizations INSERT -->
     <insert id="insertUserOrganization" parameterType="com.gltkorea.icebang.domain.auth.dto.RegisterDto" useGeneratedKeys="true" keyProperty="userOrgId">
-        INSERT INTO user_organizations (user_id, organization_id, department_id, position_id, status)
-        VALUES (#{id}, #{orgId}, #{deptId}, #{positionId}, #{status});
+        INSERT INTO user_organization (user_id, organization_id, department_id, position_id, status)
+        VALUES (#{id}, #{organizationId}, #{departmentId}, #{positionId}, #{status});
     </insert>
 
-    <!-- 3. user_roles INSERT (foreach) -->
     <insert id="insertUserRoles" parameterType="com.gltkorea.icebang.domain.auth.dto.RegisterDto">
-        INSERT INTO user_roles (user_organization_id, role_id)
+        INSERT INTO user_role (user_organization_id, role_id)
         VALUES
         <foreach collection="roleIds" item="roleId" separator=",">
             (#{userOrgId}, #{roleId})
