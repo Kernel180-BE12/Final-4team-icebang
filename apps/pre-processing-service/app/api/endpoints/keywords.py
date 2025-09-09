@@ -18,13 +18,13 @@ async def search(request: RequestNaverSearch):
     이 엔드포인트는 아래와 같은 JSON 요청을 받습니다.
     RequestBase와 RequestNaverSearch의 모든 필드를 포함해야 합니다.
     {
-        "job_id": "job-123",
-        "schedule_id": "schedule-456",
-        "schedule_his_id": 789,
-        "tag": "fastapi",
-        "category": "tech",
-        "start_date": "2025-09-01T12:00:00",
-        "end_date": "2025-09-02T15:00:00"
+        "job_id":1,
+        "schedule_id": 1,
+        "sschdule_his_id":1,
+        "tag":"naver",
+        "category":"50000000",
+        "start_date":"2025-09-01",
+        "end_date":"2025-09-02"
     }
     """
     response_data= await keyword_search(request)
