@@ -1,5 +1,7 @@
 # app/api/endpoints/embedding.py
 from fastapi import APIRouter
+from sqlalchemy import text
+
 from app.decorators.logging import log_api_call
 from ...errors.CustomException import *
 from fastapi import APIRouter
@@ -11,7 +13,7 @@ from ...service.keyword_service import keyword_search
 from ...service.match_service import match_products
 from ...service.search_service import search_products
 from ...service.similarity_service import select_product_by_similarity
-
+from ...db.db_connecter import engine   # ✅ 우리가 만든 DB 유틸 임포트
 # 이 파일만의 독립적인 라우터를 생성합니다.
 router = APIRouter()
 
@@ -42,7 +44,16 @@ async def trigger_error(item_id: int):
 
     return {"result": item_id}\
 
-
+@router.get("/db-test", tags=["db"])
+async def db_test():
+    """간단한 DB 연결 및 쿼리 테스트"""
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT NOW() as now"))
+            row = result.fetchone()
+            return {"status": "ok", "db_time": str(row.now)}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
 
 def with_meta(data: Mapping[str, Any], meta: Mapping[str, Any]) -> Dict[str, Any]:
     """요청 payload + 공통 meta 머지"""
