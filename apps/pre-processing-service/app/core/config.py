@@ -80,13 +80,6 @@ class BaseSettingsConfig(BaseSettings):
     # MeCab 사전 경로 (자동 감지)
     mecab_path: Optional[str] = None
 
-    # 외부 서비스 계정 정보
-    naver_id: Optional[str] = None
-    naver_password: Optional[str] = None
-    tistory_blog_name: Optional[str] = None
-    tistory_blog_url: Optional[str] = None
-    tistory_id: Optional[str] = None
-    tistory_password: Optional[str] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -103,6 +103,13 @@ jobs:
         run: poetry install --no-interaction --no-root
 
       - name: Run tests with Pytest
+        env:
+          DB_HOST: localhost
+          DB_PORT: 3306
+          DB_USER: test_user
+          DB_PASS: test_pass
+          DB_NAME: test_db
+          ENV_NAME: test
         run: poetry run pytest
 
   build-and-push-docker:
