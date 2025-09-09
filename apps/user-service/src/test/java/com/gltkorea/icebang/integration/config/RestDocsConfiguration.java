@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.e2e.config;
+package com.gltkorea.icebang.integration.config;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
