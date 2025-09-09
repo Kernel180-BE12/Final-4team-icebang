@@ -12,6 +12,23 @@
         )
     </select>
 
+    <!-- 로그인용 사용자 정보 조회 -->
+    <select id="findUserByEmail" parameterType="string" resultType="com.gltkorea.icebang.domain.auth.model.AuthCredential">
+        SELECT
+            u.id,
+            u.email,
+            u.password,
+            uo.status,
+            GROUP_CONCAT(r.name) as roles
+        FROM user u
+                 LEFT JOIN user_organization uo ON u.id = uo.user_id
+                 LEFT JOIN user_role ur ON uo.id = ur.user_organization_id
+                 LEFT JOIN role r ON ur.role_id = r.id
+        WHERE u.email = #{email}
+          AND uo.status IN ('ACTIVE', 'PENDING')  -- 활성 상태만 조회
+        GROUP BY u.id, u.email, u.password, uo.status
+    </select>
+
     <insert id="insertUser" parameterType="com.gltkorea.icebang.domain.auth.dto.RegisterDto" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO user (name, email, password)
         VALUES (#{name}, #{email}, #{password});
