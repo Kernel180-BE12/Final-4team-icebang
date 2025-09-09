@@ -36,7 +36,7 @@ def test_similarity_with_matched_products():
         "matched_products": matched_products,
     }
 
-    response = client.post("/product/similarity", json=body)
+    response = client.post("/products/similarity", json=body)
     print(f"Similarity Response: {response.json()}")
 
     assert response.status_code == 200
@@ -73,7 +73,7 @@ def test_similarity_fallback_to_search_results():
         "search_results": search_results,  # 폴백용
     }
 
-    response = client.post("/product/similarity", json=body)
+    response = client.post("/products/similarity", json=body)
     print(f"Fallback Response: {response.json()}")
 
     assert response.status_code == 200
@@ -107,7 +107,7 @@ def test_similarity_single_candidate():
         "matched_products": single_product,
     }
 
-    response = client.post("/product/similarity", json=body)
+    response = client.post("/products/similarity", json=body)
     print(f"Single candidate response: {response.json()}")
 
     assert response.status_code == 200
@@ -130,7 +130,7 @@ def test_similarity_no_candidates():
         "search_results": [],
     }
 
-    response = client.post("/product/similarity", json=body)
+    response = client.post("/products/similarity", json=body)
     print(f"No candidates response: {response.json()}")
 
     assert response.status_code == 200

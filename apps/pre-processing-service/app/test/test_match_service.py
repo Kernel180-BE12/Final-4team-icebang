@@ -30,7 +30,7 @@ def test_match_success():
         "search_results": sample_search_results,
     }
 
-    response = client.post("/product/match", json=body)
+    response = client.post("/products/match", json=body)
     print(f"Match Response: {response.json()}")
 
     assert response.status_code == 200
@@ -58,7 +58,7 @@ def test_match_no_results():
         "search_results": [],
     }
 
-    response = client.post("/product/match", json=body)
+    response = client.post("/products/match", json=body)
     print(f"No results response: {response.json()}")
 
     assert response.status_code == 200
@@ -87,7 +87,7 @@ def test_match_no_matches():
         "search_results": sample_search_results,
     }
 
-    response = client.post("/product/match", json=body)
+    response = client.post("/products/match", json=body)
     print(f"No matches response: {response.json()}")
 
     assert response.status_code == 200

@@ -10,7 +10,7 @@ SCHEDULE_HIS_ID = 1
 
 
 def test_read_root():
-    response = client.get("/keyword/")
+    response = client.get("/keywords/")
     assert response.status_code == 200
     assert response.json() == {"message": "keyword API"}
 
@@ -35,7 +35,7 @@ def test_search(tag, category, start_date, end_date):
         "end_date": end_date,
     }
 
-    response = client.post("/keyword/search", json=body)
+    response = client.post("/keywords/search", json=body)
     assert response.status_code == 200
 
     response_data = response.json()
