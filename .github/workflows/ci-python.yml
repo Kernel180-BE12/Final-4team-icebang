@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - "apps/pre-processing-service/**" # Python 서비스 경로
+      - ".github/workflows/ci-python.yml"
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
@@ -115,7 +116,7 @@ jobs:
   build-and-push-docker:
     name: Build Docker Image and push to registry
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/feature/python-ci' && github.event_name == 'push'
     needs:
       - test
 
