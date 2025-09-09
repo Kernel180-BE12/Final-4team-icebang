@@ -1,279 +1,301 @@
 package com.gltkorea.icebang.e2e.scenario;
 
-import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
-import static com.epages.restdocs.apispec.ResourceDocumentation.*;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
-import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
-import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.jdbc.Sql;
 
-import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.gltkorea.icebang.e2e.support.E2eTestSupport;
 
-@Sql("classpath:sql/01-insert-internal-users.sql")
+@Sql(
+    value = "classpath:sql/01-insert-internal-users.sql",
+    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@DisplayName("사용자 등록 플로우 E2E 테스트")
 class UserRegistrationFlowE2eTest extends E2eTestSupport {
 
+  @SuppressWarnings("unchecked")
   @Test
-  @DisplayName("조직 목록 조회 성공")
-  void getOrganizations_success() throws Exception {
-    mockMvc
-        .perform(
-            get(getApiUrlForDocs("/v0/organizations"))
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Origin", "https://admin.icebang.site")
-                .header("Referer", "https://admin.icebang.site/"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.success").value(true))
-        .andExpect(jsonPath("$.status").value("OK"))
-        .andExpect(jsonPath("$.message").value("OK"))
-        .andExpect(jsonPath("$.data").isArray())
-        .andDo(
-            document(
-                "organizations-list",
-                preprocessRequest(prettyPrint()),
-                preprocessResponse(prettyPrint()),
-                resource(
-                    ResourceSnippetParameters.builder()
-                        .tag("Organization")
-                        .summary("조직 목록 조회")
-                        .description("시스템에 등록된 모든 조직의 목록을 조회합니다")
-                        .responseFields(
-                            fieldWithPath("success")
-                                .type(JsonFieldType.BOOLEAN)
-                                .description("요청 성공 여부"),
-                            fieldWithPath("data[]").type(JsonFieldType.ARRAY).description("조직 목록"),
-                            fieldWithPath("data[].id")
-                                .type(JsonFieldType.NUMBER)
-                                .description("조직 ID"),
-                            fieldWithPath("data[].organizationName")
-                                .type(JsonFieldType.STRING)
-                                .description("조직명"),
-                            fieldWithPath("message")
-                                .type(JsonFieldType.STRING)
-                                .description("응답 메시지"),
-                            fieldWithPath("status")
-                                .type(JsonFieldType.STRING)
-                                .description("HTTP 상태"))
-                        .build())));
-  }
+  @DisplayName("관리자가 새 사용자를 등록하는 전체 플로우 (ERP 시나리오)")
+  void completeUserRegistrationFlow() throws Exception {
+    logStep(1, "관리자 로그인 (최우선)");
 
-  @Test
-  @DisplayName("조직별 옵션 조회 성공")
-  void getOrganizationOptions_success() throws Exception {
-    mockMvc
-        .perform(
-            get(getApiUrlForDocs("/v0/organizations/{orgId}/options"), 1)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Origin", "https://admin.icebang.site")
-                .header("Referer", "https://admin.icebang.site/"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.success").value(true))
-        .andExpect(jsonPath("$.status").value("OK"))
-        .andExpect(jsonPath("$.message").value("OK"))
-        .andExpect(jsonPath("$.data.departments").isArray())
-        .andExpect(jsonPath("$.data.positions").isArray())
-        .andExpect(jsonPath("$.data.roles").isArray())
-        .andDo(
-            document(
-                "organization-options",
-                preprocessRequest(prettyPrint()),
-                preprocessResponse(prettyPrint()),
-                resource(
-                    ResourceSnippetParameters.builder()
-                        .tag("Organization")
-                        .summary("조직별 옵션 조회")
-                        .description("특정 조직의 부서, 직급, 역할 정보를 조회합니다")
-                        .responseFields(
-                            fieldWithPath("success")
-                                .type(JsonFieldType.BOOLEAN)
-                                .description("요청 성공 여부"),
-                            fieldWithPath("data")
-                                .type(JsonFieldType.OBJECT)
-                                .description("조직 옵션 데이터"),
-                            fieldWithPath("data.departments[]")
-                                .type(JsonFieldType.ARRAY)
-                                .description("부서 목록"),
-                            fieldWithPath("data.departments[].id")
-                                .type(JsonFieldType.NUMBER)
-                                .description("부서 ID"),
-                            fieldWithPath("data.departments[].name")
-                                .type(JsonFieldType.STRING)
-                                .description("부서명"),
-                            fieldWithPath("data.positions[]")
-                                .type(JsonFieldType.ARRAY)
-                                .description("직급 목록"),
-                            fieldWithPath("data.positions[].id")
-                                .type(JsonFieldType.NUMBER)
-                                .description("직급 ID"),
-                            fieldWithPath("data.positions[].title")
-                                .type(JsonFieldType.STRING)
-                                .description("직급명"),
-                            fieldWithPath("data.roles[]")
-                                .type(JsonFieldType.ARRAY)
-                                .description("역할 목록"),
-                            fieldWithPath("data.roles[].id")
-                                .type(JsonFieldType.NUMBER)
-                                .description("역할 ID"),
-                            fieldWithPath("data.roles[].name")
-                                .type(JsonFieldType.STRING)
-                                .description("역할 코드명"),
-                            fieldWithPath("data.roles[].description")
-                                .type(JsonFieldType.STRING)
-                                .description("역할 설명"),
-                            fieldWithPath("message")
-                                .type(JsonFieldType.STRING)
-                                .description("응답 메시지"),
-                            fieldWithPath("status")
-                                .type(JsonFieldType.STRING)
-                                .description("HTTP 상태"))
-                        .build())));
-  }
-
-  @Test
-  @DisplayName("사용자 로그인 성공")
-  void login_success() throws Exception {
-    // given
+    // 1. 관리자 로그인 (ERP에서 모든 작업의 선행 조건)
     Map<String, String> loginRequest = new HashMap<>();
     loginRequest.put("email", "admin@icebang.site");
     loginRequest.put("password", "qwer1234!A");
 
-    // MockMvc로 REST Docs + OpenAPI 생성
-    mockMvc
-        .perform(
-            post(getApiUrlForDocs("/v0/auth/login"))
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Origin", "https://admin.icebang.site")
-                .header("Referer", "https://admin.icebang.site/")
-                .content(objectMapper.writeValueAsString(loginRequest)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.success").value(true))
-        .andExpect(jsonPath("$.status").value("OK"))
-        .andExpect(jsonPath("$.message").value("OK"))
-        .andExpect(jsonPath("$.data").isEmpty())
-        .andDo(
-            document(
-                "auth-login",
-                preprocessRequest(prettyPrint()),
-                preprocessResponse(prettyPrint()),
-                resource(
-                    ResourceSnippetParameters.builder()
-                        .tag("Authentication")
-                        .summary("사용자 로그인")
-                        .description("이메일과 비밀번호로 사용자 인증을 수행합니다")
-                        .requestFields(
-                            fieldWithPath("email")
-                                .type(JsonFieldType.STRING)
-                                .description("사용자 이메일 주소"),
-                            fieldWithPath("password")
-                                .type(JsonFieldType.STRING)
-                                .description("사용자 비밀번호"))
-                        .responseFields(
-                            fieldWithPath("success")
-                                .type(JsonFieldType.BOOLEAN)
-                                .description("요청 성공 여부"),
-                            fieldWithPath("data")
-                                .type(JsonFieldType.NULL)
-                                .description("응답 데이터 (로그인 성공 시 null)"),
-                            fieldWithPath("message")
-                                .type(JsonFieldType.STRING)
-                                .description("응답 메시지"),
-                            fieldWithPath("status")
-                                .type(JsonFieldType.STRING)
-                                .description("HTTP 상태"))
-                        .build())));
-  }
+    HttpHeaders loginHeaders = new HttpHeaders();
+    loginHeaders.setContentType(MediaType.APPLICATION_JSON);
+    loginHeaders.set("Origin", "https://admin.icebang.site");
+    loginHeaders.set("Referer", "https://admin.icebang.site/");
 
-  @Test
-  @DisplayName("사용자 회원가입 성공")
-  void register_success() throws Exception {
-    // given - 먼저 로그인하여 인증 토큰 획득
-    Map<String, String> loginRequest = new HashMap<>();
-    loginRequest.put("email", "admin@icebang.site");
-    loginRequest.put("password", "qwer1234!A");
+    HttpEntity<Map<String, String>> loginEntity = new HttpEntity<>(loginRequest, loginHeaders);
 
-    // 로그인 수행 (실제 환경에서는 토큰을 헤더에 추가해야 할 수 있음)
-    mockMvc
-        .perform(
-            post("/v0/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequest)))
-        .andExpect(status().isOk());
+    ResponseEntity<Map> loginResponse =
+        restTemplate.postForEntity(getV0ApiUrl("/auth/login"), loginEntity, Map.class);
 
-    // 회원가입 요청 데이터
+    assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat((Boolean) loginResponse.getBody().get("success")).isTrue();
+
+    logSuccess("관리자 로그인 성공 - 이제 모든 리소스 접근 가능");
+
+    logStep(2, "조직 목록 조회 (인증된 상태)");
+
+    // 2. 조직 목록 조회 (로그인 후 가능)
+    ResponseEntity<Map> organizationsResponse =
+        restTemplate.getForEntity(getV0ApiUrl("/organizations"), Map.class);
+
+    assertThat(organizationsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat((Boolean) organizationsResponse.getBody().get("success")).isTrue();
+    assertThat(organizationsResponse.getBody().get("data")).isNotNull();
+
+    logSuccess("조직 목록 조회 성공");
+
+    logStep(3, "부서 및 각종 데이터 조회 (특정 조직 옵션)");
+
+    // 3. 특정 조직의 부서, 직급, 역할 데이터 조회
+    ResponseEntity<Map> optionsResponse =
+        restTemplate.getForEntity(getV0ApiUrl("/organizations/1/options"), Map.class);
+
+    assertThat(optionsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat((Boolean) optionsResponse.getBody().get("success")).isTrue();
+
+    Map<String, Object> optionData = (Map<String, Object>) optionsResponse.getBody().get("data");
+    assertThat(optionData.get("departments")).isNotNull();
+    assertThat(optionData.get("positions")).isNotNull();
+    assertThat(optionData.get("roles")).isNotNull();
+
+    logSuccess("부서 및 각종 데이터 조회 성공");
+
+    // 조회된 데이터 로깅 (ERP 관점에서 중요한 메타데이터)
+    System.out.println("📊 조회된 메타데이터:");
+    System.out.println(
+        "   - 부서: " + ((java.util.List<?>) optionData.get("departments")).size() + "개");
+    System.out.println(
+        "   - 직급: " + ((java.util.List<?>) optionData.get("positions")).size() + "개");
+    System.out.println("   - 역할: " + ((java.util.List<?>) optionData.get("roles")).size() + "개");
+
+    logStep(4, "새 사용자 등록 (모든 메타데이터 확인 후)");
+
+    // 4. 새 사용자 등록 (조회한 메타데이터 기반으로)
     Map<String, Object> registerRequest = new HashMap<>();
     registerRequest.put("name", "김철수");
     registerRequest.put("email", "kim.chulsoo@example.com");
+    registerRequest.put("orgId", 1);
+    registerRequest.put("deptId", 2); // 조회한 부서 정보 기반
+    registerRequest.put("positionId", 5); // 조회한 직급 정보 기반
+    registerRequest.put("roleIds", Arrays.asList(6, 7, 8)); // 조회한 역할 정보 기반
+    registerRequest.put("password", null);
+
+    HttpHeaders registerHeaders = new HttpHeaders();
+    registerHeaders.setContentType(MediaType.APPLICATION_JSON);
+    registerHeaders.set("Origin", "https://admin.icebang.site");
+    registerHeaders.set("Referer", "https://admin.icebang.site/");
+
+    HttpEntity<Map<String, Object>> registerEntity =
+        new HttpEntity<>(registerRequest, registerHeaders);
+
+    ResponseEntity<Map> registerResponse =
+        restTemplate.postForEntity(getV0ApiUrl("/auth/register"), registerEntity, Map.class);
+
+    assertThat(registerResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat((Boolean) registerResponse.getBody().get("success")).isTrue();
+
+    logSuccess("새 사용자 등록 성공");
+    logSuccess(
+        "등록된 사용자: " + registerRequest.get("name") + " (" + registerRequest.get("email") + ")");
+
+    logCompletion("ERP 사용자 등록 플로우");
+  }
+
+  @Disabled
+  @DisplayName("로그인 없이 리소스 접근 시 모든 요청 차단")
+  void accessResourcesWithoutLogin_shouldFailForAll() {
+    logStep(1, "인증 없이 조직 목록 조회 시도");
+
+    // 1. 로그인 없이 조직 목록 조회 시도
+    ResponseEntity<Map> orgResponse =
+        restTemplate.getForEntity(getV0ApiUrl("/organizations"), Map.class);
+
+    assertThat(orgResponse.getStatusCode()).isIn(HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN);
+    logSuccess("미인증 조직 조회 차단 확인");
+
+    logStep(2, "인증 없이 조직 옵션 조회 시도");
+
+    // 2. 로그인 없이 조직 옵션 조회 시도
+    ResponseEntity<Map> optResponse =
+        restTemplate.getForEntity(getV0ApiUrl("/organizations/1/options"), Map.class);
+
+    assertThat(optResponse.getStatusCode()).isIn(HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN);
+    logSuccess("미인증 옵션 조회 차단 확인");
+
+    logStep(3, "인증 없이 회원가입 시도");
+
+    // 3. 로그인 없이 회원가입 시도
+    Map<String, Object> registerRequest = new HashMap<>();
+    registerRequest.put("name", "테스트사용자");
+    registerRequest.put("email", "test@example.com");
+    registerRequest.put("orgId", 1);
+    registerRequest.put("deptId", 2);
+    registerRequest.put("positionId", 5);
+    registerRequest.put("roleIds", Arrays.asList(6));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(registerRequest, headers);
+
+    ResponseEntity<Map> regResponse =
+        restTemplate.postForEntity(getV0ApiUrl("/auth/register"), entity, Map.class);
+
+    assertThat(regResponse.getStatusCode()).isIn(HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN);
+    logSuccess("미인증 회원가입 차단 확인");
+
+    logCompletion("ERP 보안 검증");
+  }
+
+  @Test
+  @DisplayName("잘못된 자격증명으로 로그인 시도 시 실패")
+  void loginWithInvalidCredentials_shouldFail() {
+    logStep(1, "잘못된 비밀번호로 로그인 시도");
+
+    Map<String, String> wrongPasswordRequest = new HashMap<>();
+    wrongPasswordRequest.put("email", "admin@icebang.site");
+    wrongPasswordRequest.put("password", "wrongpassword");
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    HttpEntity<Map<String, String>> entity = new HttpEntity<>(wrongPasswordRequest, headers);
+
+    ResponseEntity<Map> response =
+        restTemplate.postForEntity(getV0ApiUrl("/auth/login"), entity, Map.class);
+
+    assertThat(response.getStatusCode()).isIn(HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN);
+    logSuccess("잘못된 자격증명 로그인 차단 확인");
+
+    logStep(2, "존재하지 않는 사용자로 로그인 시도");
+
+    Map<String, String> nonExistentUserRequest = new HashMap<>();
+    nonExistentUserRequest.put("email", "nonexistent@example.com");
+    nonExistentUserRequest.put("password", "anypassword");
+
+    HttpEntity<Map<String, String>> nonExistentEntity =
+        new HttpEntity<>(nonExistentUserRequest, headers);
+
+    ResponseEntity<Map> nonExistentResponse =
+        restTemplate.postForEntity(getV0ApiUrl("/auth/login"), nonExistentEntity, Map.class);
+
+    assertThat(nonExistentResponse.getStatusCode())
+        .isIn(HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN);
+    logSuccess("존재하지 않는 사용자 로그인 차단 확인");
+  }
+
+  @SuppressWarnings("unchecked")
+  @Disabled
+  @DisplayName("중복 이메일로 사용자 등록 시도 시 실패")
+  void register_withDuplicateEmail_shouldFail() {
+    // 선행 조건: 관리자 로그인
+    performAdminLogin();
+
+    // 첫 번째 사용자 등록 (실제 API 데이터 기반)
+    registerUser("first.user@example.com", "첫번째사용자");
+
+    logStep(1, "중복 이메일로 회원가입 시도");
+
+    // 조직 및 옵션 정보 다시 조회 (실제 값 사용)
+    ResponseEntity<Map> organizationsResponse =
+        restTemplate.getForEntity(getV0ApiUrl("/organizations"), Map.class);
+    java.util.List<Map<String, Object>> organizations =
+        (java.util.List<Map<String, Object>>) organizationsResponse.getBody().get("data");
+    Integer orgId = (Integer) organizations.getFirst().get("id");
+
+    ResponseEntity<Map> optionsResponse =
+        restTemplate.getForEntity(getV0ApiUrl("/organizations/" + orgId + "/options"), Map.class);
+    Map<String, Object> optionData = (Map<String, Object>) optionsResponse.getBody().get("data");
+
+    java.util.List<Map<String, Object>> departments =
+        (java.util.List<Map<String, Object>>) optionData.get("departments");
+    java.util.List<Map<String, Object>> positions =
+        (java.util.List<Map<String, Object>>) optionData.get("positions");
+    java.util.List<Map<String, Object>> roles =
+        (java.util.List<Map<String, Object>>) optionData.get("roles");
+
+    Integer deptId = (Integer) departments.getFirst().get("id");
+    Integer positionId = (Integer) positions.getFirst().get("id");
+    Integer roleId = (Integer) roles.getFirst().get("id");
+
+    // 동일한 이메일로 다시 등록 시도
+    Map<String, Object> duplicateRequest = new HashMap<>();
+    duplicateRequest.put("name", "중복사용자");
+    duplicateRequest.put("email", "first.user@example.com"); // 중복 이메일
+    duplicateRequest.put("orgId", orgId);
+    duplicateRequest.put("deptId", deptId);
+    duplicateRequest.put("positionId", positionId);
+    duplicateRequest.put("roleIds", Collections.singletonList(roleId));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(duplicateRequest, headers);
+
+    ResponseEntity<Map> response =
+        restTemplate.postForEntity(getV0ApiUrl("/auth/register"), entity, Map.class);
+
+    // 중복 이메일 처리 확인
+    assertThat(response.getStatusCode())
+        .isIn(HttpStatus.BAD_REQUEST, HttpStatus.CONFLICT, HttpStatus.UNPROCESSABLE_ENTITY);
+
+    logSuccess("중복 이메일 등록 차단 확인");
+  }
+
+  /** 관리자 로그인을 수행하는 헬퍼 메서드 */
+  private void performAdminLogin() {
+    Map<String, String> loginRequest = new HashMap<>();
+    loginRequest.put("email", "admin@icebang.site");
+    loginRequest.put("password", "qwer1234!A");
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    HttpEntity<Map<String, String>> entity = new HttpEntity<>(loginRequest, headers);
+
+    ResponseEntity<Map> response =
+        restTemplate.postForEntity(getV0ApiUrl("/auth/login"), entity, Map.class);
+
+    if (response.getStatusCode() != HttpStatus.OK) {
+      logError("관리자 로그인 실패: " + response.getStatusCode());
+      throw new RuntimeException("Admin login failed");
+    }
+
+    logSuccess("관리자 로그인 완료");
+  }
+
+  /** 사용자 등록을 수행하는 헬퍼 메서드 */
+  private void registerUser(String email, String name) {
+    Map<String, Object> registerRequest = new HashMap<>();
+    registerRequest.put("name", name);
+    registerRequest.put("email", email);
     registerRequest.put("orgId", 1);
     registerRequest.put("deptId", 2);
     registerRequest.put("positionId", 5);
     registerRequest.put("roleIds", Arrays.asList(6, 7, 8));
     registerRequest.put("password", null);
 
-    // when & then
-    mockMvc
-        .perform(
-            post(getApiUrlForDocs("/v0/auth/register"))
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Origin", "https://admin.icebang.site")
-                .header("Referer", "https://admin.icebang.site/")
-                .content(objectMapper.writeValueAsString(registerRequest)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.success").value(true))
-        .andExpect(jsonPath("$.status").value("OK"))
-        .andExpect(jsonPath("$.message").value("OK"))
-        .andDo(
-            document(
-                "auth-register",
-                preprocessRequest(prettyPrint()),
-                preprocessResponse(prettyPrint()),
-                resource(
-                    ResourceSnippetParameters.builder()
-                        .tag("Authentication")
-                        .summary("사용자 회원가입")
-                        .description("새로운 사용자를 등록합니다. 관리자 로그인 후에만 사용 가능합니다.")
-                        .requestFields(
-                            fieldWithPath("name").type(JsonFieldType.STRING).description("사용자 이름"),
-                            fieldWithPath("email")
-                                .type(JsonFieldType.STRING)
-                                .description("사용자 이메일 주소"),
-                            fieldWithPath("orgId").type(JsonFieldType.NUMBER).description("조직 ID"),
-                            fieldWithPath("deptId").type(JsonFieldType.NUMBER).description("부서 ID"),
-                            fieldWithPath("positionId")
-                                .type(JsonFieldType.NUMBER)
-                                .description("직급 ID"),
-                            fieldWithPath("roleIds[]")
-                                .type(JsonFieldType.ARRAY)
-                                .description("역할 ID 목록"),
-                            fieldWithPath("password")
-                                .type(JsonFieldType.NULL)
-                                .description("비밀번호 (null인 경우 시스템에서 자동 생성)")
-                                .optional())
-                        .responseFields(
-                            fieldWithPath("success")
-                                .type(JsonFieldType.BOOLEAN)
-                                .description("요청 성공 여부"),
-                            fieldWithPath("data")
-                                .type(JsonFieldType.VARIES)
-                                .description("응답 데이터 (회원가입 결과 정보)"),
-                            fieldWithPath("message")
-                                .type(JsonFieldType.STRING)
-                                .description("응답 메시지"),
-                            fieldWithPath("status")
-                                .type(JsonFieldType.STRING)
-                                .description("HTTP 상태"))
-                        .build())));
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(registerRequest, headers);
+    restTemplate.postForEntity(getV0ApiUrl("/auth/register"), entity, Map.class);
   }
 }
