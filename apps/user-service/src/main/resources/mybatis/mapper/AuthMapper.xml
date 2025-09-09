@@ -7,15 +7,15 @@
         <selectKey keyProperty="id"  resultType="java.math.BigInteger"  order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
-        INSERT INTO users (name, email, password)
+        INSERT INTO user (name, email, password)
         VALUES (#{name}, #{email}, #{password})
 
-        INSERT INTO user_organizations (user_id, organization_id, department_id, position_id, status)
+        INSERT INTO user_organization (user_id, organization_id, department_id, position_id, status)
         VALUES (#{id}, #{organizationId}, #{departmentId}, #{positionId}, #{status})
 
-        INSERT INTO user_roles (user_organization_id, role_id)
+        INSERT INTO user_role (user_organization_id, role_id)
         SELECT uo.id, #{roleId}
-        FROM user_organizations uo
+        FROM user_organization uo
         WHERE uo.user_id = #{id}
     </insert>
 </mapper>
