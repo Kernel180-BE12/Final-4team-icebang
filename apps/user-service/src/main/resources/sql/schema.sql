@@ -1,6 +1,23 @@
--- MariaDB 최적화된 스키마 (단수형 테이블 네이밍, 외래 키 제약조건 제거 버전)
 
--- 윗줄에 drop 테이블 쿼리 or schema 분리
+SET FOREIGN_KEY_CHECKS = 0;
+SET @tables = NULL;
+
+-- 1. 데이터베이스 내 모든 테이블 목록을 가져와 변수에 저장
+SELECT GROUP_CONCAT('`', table_name, '`') INTO @tables
+FROM information_schema.tables
+WHERE table_schema = (SELECT DATABASE());
+
+-- 2. 변수 값이 NULL인 경우를 대비하여 조건문 추가 및 DROP TABLE 구문 생성
+SET @drop_tables_sql = IFNULL(CONCAT('DROP TABLE ', @tables), 'SELECT "No tables to drop";');
+
+-- 3. 동적 SQL 실행
+PREPARE stmt FROM @drop_tables_sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- MariaDB 최적화된 스키마 (단수형 테이블 네이밍, 외래 키 제약조건 제거 버전)
 CREATE TABLE `permission` (
                                             `id` int unsigned NOT NULL AUTO_INCREMENT,
                                             `resource` varchar(100) NULL,
