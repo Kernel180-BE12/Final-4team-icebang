@@ -2,7 +2,7 @@ name: CI (Python/FastAPI)
 
 on:
   push:
-    branches: [feature/python-ci, main]
+    branches: [feature/python-ci, main, develop]
     paths:
       - "apps/pre-processing-service/**"
       - ".github/workflows/ci-python.yml"
@@ -12,7 +12,7 @@ on:
     paths:
       - "apps/pre-processing-service/**"
 
-# 불필요한 전역 권한 제거(최소 권한 원칙)
+# 최소 권한 원칙
 permissions:
   contents: read
 
@@ -23,69 +23,79 @@ concurrency:
 env:
   APP_DIR: apps/pre-processing-service
   PY_VER: "3.11"
-  POETRY_VERSION: "2.1.3"
-  POETRY_VIRTUALENVS_IN_PROJECT: "true" # .venv 프로젝트 내 생성
+  POETRY_VERSION: "1.8.3" # 최신 안정 버전 사용
+  POETRY_VIRTUALENVS_IN_PROJECT: "true"
   POETRY_NO_INTERACTION: "1"
+  POETRY_CACHE_DIR: ~/.cache/pypoetry
+  CACHE_VERSION: v1 # 캐시 무효화를 위한 버전
 
 jobs:
-  # ---------- 공통 셋업(재사용) ----------
-  setup:
-    name: Prepare (Checkout / Python / Poetry / Cache)
+  # ---------- 코드 변경 감지 ----------
+  changes:
+    name: Detect Changes
     runs-on: ubuntu-latest
     outputs:
-      cache-hit: ${{ steps.cache.outputs.cache-hit }}
+      app-changed: ${{ steps.changes.outputs.app-changed }}
+      docker-needed: ${{ steps.changes.outputs.docker-needed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E "^${{ env.APP_DIR }}/(src/|tests/|pyproject.toml|poetry.lock|Dockerfile)" > /dev/null; then
+            echo "app-changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "app-changed=false" >> $GITHUB_OUTPUT
+          fi
+
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E "^${{ env.APP_DIR }}/(Dockerfile|requirements|pyproject.toml)" > /dev/null; then
+            echo "docker-needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "docker-needed=false" >> $GITHUB_OUTPUT
+          fi
+
+  # ---------- 공통 셋업 ----------
+  setup:
+    name: Setup Environment
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.app-changed == 'true'
+    outputs:
+      python-version: ${{ steps.setup-python.outputs.python-version }}
+      cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PY_VER }}
-          cache: "pip" # pip 캐시(간접적으로 poetry 설치 등에 도움)
 
-      - name: Install Poetry (${{ env.POETRY_VERSION }})
-        uses: snok/install-poetry@v1
-        with:
-          version: ${{ env.POETRY_VERSION }}
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
+      - name: Generate cache key
+        id: cache-key
+        run: |
+          key="venv-${{ env.CACHE_VERSION }}-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-${{ hashFiles(format('{0}/poetry.lock', env.APP_DIR)) }}-${{ hashFiles(format('{0}/pyproject.toml', env.APP_DIR)) }}"
+          echo "key=$key" >> $GITHUB_OUTPUT
 
-      - name: Cache venv
-        id: cache
+      - name: Load cached venv
+        id: cached-venv
         uses: actions/cache@v4
         with:
-          path: ${{ env.APP_DIR }}/.venv
-          key: venv-${{ runner.os }}-${{ env.PY_VER }}-${{ hashFiles(format('{0}/poetry.lock', env.APP_DIR)) }}-${{ hashFiles(format('{0}/pyproject.toml', env.APP_DIR)) }}
+          path: |
+            ${{ env.APP_DIR }}/.venv
+            ${{ env.POETRY_CACHE_DIR }}
+          key: ${{ steps.cache-key.outputs.key }}
           restore-keys: |
-            venv-${{ runner.os }}-${{ env.PY_VER }}-
+            venv-${{ env.CACHE_VERSION }}-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-
 
-      - name: Install deps (poetry)
-        if: steps.cache.outputs.cache-hit != 'true'
-        working-directory: ${{ env.APP_DIR }}
-        run: poetry install --no-root
-
-  # ---------- Lint ----------
-  lint:
-    name: Lint & Format Check
-    runs-on: ubuntu-latest
-    needs: setup
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
-    defaults:
-      run:
-        working-directory: ${{ env.APP_DIR }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Use cached venv
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.APP_DIR }}/.venv
-          key: venv-${{ runner.os }}-${{ env.PY_VER }}-${{ hashFiles(format('{0}/poetry.lock', env.APP_DIR)) }}-${{ hashFiles(format('{0}/pyproject.toml', env.APP_DIR)) }}
-
-      - name: Install Poetry (shim)
+      - name: Install Poetry
+        if: steps.cached-venv.outputs.cache-hit != 'true'
         uses: snok/install-poetry@v1
         with:
           version: ${{ env.POETRY_VERSION }}
@@ -93,21 +103,148 @@ jobs:
           virtualenvs-in-project: true
           installer-parallel: true
 
-      - name: Black (check)
-        run: poetry run black --check .
+      - name: Install dependencies
+        if: steps.cached-venv.outputs.cache-hit != 'true'
+        working-directory: ${{ env.APP_DIR }}
+        run: |
+          poetry install --no-root --only=main,dev
+          # 의존성 설치 후 권한 확인
+          poetry run python -c "import sys; print(f'Python: {sys.version}')"
 
-      # - name: Ruff (lint)
-      #   run: poetry run ruff check .
+  # ---------- 코드 품질 검사 ----------
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    needs: [setup, changes]
+    if: needs.changes.outputs.app-changed == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
+    strategy:
+      fail-fast: false
+      matrix:
+        check: [format, lint, security]
+    defaults:
+      run:
+        working-directory: ${{ env.APP_DIR }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # 필요 시 타입체크 활성화
-      # - name: mypy
-      #   run: poetry run mypy .
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ needs.setup.outputs.python-version }}
 
-  # ---------- Test ----------
+      - name: Load cached dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.APP_DIR }}/.venv
+            ${{ env.POETRY_CACHE_DIR }}
+          key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Code formatting (Black)
+        if: matrix.check == 'format'
+        run: |
+          poetry run black --check --diff .
+          echo "✅ Code formatting check passed"
+
+      - name: Linting (Ruff)
+        if: matrix.check == 'lint'
+        run: |
+          poetry run ruff check . --output-format=github
+          echo "✅ Linting check passed"
+
+      - name: Security scan (Bandit)
+        if: matrix.check == 'security'
+        run: |
+          poetry run bandit -r . -f json -o bandit-report.json || true
+          poetry run bandit -r . -ll
+          echo "✅ Security scan completed"
+
+      - name: Upload security report
+        if: matrix.check == 'security' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-security-report
+          path: ${{ env.APP_DIR }}/bandit-report.json
+
+  # ---------- 타입 검사 ----------
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    needs: [setup, changes]
+    if: needs.changes.outputs.app-changed == 'true'
+    defaults:
+      run:
+        working-directory: ${{ env.APP_DIR }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ needs.setup.outputs.python-version }}
+
+      - name: Load cached dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.APP_DIR }}/.venv
+            ${{ env.POETRY_CACHE_DIR }}
+          key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Run mypy
+        run: |
+          poetry run mypy . --junit-xml=mypy-report.xml
+          echo "✅ Type checking passed"
+
+      - name: Upload type check report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mypy-report
+          path: ${{ env.APP_DIR }}/mypy-report.xml
+
+  # ---------- 테스트 ----------
   test:
-    name: Run Tests
+    name: Test Suite
     runs-on: ubuntu-latest
-    needs: [setup, lint]
+    needs: [setup, changes]
+    if: needs.changes.outputs.app-changed == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        test-type: [unit, integration]
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_db
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: test_pass
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD"
+          --health-interval=10s 
+          --health-timeout=5s 
+          --health-retries=5
     defaults:
       run:
         working-directory: ${{ env.APP_DIR }}
@@ -115,35 +252,53 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use cached venv
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ needs.setup.outputs.python-version }}
+
+      - name: Load cached dependencies
         uses: actions/cache@v4
         with:
-          path: ${{ env.APP_DIR }}/.venv
-          key: venv-${{ runner.os }}-${{ env.PY_VER }}-${{ hashFiles(format('{0}/poetry.lock', env.APP_DIR)) }}-${{ hashFiles(format('{0}/pyproject.toml', env.APP_DIR)) }}
+          path: |
+            ${{ env.APP_DIR }}/.venv
+            ${{ env.POETRY_CACHE_DIR }}
+          key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
 
-      - name: Install Poetry (shim)
+      - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
           version: ${{ env.POETRY_VERSION }}
           virtualenvs-create: true
           virtualenvs-in-project: true
-          installer-parallel: true
 
-      # 통합테스트가 실제 DB 필요하면 MySQL 서비스 주석 해제
-      # services:
-      #   mysql:
-      #     image: mysql:8
-      #     env:
-      #       MYSQL_ROOT_PASSWORD: root
-      #       MYSQL_DATABASE: test_db
-      #       MYSQL_USER: test_user
-      #       MYSQL_PASSWORD: test_pass
-      #     ports: [ "3306:3306" ]
-      #     options: >-
-      #       --health-cmd="mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD"
-      #       --health-interval=10s --health-timeout=5s --health-retries=5
+      - name: Wait for MySQL
+        run: |
+          until mysqladmin ping -h 127.0.0.1 -u test_user -ptest_pass --silent; do
+            echo "Waiting for MySQL..."
+            sleep 2
+          done
+          echo "✅ MySQL is ready"
 
-      - name: Pytest
+      - name: Run unit tests
+        if: matrix.test-type == 'unit'
+        env:
+          ENV_NAME: test
+          PYTHONWARNINGS: default
+        run: |
+          poetry run pytest tests/unit/ \
+            -v \
+            --maxfail=1 \
+            --tb=short \
+            --durations=10 \
+            --cov=src \
+            --cov-report=xml:coverage-unit.xml \
+            --cov-report=html:htmlcov-unit \
+            --junitxml=pytest-unit.xml
+
+      - name: Run integration tests
+        if: matrix.test-type == 'integration'
         env:
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
@@ -153,29 +308,90 @@ jobs:
           ENV_NAME: test
           PYTHONWARNINGS: default
         run: |
-          poetry run pytest -q --maxfail=1 --disable-warnings --durations=10 --junitxml=pytest-report.xml
+          poetry run pytest tests/integration/ \
+            -v \
+            --maxfail=3 \
+            --tb=short \
+            --durations=10 \
+            --junitxml=pytest-integration.xml
 
-      - name: Upload test report
+      - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pytest-report
-          path: ${{ env.APP_DIR }}/pytest-report.xml
+          name: test-reports-${{ matrix.test-type }}
+          path: |
+            ${{ env.APP_DIR }}/pytest-*.xml
+            ${{ env.APP_DIR }}/coverage-*.xml
+            ${{ env.APP_DIR }}/htmlcov-*
 
-  # ---------- Docker Build & Push ----------
-  build-and-push-docker:
-    name: Build & Push Docker (GHCR)
+  # ---------- 보안 스캔 ----------
+  security-scan:
+    name: Dependency Security Scan
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/feature/python-ci' && github.event_name == 'push'
-    needs: test
-    permissions:
-      contents: read
-      packages: write # GHCR 푸시에 필요
+    needs: [setup, changes]
+    if: needs.changes.outputs.app-changed == 'true'
+    defaults:
+      run:
+        working-directory: ${{ env.APP_DIR }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set repo lowercase
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ needs.setup.outputs.python-version }}
+
+      - name: Load cached dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.APP_DIR }}/.venv
+            ${{ env.POETRY_CACHE_DIR }}
+          key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Check dependencies for vulnerabilities
+        run: |
+          poetry run safety check --json --output safety-report.json || true
+          poetry run safety check
+          echo "✅ Dependency security scan completed"
+
+      - name: Upload security report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: safety-report
+          path: ${{ env.APP_DIR }}/safety-report.json
+
+  # ---------- 빌드 및 푸시 ----------
+  docker-build:
+    name: Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: [changes, quality, typecheck, test]
+    if: |
+      always() &&
+      needs.changes.outputs.docker-needed == 'true' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/python-ci') &&
+      github.event_name == 'push' &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set repository name to lowercase
         run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
 
       - name: Set up QEMU
@@ -184,14 +400,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login GHCR
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Docker metadata
+      - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -199,18 +415,44 @@ jobs:
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch
-            type=sha
+            type=sha,prefix={{branch}}-
+            type=raw,value={{date 'YYYY-MM-DD'}}-{{sha}}
 
-      - name: Build & Push
+      - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./apps/pre-processing-service
-          platforms: linux/amd64
+          context: ${{ env.APP_DIR }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            PYTHON_VERSION=${{ env.PY_VER }}
+            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            VCS_REF=${{ github.sha }}
 
-      - name: Show image history
-        run: docker history $(echo "${{ steps.meta.outputs.tags }}" | head -n 1) --human --no-trunc
+  # ---------- 알림 ----------
+  notify:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [quality, typecheck, test, security-scan, docker-build]
+    if: always() && github.event_name == 'push'
+    steps:
+      - name: Report CI Status
+        env:
+          QUALITY_STATUS: ${{ needs.quality.result }}
+          TYPECHECK_STATUS: ${{ needs.typecheck.result }}
+          TEST_STATUS: ${{ needs.test.result }}
+          SECURITY_STATUS: ${{ needs.security-scan.result }}
+          DOCKER_STATUS: ${{ needs.docker-build.result }}
+        run: |
+          echo "## CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Quality | ${{ env.QUALITY_STATUS == 'success' && '✅' || '❌' }} ${{ env.QUALITY_STATUS }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Type Check | ${{ env.TYPECHECK_STATUS == 'success' && '✅' || '❌' }} ${{ env.TYPECHECK_STATUS }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tests | ${{ env.TEST_STATUS == 'success' && '✅' || '❌' }} ${{ env.TEST_STATUS }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Scan | ${{ env.SECURITY_STATUS == 'success' && '✅' || '❌' }} ${{ env.SECURITY_STATUS }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Build | ${{ env.DOCKER_STATUS == 'success' && '✅' || env.DOCKER_STATUS == 'skipped' && '⏭️' || '❌' }} ${{ env.DOCKER_STATUS }} |" >> $GITHUB_STEP_SUMMARY
