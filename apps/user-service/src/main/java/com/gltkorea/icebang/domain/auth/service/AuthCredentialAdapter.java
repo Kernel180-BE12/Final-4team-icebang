@@ -17,10 +17,11 @@ public class AuthCredentialAdapter implements UserDetailsService {
 
   @Override
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-    AuthCredential user = authMapper.findByEmail(email);
-    if (user == null) {
-      throw new UsernameNotFoundException("이메일 없음: " + email);
-    }
-    return user;
+    //    AuthCredential user = authMapper.findByEmail(email);
+    //    if (user == null) {
+    //      throw new UsernameNotFoundException("이메일 없음: " + email);
+    //    }
+    //    return user;
+    return new AuthCredential();
   }
 }
