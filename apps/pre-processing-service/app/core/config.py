@@ -69,7 +69,7 @@ class BaseSettingsConfig(BaseSettings):
     db_user: str
     db_pass: str
     db_name: str
-    env_name: str = ".dev"
+    env_name: str
 
     # MeCab 사전 경로 (자동 감지)
     mecab_path: Optional[str] = None
@@ -77,6 +77,8 @@ class BaseSettingsConfig(BaseSettings):
     # 외부 서비스 계정 정보
     naver_id: Optional[str] = None
     naver_password: Optional[str] = None
+    tistory_blog_name: Optional[str] = None
+    tistory_blog_url: Optional[str] = None
     tistory_id: Optional[str] = None
     tistory_password: Optional[str] = None
 
@@ -92,18 +94,22 @@ class BaseSettingsConfig(BaseSettings):
     @property
     def db_url(self) -> str:
         """개별 필드를 사용하여 DB URL을 동적으로 생성"""
-        return f"postgresql://{self.db_user}:{self.db_pass}@{self.db_host}:{self.db_port}/{self.db_name}"
+        return(
+            f"mysql+pymysql://{self.db_user}:"
+            f"{self.db_pass}"
+            f"@{self.db_host}:{self.db_port}/{self.db_name}"
+        )
 
     model_config = SettingsConfigDict(env_file=['.env'])
 
 
 # 환경별 설정 클래스
 class DevSettings(BaseSettingsConfig):
-    model_config = SettingsConfigDict(env_file=['.env', '.dev.env'])
+    model_config = SettingsConfigDict(env_file=['.env', '.env.dev'])
 
 
 class PrdSettings(BaseSettingsConfig):
-    model_config = SettingsConfigDict(env_file=['.env', '.prd.env'])
+    model_config = SettingsConfigDict(env_file=['.env', '.env.prod'])
 
 def get_settings() -> BaseSettingsConfig:
     """환경 변수에 따라 적절한 설정 객체를 반환하는 함수"""
