@@ -13,7 +13,7 @@ def test_crawl_success():
         "tag": "detail",
         "product_url": "https://ssadagu.kr/shop/view.php?platform=1688&num_iid=886788894790",
         "use_selenium": False,
-        "include_images": False
+        "include_images": False,
     }
 
     response = client.post("/product/crawl", json=body)
@@ -36,7 +36,7 @@ def test_crawl_invalid_url():
         "tag": "detail",
         "product_url": "https://ssadagu.kr/shop/view.php?platform=1688&num_iid=invalid",
         "use_selenium": False,
-        "include_images": False
+        "include_images": False,
     }
 
     response = client.post("/product/crawl", json=body)
@@ -59,7 +59,7 @@ def test_crawl_completely_invalid_url():
         "tag": "detail",
         "product_url": "https://nonexistent-domain-12345.com/invalid",
         "use_selenium": False,
-        "include_images": False
+        "include_images": False,
     }
 
     response = client.post("/product/crawl", json=body)
@@ -76,7 +76,7 @@ def test_crawl_include_images():
         "tag": "detail",
         "product_url": "https://ssadagu.kr/shop/view.php?platform=1688&num_iid=886788894790",
         "use_selenium": False,
-        "include_images": True
+        "include_images": True,
     }
 
     response = client.post("/product/crawl", json=body)

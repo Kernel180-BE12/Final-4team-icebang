@@ -1,6 +1,10 @@
 from fastapi import APIRouter, Request, HTTPException
 from app.decorators.logging import log_api_call
-from ...errors.CustomException import InvalidItemDataException, ItemNotFoundException, CustomException
+from ...errors.CustomException import (
+    InvalidItemDataException,
+    ItemNotFoundException,
+    CustomException,
+)
 from ...service.crawl_service import CrawlService
 from ...service.search_service import SearchService
 from ...service.match_service import MatchService
@@ -63,7 +67,9 @@ async def similarity(request: RequestSadaguSimilarity):
         result = similarity_service.select_product_by_similarity(request)
 
         if not result:
-            raise CustomException(500, "유사도 분석에 실패했습니다.", "SIMILARITY_FAILED")
+            raise CustomException(
+                500, "유사도 분석에 실패했습니다.", "SIMILARITY_FAILED"
+            )
 
         return result
     except InvalidItemDataException as e:

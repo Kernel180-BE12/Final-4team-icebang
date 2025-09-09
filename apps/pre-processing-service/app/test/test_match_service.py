@@ -10,16 +10,16 @@ def test_match_success():
     sample_search_results = [
         {
             "url": "https://ssadagu.kr/shop/view.php?platform=1688&num_iid=123",
-            "title": "925 실버 반지 여성용 결혼반지"
+            "title": "925 실버 반지 여성용 결혼반지",
         },
         {
             "url": "https://ssadagu.kr/shop/view.php?platform=1688&num_iid=456",
-            "title": "골드 목걸이 체인 펜던트"
+            "title": "골드 목걸이 체인 펜던트",
         },
         {
             "url": "https://ssadagu.kr/shop/view.php?platform=1688&num_iid=789",
-            "title": "반지 세트 커플링 약혼반지"
-        }
+            "title": "반지 세트 커플링 약혼반지",
+        },
     ]
 
     body = {
@@ -27,7 +27,7 @@ def test_match_success():
         "schedule_id": 1,
         "schedule_his_id": 1,
         "keyword": "반지",
-        "search_results": sample_search_results
+        "search_results": sample_search_results,
     }
 
     response = client.post("/product/match", json=body)
@@ -55,7 +55,7 @@ def test_match_no_results():
         "schedule_id": 2,
         "schedule_his_id": 2,
         "keyword": "반지",
-        "search_results": []
+        "search_results": [],
     }
 
     response = client.post("/product/match", json=body)
@@ -71,12 +71,12 @@ def test_match_no_matches():
     sample_search_results = [
         {
             "url": "https://ssadagu.kr/shop/view.php?platform=1688&num_iid=123",
-            "title": "컴퓨터 키보드 게이밍"
+            "title": "컴퓨터 키보드 게이밍",
         },
         {
             "url": "https://ssadagu.kr/shop/view.php?platform=1688&num_iid=456",
-            "title": "스마트폰 케이스 투명"
-        }
+            "title": "스마트폰 케이스 투명",
+        },
     ]
 
     body = {
@@ -84,7 +84,7 @@ def test_match_no_matches():
         "schedule_id": 3,
         "schedule_his_id": 3,
         "keyword": "반지",
-        "search_results": sample_search_results
+        "search_results": sample_search_results,
     }
 
     response = client.post("/product/match", json=body)

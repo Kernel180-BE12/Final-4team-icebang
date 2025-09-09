@@ -15,12 +15,15 @@ def test_read_root():
     assert response.json() == {"message": "keyword API"}
 
 
-@pytest.mark.parametrize("tag, category, start_date, end_date", [
-    ("naver", "50000000", "2025-09-01", "2025-09-02"),
-    ("naver", "50000001", "2025-09-01", "2025-09-02"),
-    ("naver", "50000002", "2025-09-01", "2025-09-02"),
-    ("naver_store", "", "2025-09-01", "2025-09-02"),
-])
+@pytest.mark.parametrize(
+    "tag, category, start_date, end_date",
+    [
+        ("naver", "50000000", "2025-09-01", "2025-09-02"),
+        ("naver", "50000001", "2025-09-01", "2025-09-02"),
+        ("naver", "50000002", "2025-09-01", "2025-09-02"),
+        ("naver_store", "", "2025-09-01", "2025-09-02"),
+    ],
+)
 def test_search(tag, category, start_date, end_date):
     body = {
         "job_id": JOB_ID,
@@ -29,7 +32,7 @@ def test_search(tag, category, start_date, end_date):
         "tag": tag,
         "category": category,
         "start_date": start_date,
-        "end_date": end_date
+        "end_date": end_date,
     }
 
     response = client.post("/keyword/search", json=body)
