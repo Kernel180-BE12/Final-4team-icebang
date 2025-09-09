@@ -176,15 +176,17 @@ CREATE TABLE IF NOT EXISTS `execution_log` (
 
 CREATE TABLE IF NOT EXISTS `task_io_data` (
                                               `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-                                              `trace_id` char(36) NULL,
-    `io_type` varchar(10) NULL COMMENT 'INPUT, OUTPUT',
-    `name` varchar(100) NULL,
-    `data_type` varchar(50) NULL,
-    `data_value` json NULL,
+                                              `task_run_id` bigint unsigned NOT NULL,
+                                              `io_type` varchar(10) NOT NULL COMMENT 'INPUT, OUTPUT',
+    `name` varchar(100) NOT NULL COMMENT '파라미터/변수 이름',
+    `data_type` varchar(50) NOT NULL COMMENT 'string, number, json, file, etc',
+    `data_value` json NULL COMMENT '실제 데이터 값',
+    `data_size` bigint NULL COMMENT '데이터 크기 (bytes)',
     `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
-    `task_run_id` bigint unsigned NULL,
     PRIMARY KEY (`id`),
-    INDEX `idx_trace_id` (`trace_id`)
+    INDEX `idx_task_io_task_run_id` (`task_run_id`),
+    INDEX `idx_task_io_type` (`io_type`),
+    INDEX `idx_task_io_name` (`name`)
     );
 
 CREATE TABLE IF NOT EXISTS `config` (
@@ -242,9 +244,6 @@ CREATE TABLE IF NOT EXISTS `workflow_run` (
     `run_number` varchar(20) NULL,
     `status` varchar(20) NULL COMMENT 'pending, running, success, failed, cancelled',
     `trigger_type` varchar(20) NULL COMMENT 'manual, schedule, push, pull_request',
-    `branch` varchar(100) NULL,
-    `commit_sha` varchar(40) NULL,
-    `commit_message` text NULL,
     `started_at` timestamp NULL,
     `finished_at` timestamp NULL,
     `created_by` bigint unsigned NULL,
@@ -281,8 +280,6 @@ CREATE TABLE IF NOT EXISTS `task_run` (
     `started_at` timestamp NULL,
     `finished_at` timestamp NULL,
     `execution_order` int NULL,
-    `output_data` json NULL,
-    `error_message` text NULL,
     `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     INDEX `idx_task_run_job_run_id` (`job_run_id`),
