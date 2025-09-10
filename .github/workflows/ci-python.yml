@@ -2,10 +2,11 @@ name: CI (Python/FastAPI)
 
 on:
   push:
-    branches:
-      - main
+    # pre-processing 서비스 태그 기준
+    tags:
+      - 'pre-processing-v*'
     paths:
-      - "apps/pre-processing-service/**" # Python 서비스 경로
+      - "apps/pre-processing-service/**"
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
@@ -13,7 +14,7 @@ on:
       - develop
       - release/**
     paths:
-      - "apps/pre-processing-service/**" # Python 서비스 경로
+      - "apps/pre-processing-service/**"
 
 permissions:
   contents: read
@@ -24,7 +25,7 @@ permissions:
 
 jobs:
   lint:
-    if: github.event.pull_request.draft == false
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     name: Lint & Format Check
     runs-on: ubuntu-latest
 
@@ -61,9 +62,6 @@ jobs:
 
       - name: Run Formatter Check (Black)
         run: poetry run black --check .
-
-      # - name: Run Linter (Ruff)
-      #   run: poetry run ruff check .
 
   test:
     name: Run Tests
@@ -112,11 +110,10 @@ jobs:
         run: poetry run pytest
 
   build-and-push-docker:
-    name: Build Docker Image and push to registry
+    name: Build Docker Image and push
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/feature/python-ci' && github.event_name == 'push'
-    needs:
-      - test
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/pre-processing-v')
 
     steps:
       - name: Checkout repository
@@ -135,13 +132,13 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./apps/pre-processing-service # Dockerfile이 있는 경로
+          context: ./apps/pre-processing-service
           push: true
           tags: |
+            ghcr.io/${{ env.REPO_LC }}/pre-processing-service:${{ github.ref_name }}
             ghcr.io/${{ env.REPO_LC }}/pre-processing-service:latest
-            ghcr.io/${{ env.REPO_LC }}/pre-processing-service:${{ github.sha }}
 
       - name: Analyze image layers
         run: |
           echo "=== Image Layer Analysis ==="
-          docker history ghcr.io/${{ env.REPO_LC }}/pre-processing-service:latest --human --no-trunc
+          docker history ghcr.io/${{ env.REPO_LC }}/pre-processing-service:${{ github.ref_name }} --human --no-trunc
