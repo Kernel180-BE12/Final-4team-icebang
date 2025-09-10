@@ -91,12 +91,12 @@ ext {
 	snippetsDir = file('build/generated-snippets')
 }
 
-tasks.named('test') {
+tasks.register('unitTest', Test) {
 	outputs.dir snippetsDir
 	useJUnitPlatform {
-		// 기본적으로는 e2e 태그 제외하고 실행
-		excludeTags 'e2e'
+		includeTags 'unit'
 	}
+
 	systemProperty 'spring.profiles.active', 'test-unit'
 }
 
@@ -108,7 +108,6 @@ tasks.register('integrationTest', Test) {
 
 	systemProperty 'spring.profiles.active', 'test-integration'
 
-	// E2E 테스트는 더 긴 시간 허용
 	timeout = Duration.ofMinutes(10)
 }
 
@@ -123,12 +122,6 @@ tasks.register('e2eTest', Test) {
 
 	// E2E 테스트는 더 긴 시간 허용
 	timeout = Duration.ofMinutes(10)
-}
-
-// 모든 테스트 실행 task
-tasks.register('allTests', Test) {
-	outputs.dir snippetsDir
-	useJUnitPlatform()
 }
 
 // AsciiDoctor 설정 (REST Docs 문서 생성)
