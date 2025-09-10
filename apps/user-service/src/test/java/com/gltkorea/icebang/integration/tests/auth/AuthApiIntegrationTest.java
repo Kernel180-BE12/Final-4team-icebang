@@ -14,16 +14,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
 import org.springframework.restdocs.payload.JsonFieldType;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.gltkorea.icebang.integration.setup.support.IntegrationTestSupport;
 
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Sql(
     value = "classpath:sql/01-insert-internal-users.sql",
-    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Transactional
 class AuthApiIntegrationTest extends IntegrationTestSupport {
   @Test
   @DisplayName("사용자 로그인 성공")

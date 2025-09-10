@@ -11,19 +11,21 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
 import org.springframework.restdocs.payload.JsonFieldType;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.gltkorea.icebang.integration.setup.support.IntegrationTestSupport;
 
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Sql(
     value = {
       "classpath:sql/01-insert-internal-users.sql",
       "classpath:sql/02-insert-external-users.sql"
     },
-    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Transactional
 class OrganizationApiIntegrationTest extends IntegrationTestSupport {
 
   @Test
@@ -76,8 +78,19 @@ class OrganizationApiIntegrationTest extends IntegrationTestSupport {
   @Test
   @DisplayName("조직 옵션 정보 조회 성공")
   void getOrganizationOptions_success() throws Exception {
-    // given
-    Long organizationId = 1L;
+    // given - 먼저 조직 목록을 조회해서 실제 존재하는 ID를 가져옴
+    MvcResult organizationsResult =
+        mockMvc
+            .perform(get("/v0/organizations").contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    String responseBody = organizationsResult.getResponse().getContentAsString();
+    JsonNode jsonNode = objectMapper.readTree(responseBody);
+    JsonNode organizations = jsonNode.get("data");
+
+    // 첫 번째 조직의 ID를 가져옴
+    Long organizationId = organizations.get(0).get("id").asLong();
 
     // when & then
     mockMvc

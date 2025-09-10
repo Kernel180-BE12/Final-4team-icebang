@@ -79,9 +79,11 @@ jobs:
       - name: Run Tests
         run: |
           if [ "${{ github.base_ref }}" == "main" ]; then
-            ./gradlew allTests
+            ./gradlew unitTest
+            ./gradlew integrationTest
+            ./gradlew e2eTest
           else
-            ./gradlew allTests
+            ./gradlew e2eTest
           fi
         working-directory: apps/user-service
 
