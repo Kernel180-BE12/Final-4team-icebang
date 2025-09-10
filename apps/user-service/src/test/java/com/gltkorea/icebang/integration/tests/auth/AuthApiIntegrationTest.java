@@ -77,5 +77,6 @@ class AuthApiIntegrationTest extends IntegrationTestSupport {
                                 .type(JsonFieldType.STRING)
                                 .description("HTTP 상태"))
                         .build())));
+    throw new RuntimeException("!");
   }
 }
