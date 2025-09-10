@@ -285,5 +285,3 @@ CREATE TABLE `task_run` (
     INDEX `idx_task_run_status` (`status`),
     INDEX `idx_task_run_task_id` (`task_id`)
     );
-
-CREATE INDEX `idx_task_io_data_task_run_id` ON `task_io_data` (`task_run_id`);
