@@ -18,11 +18,11 @@ permissions:
 
 jobs:
   update_user_service_release:
-    if: contains(github.event.head_commit.modified, 'apps/user-service/') || contains(github.event.pull_request.changed_files, 'apps/user-service/')
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
-    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.modified, 'apps/user-service/') || github.event_name == 'pull_request' }}
     steps:
       - uses: release-drafter/release-drafter@v5
         with:
@@ -31,11 +31,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   update_preprocessing_release:
-    if: contains(github.event.head_commit.modified, 'apps/pre-processing/') || contains(github.event.pull_request.changed_files, 'apps/pre-processing/')
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
-    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.modified, 'apps/pre-processing/') || github.event_name == 'pull_request' }}
     steps:
       - uses: release-drafter/release-drafter@v5
         with:
