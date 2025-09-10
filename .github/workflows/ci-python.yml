@@ -3,11 +3,9 @@ name: CI (Python/FastAPI)
 on:
   push:
     branches:
-      - feature/python-ci
       - main
     paths:
       - "apps/pre-processing-service/**" # Python 서비스 경로
-      - ".github/workflows/ci-python.yml"
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
