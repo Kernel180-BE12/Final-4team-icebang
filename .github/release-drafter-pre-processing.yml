@@ -1,24 +1,29 @@
-name-template: 'v$RESOLVED_VERSION'
-tag-template: 'v$RESOLVED_VERSION'
+name-template: 'pre-processing-v$RESOLVED_VERSION'
+tag-template: 'pre-processing-v$RESOLVED_VERSION'
 categories:
   - title: 'Feature'
     labels:
       - 'enhancement'
+      - 'pre-processing'
   - title: 'Bug Fixes'
     labels:
       - 'bug'
+      - 'pre-processing'
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
 change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
 version-resolver:
   major:
     labels:
       - 'major'
+      - 'pre-processing'
   minor:
     labels:
       - 'minor'
+      - 'pre-processing'
   patch:
     labels:
       - 'patch'
+      - 'pre-processing'
   default: patch
 template: |
   ## Changes
