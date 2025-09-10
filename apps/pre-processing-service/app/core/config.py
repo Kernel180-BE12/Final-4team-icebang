@@ -11,14 +11,19 @@ def detect_mecab_dicdir() -> Optional[str]:
 
     # 1. mecab-config 명령어로 사전 경로 확인 (가장 정확한 방법)
     try:
-        result = subprocess.run(['mecab-config', '--dicdir'],
-                                capture_output=True, text=True, timeout=5)
+        result = subprocess.run(
+            ["mecab-config", "--dicdir"], capture_output=True, text=True, timeout=5
+        )
         if result.returncode == 0:
             dicdir = result.stdout.strip()
             if os.path.exists(dicdir):
                 print(f"mecab-config에서 사전 경로 발견: {dicdir}")
                 return dicdir
-    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+    except (
+        subprocess.CalledProcessError,
+        FileNotFoundError,
+        subprocess.TimeoutExpired,
+    ):
         pass
 
     # 2. 플랫폼별 일반적인 경로들 확인
@@ -29,7 +34,7 @@ def detect_mecab_dicdir() -> Optional[str]:
             "/opt/homebrew/lib/mecab/dic/mecab-ko-dic",  # Apple Silicon
             "/usr/local/lib/mecab/dic/mecab-ko-dic",  # Intel Mac
             "/opt/homebrew/lib/mecab/dic/mecab-ipadic",  # 기본 사전
-            "/usr/local/lib/mecab/dic/mecab-ipadic"
+            "/usr/local/lib/mecab/dic/mecab-ipadic",
         ]
     elif system == "linux":
         candidate_paths = [
@@ -38,13 +43,13 @@ def detect_mecab_dicdir() -> Optional[str]:
             "/usr/local/lib/mecab/dic/mecab-ko-dic",
             "/usr/share/mecab/dic/mecab-ko-dic",
             "/usr/lib/mecab/dic/mecab-ipadic",
-            "/usr/local/lib/mecab/dic/mecab-ipadic"
+            "/usr/local/lib/mecab/dic/mecab-ipadic",
         ]
     elif system == "windows":
         candidate_paths = [
             "C:/Program Files/MeCab/dic/mecab-ko-dic",
             "C:/mecab/dic/mecab-ko-dic",
-            "C:/Program Files/MeCab/dic/mecab-ipadic"
+            "C:/Program Files/MeCab/dic/mecab-ipadic",
         ]
     else:
         candidate_paths = []
@@ -60,6 +65,7 @@ def detect_mecab_dicdir() -> Optional[str]:
 
     return None
 
+
 # 공통 설정을 위한 BaseSettings
 class BaseSettingsConfig(BaseSettings):
 
@@ -69,16 +75,10 @@ class BaseSettingsConfig(BaseSettings):
     db_user: str
     db_pass: str
     db_name: str
-    env_name: str = ".dev"
+    env_name: str
 
     # MeCab 사전 경로 (자동 감지)
     mecab_path: Optional[str] = None
-
-    # 외부 서비스 계정 정보
-    naver_id: Optional[str] = None
-    naver_password: Optional[str] = None
-    tistory_id: Optional[str] = None
-    tistory_password: Optional[str] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -92,18 +92,23 @@ class BaseSettingsConfig(BaseSettings):
     @property
     def db_url(self) -> str:
         """개별 필드를 사용하여 DB URL을 동적으로 생성"""
-        return f"postgresql://{self.db_user}:{self.db_pass}@{self.db_host}:{self.db_port}/{self.db_name}"
+        return (
+            f"mysql+pymysql://{self.db_user}:"
+            f"{self.db_pass}"
+            f"@{self.db_host}:{self.db_port}/{self.db_name}"
+        )
 
-    model_config = SettingsConfigDict(env_file=['.env'])
+    model_config = SettingsConfigDict(env_file=[".env"])
 
 
 # 환경별 설정 클래스
 class DevSettings(BaseSettingsConfig):
-    model_config = SettingsConfigDict(env_file=['.env', '.dev.env'])
+    model_config = SettingsConfigDict(env_file=[".env", ".env.dev"])
 
 
 class PrdSettings(BaseSettingsConfig):
-    model_config = SettingsConfigDict(env_file=['.env', '.prd.env'])
+    model_config = SettingsConfigDict(env_file=[".env", ".env.prod"])
+
 
 def get_settings() -> BaseSettingsConfig:
     """환경 변수에 따라 적절한 설정 객체를 반환하는 함수"""

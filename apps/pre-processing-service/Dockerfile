@@ -1,18 +1,35 @@
+# ---- builder ----
 FROM python:3.11-slim AS builder
 WORKDIR /app
+
+# 필수 OS 패키지
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
   && rm -rf /var/lib/apt/lists/*
+
+# Poetry 설치
 RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH="/root/.local/bin:$PATH"
-RUN poetry config virtualenvs.create false
-COPY pyproject.toml poetry.lock ./
-RUN poetry install --no-root
+RUN poetry self add "poetry-plugin-export>=1.7.0"
+# 런타임 가상환경
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
+# 의존성 해결 → requirements로 export → pip로 설치(= 반드시 /opt/venv에 설치됨)
+COPY pyproject.toml poetry.lock ./
+RUN poetry export --without dev -f requirements.txt -o requirements.txt \
+ && pip install --no-cache-dir -r requirements.txt
+
+# ---- runtime ----
 FROM python:3.11-slim AS final
 WORKDIR /app
-# site-packages + 콘솔 스크립트(gunicorn/uvicorn) 함께 복사
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-COPY ./app ./app
-EXPOSE 8000
-CMD ["gunicorn", "-w", "2", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "app.main:app"]
+
+# /opt/venv 복사
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# 앱 소스
+COPY . .
+
+
+# (권장 대안) 코드에서 uvicorn import 안 하고 프로세스 매니저로 실행하려면:
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "-b", "0.0.0.0:8000"]

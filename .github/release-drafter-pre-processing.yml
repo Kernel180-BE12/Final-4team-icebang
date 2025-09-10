@@ -1,0 +1,44 @@
+name-template: 'pre-processing-v$RESOLVED_VERSION'
+tag-template: 'pre-processing-v$RESOLVED_VERSION'
+
+categories:
+  - title: '🚀 Features'
+    labels:
+      - 'enhancement'
+      - 'pre-processing'
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'bug'
+      - 'pre-processing'
+  - title: '🧰 Maintenance'
+    labels:
+      - 'maintenance'
+      - 'pre-processing'
+
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&'
+
+version-resolver:
+  major:
+    labels:
+      - 'major'
+      - 'breaking-change'
+      - 'pre-processing'
+  minor:
+    labels:
+      - 'minor'
+      - 'enhancement'
+      - 'pre-processing'
+  patch:
+    labels:
+      - 'patch'
+      - 'bug'
+      - 'pre-processing'
+  default: patch
+
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...pre-processing-v$RESOLVED_VERSION

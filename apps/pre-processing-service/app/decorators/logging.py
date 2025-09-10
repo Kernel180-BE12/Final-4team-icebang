@@ -16,7 +16,7 @@ def log_api_call(func):
     async def wrapper(*args, **kwargs):
         # 1. request 객체를 안전하게 가져옵니다.
         #    kwargs에서 'request'를 찾고, 없으면 args가 비어있지 않은 경우에만 args[0]을 시도합니다.
-        request: Request | None = kwargs.get('request')
+        request: Request | None = kwargs.get("request")
         if request is None and args and isinstance(args[0], Request):
             request = args[0]
 
@@ -28,19 +28,17 @@ def log_api_call(func):
             user_agent = request.headers.get("user-agent", "N/A")
 
         # 3. 요청 정보를 로그로 기록합니다.
-        log_context = {
-            "func": func.__name__,
-            "ip": client_ip,
-            "user_agent": user_agent
-        }
+        log_context = {"func": func.__name__, "ip": client_ip, "user_agent": user_agent}
         if request:
-            log_context.update({
-                "url": str(request.url),
-                "method": request.method,
-            })
+            log_context.update(
+                {
+                    "url": str(request.url),
+                    "method": request.method,
+                }
+            )
             logger.info(
                 "API 호출 시작: URL='{url}' 메서드='{method}' 함수='{func}' IP='{ip}' User-Agent='{user_agent}'",
-                **log_context
+                **log_context,
             )
         else:
             logger.info("API 호출 시작: 함수='{func}'", **log_context)
@@ -61,12 +59,12 @@ def log_api_call(func):
             if request:
                 logger.error(
                     "API 호출 실패: URL='{url}' 메서드='{method}' IP='{ip}' 예외='{exception}' ({elapsed})",
-                    **log_context
+                    **log_context,
                 )
             else:
                 logger.error(
                     "API 호출 실패: 함수='{func}' 예외='{exception}' ({elapsed})",
-                    **log_context
+                    **log_context,
                 )
             raise  # 예외를 다시 발생시켜 FastAPI가 처리하도록 합니다.
         finally:
@@ -77,12 +75,11 @@ def log_api_call(func):
                 if request:
                     logger.success(
                         "API 호출 성공: URL='{url}' 메서드='{method}' IP='{ip}' ({elapsed})",
-                        **log_context
+                        **log_context,
                     )
                 else:
                     logger.success(
-                        "API 호출 성공: 함수='{func}' ({elapsed})",
-                        **log_context
+                        "API 호출 성공: 함수='{func}' ({elapsed})", **log_context
                     )
 
     return wrapper

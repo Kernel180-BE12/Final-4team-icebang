@@ -1,35 +1,48 @@
-# app/api/endpoints/keywords.py
 from ...service.keyword_service import keyword_search
-
 from fastapi import APIRouter
-from ...errors.CustomException import  *
+from ...errors.CustomException import *
 from ...model.schemas import RequestNaverSearch, ResponseNaverSearch
 
-# 이 파일만의 독립적인 라우터를 생성합니다.
 router = APIRouter()
 
-@router.get("/")
+
+@router.get("/", summary="키워드 API 상태 확인")
 async def root():
+    """
+    키워드 API가 정상 동작하는지 확인
+    """
     return {"message": "keyword API"}
 
-@router.post("/search",response_model=ResponseNaverSearch)
+
+@router.post(
+    "/search", response_model=ResponseNaverSearch, summary="네이버 키워드 검색"
+)
 async def search(request: RequestNaverSearch):
     """
-    이 엔드포인트는 아래와 같은 JSON 요청을 받습니다.
-    RequestBase와 RequestNaverSearch의 모든 필드를 포함해야 합니다.
+    이 엔드포인트는 JSON 요청으로 네이버 키워드 검색을 수행합니다.
+
+    요청 예시:
     {
-        "job_id": "job-123",
-        "schedule_id": "schedule-456",
-        "schedule_his_id": 789,
-        "tag": "fastapi",
-        "category": "tech",
-        "start_date": "2025-09-01T12:00:00",
-        "end_date": "2025-09-02T15:00:00"
+        "job_id": 1,
+        "schedule_id": 1,
+        "schedule_his_id": 1,
+        "tag": "naver",
+        "category": "50000000",
+        "start_date": "2025-09-01",
+        "end_date": "2025-09-02"
     }
     """
-    response_data= await keyword_search(request)
+    response_data = await keyword_search(request)
     return response_data
 
-@router.post("/ssadagu/validate",response_model=ResponseNaverSearch)
+
+@router.post(
+    "/ssadagu/validate",
+    response_model=ResponseNaverSearch,
+    summary="사다구몰 키워드 검증",
+)
 async def ssadagu_validate(request: RequestNaverSearch):
+    """
+    사다구몰 키워드 검증 테스트용 엔드포인트
+    """
     return ResponseNaverSearch()

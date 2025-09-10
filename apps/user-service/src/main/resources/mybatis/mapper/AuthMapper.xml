@@ -2,32 +2,46 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.gltkorea.icebang.mapper.AuthMapper">
+<mapper namespace="site.icebang.domain.auth.mapper.AuthMapper">
 
-    <!-- 이메일 중복 여부 확인 -->
     <select id="existsByEmail" parameterType="string" resultType="boolean">
         SELECT EXISTS(
             SELECT 1
-            FROM users
+            FROM user
             WHERE email = #{email}
         )
     </select>
 
-    <!-- 1. users INSERT & PK 반환 -->
-    <insert id="insertUser" parameterType="com.gltkorea.icebang.domain.auth.dto.RegisterDto" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO users (name, email, password)
+    <!-- 로그인용 사용자 정보 조회 -->
+    <select id="findUserByEmail" parameterType="string" resultType="site.icebang.domain.auth.model.AuthCredential">
+        SELECT
+            u.id,
+            u.email,
+            u.password,
+            uo.status,
+            GROUP_CONCAT(DISTINCT r.name) as roles
+        FROM user u
+                 LEFT JOIN user_organization uo ON u.id = uo.user_id
+                 LEFT JOIN user_role ur ON uo.id = ur.user_organization_id
+                 LEFT JOIN role r ON ur.role_id = r.id
+        WHERE u.email = #{email}
+          AND uo.status IN ('ACTIVE', 'PENDING')
+        GROUP BY u.id, u.email, u.password, uo.status
+            LIMIT 1
+    </select>
+
+    <insert id="insertUser" parameterType="site.icebang.domain.auth.dto.RegisterDto" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user (name, email, password)
         VALUES (#{name}, #{email}, #{password});
     </insert>
 
-    <!-- 2. user_organizations INSERT -->
-    <insert id="insertUserOrganization" parameterType="com.gltkorea.icebang.domain.auth.dto.RegisterDto" useGeneratedKeys="true" keyProperty="userOrgId">
-        INSERT INTO user_organizations (user_id, organization_id, department_id, position_id, status)
+    <insert id="insertUserOrganization" parameterType="site.icebang.domain.auth.dto.RegisterDto" useGeneratedKeys="true" keyProperty="userOrgId">
+        INSERT INTO user_organization (user_id, organization_id, department_id, position_id, status)
         VALUES (#{id}, #{orgId}, #{deptId}, #{positionId}, #{status});
     </insert>
 
-    <!-- 3. user_roles INSERT (foreach) -->
-    <insert id="insertUserRoles" parameterType="com.gltkorea.icebang.domain.auth.dto.RegisterDto">
-        INSERT INTO user_roles (user_organization_id, role_id)
+    <insert id="insertUserRoles" parameterType="site.icebang.domain.auth.dto.RegisterDto">
+        INSERT INTO user_role (user_organization_id, role_id)
         VALUES
         <foreach collection="roleIds" item="roleId" separator=",">
             (#{userOrgId}, #{roleId})

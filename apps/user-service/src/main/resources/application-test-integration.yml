@@ -1,0 +1,42 @@
+spring:
+  config:
+    activate:
+      on-profile: test-integration
+
+  # H2 인메모리 데이터베이스 설정 (Unit Test용)
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MariaDB;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+    hikari:
+      connection-init-sql: "SET MODE MariaDB; SET NON_KEYWORDS USER;"
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      pool-name: HikariCP-MyBatis
+
+  # H2 웹 콘솔 활성화 (디버깅용)
+  h2:
+    console:
+      enabled: true
+
+  # SQL 스크립트 초기화 설정
+  sql:
+    init:
+      mode: always
+      schema-locations:
+        - classpath:sql/00-drop-h2.sql
+        - classpath:sql/01-schema.sql
+      encoding: UTF-8
+
+mybatis:
+  mapper-locations: classpath:mybatis/mapper/**/*.xml
+  type-aliases-package: site.icebang.dto
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  config: classpath:log4j2-develop.yml

@@ -12,11 +12,7 @@ from app.errors.CustomException import *
 from app.errors.handlers import *
 
 # --- FastAPI 애플리케이션 인스턴스 생성 ---
-app = FastAPI(
-    title="pre-processing-service",
-    description="",
-    version="1.0.0"
-)
+app = FastAPI(title="pre-processing-service", description="", version="1.0.0")
 
 # --- 예외 핸들러 등록 ---
 # 등록 순서가 중요합니다: 구체적인 예외부터 등록하고 가장 일반적인 예외(Exception)를 마지막에 등록합니다.

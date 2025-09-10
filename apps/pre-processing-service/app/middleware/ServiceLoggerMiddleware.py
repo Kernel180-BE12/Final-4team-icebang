@@ -9,7 +9,7 @@ from typing import Dict, Optional, List, Any
 import json
 import time
 
-trace_id_context: ContextVar[str] = ContextVar('trace_id', default="NO_TRACE_ID")
+trace_id_context: ContextVar[str] = ContextVar("trace_id", default="NO_TRACE_ID")
 
 
 class ServiceLoggerMiddleware(BaseHTTPMiddleware):
@@ -37,14 +37,35 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
         return {
             "/keywords/search": {
                 "service_type": "NAVER_CRAWLING",
-                "track_params": ["keyword", "category", "startDate", "endDate", "job_id", "schedule_id"],
-                "response_trackers": ["keyword", "total_keywords", "results_count"]
+                "track_params": [
+                    "keyword",
+                    "category",
+                    "startDate",
+                    "endDate",
+                    "job_id",
+                    "schedule_id",
+                ],
+                "response_trackers": ["keyword", "total_keywords", "results_count"],
             },
             "/blogs/publish": {
-            "service_type": "BLOG_PUBLISH",
-            "track_params": ["tag", "title", "content", "tags", "job_id", "schedule_id", "schedule_his_id"],
-            "response_trackers": ["job_id", "schedule_id", "schedule_his_id", "status", "metadata"]
-            }
+                "service_type": "BLOG_PUBLISH",
+                "track_params": [
+                    "tag",
+                    "title",
+                    "content",
+                    "tags",
+                    "job_id",
+                    "schedule_id",
+                    "schedule_his_id",
+                ],
+                "response_trackers": [
+                    "job_id",
+                    "schedule_id",
+                    "schedule_his_id",
+                    "status",
+                    "metadata",
+                ],
+            },
         }
 
     async def dispatch(self, request: Request, call_next):
@@ -77,8 +98,12 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
             # 4. 성공 로깅
             if 200 <= response.status_code < 300:
                 await self._log_success_response(
-                    service_type, trace_id, start_time, param_str,
-                    response, service_config["response_trackers"]
+                    service_type,
+                    trace_id,
+                    start_time,
+                    param_str,
+                    response,
+                    service_config["response_trackers"],
                 )
             else:
                 await self._log_error_response(
@@ -102,9 +127,11 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
     def _match_pattern(self, url_path: str, pattern: str) -> bool:
         """URL 패턴 매칭 (간단한 구현, 필요시 정규식으로 확장 가능)"""
         # 정확히 일치하거나 패턴이 접두사인 경우
-        return url_path == pattern or url_path.startswith(pattern.rstrip('*'))
+        return url_path == pattern or url_path.startswith(pattern.rstrip("*"))
 
-    async def _extract_params(self, request: Request, track_params: List[str]) -> Dict[str, Any]:
+    async def _extract_params(
+        self, request: Request, track_params: List[str]
+    ) -> Dict[str, Any]:
         """요청에서 추적 파라미터 추출"""
         params = {}
 
@@ -137,9 +164,15 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
 
         return params
 
-    async def _log_success_response(self, service_type: str, trace_id: str,
-                                    start_time: float, param_str: str,
-                                    response: Response, response_trackers: List[str]):
+    async def _log_success_response(
+        self,
+        service_type: str,
+        trace_id: str,
+        start_time: float,
+        param_str: str,
+        response: Response,
+        response_trackers: List[str],
+    ):
         """성공 응답 로깅"""
         duration = time.time() - start_time
 
@@ -147,16 +180,16 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
             f"[{service_type}_SUCCESS]",
             f"trace_id={trace_id}",
             f"execution_time={duration:.4f}s{param_str}",
-            f"status_code={response.status_code}"
+            f"status_code={response.status_code}",
         ]
 
         # 응답 데이터에서 추적 정보 추출
         if isinstance(response, JSONResponse) and response_trackers:
             try:
                 # JSONResponse body 읽기
-                if hasattr(response, 'body'):
+                if hasattr(response, "body"):
                     response_data = json.loads(response.body.decode())
-                elif hasattr(response, 'content'):
+                elif hasattr(response, "content"):
                     response_data = response.content
                 else:
                     response_data = None
@@ -167,7 +200,9 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
                         if tracker in response_data:
                             value = response_data[tracker]
                             if isinstance(value, dict):
-                                response_params.append(f"{tracker}_keys={list(value.keys())}")
+                                response_params.append(
+                                    f"{tracker}_keys={list(value.keys())}"
+                                )
                                 response_params.append(f"{tracker}_count={len(value)}")
                             elif isinstance(value, list):
                                 response_params.append(f"{tracker}_count={len(value)}")
@@ -182,8 +217,14 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
 
         logger.info(" ".join(log_parts))
 
-    async def _log_error_response(self, service_type: str, trace_id: str,
-                                  start_time: float, param_str: str, response: Response):
+    async def _log_error_response(
+        self,
+        service_type: str,
+        trace_id: str,
+        start_time: float,
+        param_str: str,
+        response: Response,
+    ):
         """에러 응답 로깅"""
         duration = time.time() - start_time
         logger.error(
@@ -192,8 +233,14 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
             f"status_code={response.status_code}"
         )
 
-    async def _log_exception(self, service_type: str, trace_id: str,
-                             start_time: float, param_str: str, exception: Exception):
+    async def _log_exception(
+        self,
+        service_type: str,
+        trace_id: str,
+        start_time: float,
+        param_str: str,
+        exception: Exception,
+    ):
         """예외 로깅"""
         duration = time.time() - start_time
         logger.error(

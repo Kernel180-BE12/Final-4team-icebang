@@ -26,7 +26,9 @@ spring:
   sql:
     init:
       mode: always
-      schema-locations: classpath:sql/schema.sql
+      schema-locations:
+        - classpath:sql/00-drop-maria.sql
+        - classpath:sql/01-schema.sql
       data-locations:
         - classpath:sql/00-truncate.sql
         - classpath:sql/01-insert-internal-users.sql
@@ -35,7 +37,7 @@ spring:
 
 mybatis:
   mapper-locations: classpath:mybatis/mapper/**/*.xml
-  type-aliases-package: com.gltkorea.icebang.dto
+  type-aliases-package: site.icebang.dto
   configuration:
     map-underscore-to-camel-case: true
 
