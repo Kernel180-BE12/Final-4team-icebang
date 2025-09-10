@@ -1,25 +1,44 @@
 name-template: 'user-service-v$RESOLVED_VERSION'
 tag-template: 'user-service-v$RESOLVED_VERSION'
+
 categories:
-  - title: 'Feature'
+  - title: '🚀 Features'
     labels:
       - 'enhancement'
-  - title: 'Bug Fixes'
+      - 'user-service'
+  - title: '🐛 Bug Fixes'
     labels:
       - 'bug'
+      - 'user-service'
+  - title: '🧰 Maintenance'
+    labels:
+      - 'maintenance'
+      - 'user-service'
+
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
-change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
+change-title-escapes: '\<*_&'
+
 version-resolver:
   major:
     labels:
       - 'major'
+      - 'breaking-change'
+      - 'user-service'
   minor:
     labels:
       - 'minor'
+      - 'enhancement'
+      - 'user-service'
   patch:
     labels:
       - 'patch'
+      - 'bug'
+      - 'user-service'
   default: patch
+
 template: |
-  ## Changes
+  ## What's Changed
+
   $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...user-service-v$RESOLVED_VERSION
