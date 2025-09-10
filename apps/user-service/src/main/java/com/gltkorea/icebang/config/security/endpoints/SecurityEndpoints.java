@@ -3,14 +3,14 @@ package com.gltkorea.icebang.config.security.endpoints;
 public enum SecurityEndpoints {
   PUBLIC(
       "/",
-      "/login",
-      "/register",
+      "/v0/auth/login",
       "/api/public/**",
       "/health",
       "/css/**",
       "/js/**",
       "/images/**",
-      "/v0/**"),
+      "/v0/organizations/**",
+      "/v0/auth/register"),
 
   // 데이터 관리 관련 엔드포인트
   DATA_ADMIN("/admin/**", "/api/admin/**", "/management/**", "/actuator/**"),
@@ -25,7 +25,7 @@ public enum SecurityEndpoints {
   OPS("/api/scheduler/**", "/api/monitoring/**"),
 
   // 일반 사용자 엔드포인트
-  USER("/user/**", "/profile/**");
+  USER("/user/**", "/profile/**", "/v0/auth/check-session");
 
   private final String[] patterns;
 

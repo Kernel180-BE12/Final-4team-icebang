@@ -1,0 +1,6 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- H2에서 모든 테이블과 객체를 삭제하는 올바른 구문
+DROP ALL OBJECTS;
+
+SET FOREIGN_KEY_CHECKS = 1;

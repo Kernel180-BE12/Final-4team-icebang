@@ -3,6 +3,11 @@ spring:
     name: mvp
   profiles:
     active: develop
+  test:
+    context:
+      cache:
+        maxSize: 1
 mybatis:
   # Mapper XML 파일 위치
   mapper-locations: classpath:mapper/**/*.xml
+  type-handlers-package: com.gltkorea.icebang.config.mybatis.typehandler
