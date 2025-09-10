@@ -81,7 +81,6 @@ jobs:
           if [ "${{ github.base_ref }}" == "main" ]; then
             ./gradlew unitTest
             ./gradlew integrationTest
-            ./gradlew e2eTest
           else
             ./gradlew e2eTest
           fi
