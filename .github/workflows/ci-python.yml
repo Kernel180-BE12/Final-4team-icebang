@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   lint:
-    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    if: github.event.pull_request.draft == false
     name: Lint & Format Check
     runs-on: ubuntu-latest
     defaults:
