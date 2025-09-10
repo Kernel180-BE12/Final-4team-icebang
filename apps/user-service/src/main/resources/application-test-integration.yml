@@ -10,7 +10,7 @@ spring:
     password:
     driver-class-name: org.h2.Driver
     hikari:
-      connection-init-sql: "SET MODE MariaDB"
+      connection-init-sql: "SET MODE MariaDB; SET NON_KEYWORDS USER;"
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
@@ -22,15 +22,6 @@ spring:
   h2:
     console:
       enabled: true
-
-  # JPA 설정 (H2용)
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
 
   # SQL 스크립트 초기화 설정
   sql:
@@ -48,4 +39,4 @@ mybatis:
     map-underscore-to-camel-case: true
 
 logging:
-  config: classpath:log4j2-test-unit.yml
+  config: classpath:log4j2-develop.yml
