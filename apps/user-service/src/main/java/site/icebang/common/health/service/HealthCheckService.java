@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FastApiClient {
+public class HealthCheckService {
 
   // WebConfig에서 생성하고 타임아웃이 설정된 RestTemplate Bean을 주입받습니다.
   private final RestTemplate restTemplate;
