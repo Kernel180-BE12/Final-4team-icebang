@@ -28,7 +28,7 @@ class CrawlService:
 
             if not product_detail:
                 logger.error(f"상품 상세 정보 크롤링 실패: url={request.product_url}")
-                raise InvalidItemDataException("상품 상세 정보 크롤링 실패")
+                raise InvalidItemDataException()
 
             product_title = product_detail.get("title", "Unknown")[:50]
             logger.success(
@@ -56,7 +56,7 @@ class CrawlService:
             logger.error(
                 f"크롤링 서비스 오류: job_id={request.job_id}, product_url={request.product_url}, error='{e}'"
             )
-            raise InvalidItemDataException(f"상품 상세 크롤링 오류: {e}")
+            raise InvalidItemDataException()
         finally:
             await crawler.close()
             logger.debug("크롤러 리소스 정리 완료")

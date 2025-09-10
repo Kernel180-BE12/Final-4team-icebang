@@ -92,4 +92,4 @@ class MatchService:
             logger.error(
                 f"매칭 서비스 오류: job_id={request.job_id}, keyword='{keyword}', error='{e}'"
             )
-            raise InvalidItemDataException(f"키워드 매칭 실패: {str(e)}")
+            raise InvalidItemDataException()
