@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.e2e.annotation;
+package com.gltkorea.icebang.e2e.setup.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

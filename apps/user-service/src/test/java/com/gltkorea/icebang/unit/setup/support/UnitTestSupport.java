@@ -1,6 +1,6 @@
-package com.gltkorea.icebang.unit.support;
+package com.gltkorea.icebang.unit.setup.support;
 
-import com.gltkorea.icebang.unit.annotation.UnitTest;
+import com.gltkorea.icebang.unit.setup.annotation.UnitTest;
 
 @UnitTest
 public abstract class UnitTestSupport {

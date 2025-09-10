@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
 import org.springframework.test.context.jdbc.Sql;
 
-import com.gltkorea.icebang.e2e.support.E2eTestSupport;
+import com.gltkorea.icebang.e2e.setup.support.E2eTestSupport;
 
 @Sql(
     value = "classpath:sql/01-insert-internal-users.sql",

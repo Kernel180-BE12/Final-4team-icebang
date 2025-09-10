@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.integration.auth;
+package com.gltkorea.icebang.integration.tests.auth;
 
 import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
 import static com.epages.restdocs.apispec.ResourceDocumentation.*;
@@ -18,7 +18,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.jdbc.Sql;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
-import com.gltkorea.icebang.integration.support.IntegrationTestSupport;
+import com.gltkorea.icebang.integration.setup.support.IntegrationTestSupport;
 
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Sql(

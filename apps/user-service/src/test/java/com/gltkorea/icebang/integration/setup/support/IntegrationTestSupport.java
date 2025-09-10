@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.integration.support;
+package com.gltkorea.icebang.integration.setup.support;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gltkorea.icebang.integration.annotation.IntegrationTest;
-import com.gltkorea.icebang.integration.config.RestDocsConfiguration;
+import com.gltkorea.icebang.integration.setup.annotation.IntegrationTest;
+import com.gltkorea.icebang.integration.setup.config.RestDocsConfiguration;
 
 @IntegrationTest
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
