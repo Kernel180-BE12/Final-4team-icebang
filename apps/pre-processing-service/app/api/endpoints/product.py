@@ -60,7 +60,9 @@ async def match(request: RequestSadaguMatch):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/similarity", response_model=ResponseSadaguSimilarity, summary="상품 유사도 분석")
+@router.post(
+    "/similarity", response_model=ResponseSadaguSimilarity, summary="상품 유사도 분석"
+)
 async def similarity(request: RequestSadaguSimilarity):
     """
     매칭된 상품들 중 키워드와의 유사도를 계산하여 최적의 상품을 선택합니다.
@@ -81,7 +83,9 @@ async def similarity(request: RequestSadaguSimilarity):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/crawl", response_model=ResponseSadaguCrawl, summary="상품 상세 정보 크롤링")
+@router.post(
+    "/crawl", response_model=ResponseSadaguCrawl, summary="상품 상세 정보 크롤링"
+)
 async def crawl(request: Request, body: RequestSadaguCrawl):
     """
     상품 상세 페이지를 크롤링하여 상세 정보를 수집합니다.

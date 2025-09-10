@@ -24,7 +24,7 @@ class BloggerBlogPostService(BaseBlogPostService):
         self.config_file = config_file
         self.blogger_service = None
         self.blog_id = None
-        self.scopes = ['https://www.googleapis.com/auth/blogger']
+        self.scopes = ["https://www.googleapis.com/auth/blogger"]
 
     def _requires_webdriver(self) -> bool:
         """API 기반 서비스는 WebDriver가 필요하지 않음"""
@@ -35,18 +35,18 @@ class BloggerBlogPostService(BaseBlogPostService):
         플랫폼별 설정 로드
         """
         try:
-            with open(self.config_file, 'r', encoding='utf-8') as f:
+            with open(self.config_file, "r", encoding="utf-8") as f:
                 self.config = json.load(f)
-                self.current_upload_account = self.config['upload_account']
+                self.current_upload_account = self.config["upload_account"]
         except FileNotFoundError:
             default_config = {
                 "upload_account": "your_account@gmail.com",
-                "credentials": "credentials.json"
+                "credentials": "credentials.json",
             }
-            with open(self.config_file, 'w', encoding='utf-8') as f:
+            with open(self.config_file, "w", encoding="utf-8") as f:
                 json.dump(default_config, f, indent=2)
             self.config = default_config
-            self.current_upload_account = self.config['upload_account']
+            self.current_upload_account = self.config["upload_account"]
 
     def _login(self) -> None:
         """
@@ -63,7 +63,7 @@ class BloggerBlogPostService(BaseBlogPostService):
         try:
             creds = None
             if os.path.exists(token_file):
-                with open(token_file, 'rb') as token:
+                with open(token_file, "rb") as token:
                     creds = pickle.load(token)
 
             if not creds or not creds.valid:
@@ -72,18 +72,18 @@ class BloggerBlogPostService(BaseBlogPostService):
                 else:
                     print(f"새 API 인증이 필요합니다: {self.current_upload_account}")
                     flow = InstalledAppFlow.from_client_secrets_file(
-                        self.config['credentials'], self.scopes
+                        self.config["credentials"], self.scopes
                     )
                     creds = flow.run_local_server(port=0)
 
-                with open(token_file, 'wb') as token:
+                with open(token_file, "wb") as token:
                     pickle.dump(creds, token)
 
-            self.blogger_service = build('blogger', 'v3', credentials=creds)
+            self.blogger_service = build("blogger", "v3", credentials=creds)
 
-            blogs = self.blogger_service.blogs().listByUser(userId='self').execute()
-            if blogs.get('items'):
-                self.blog_id = blogs['items'][0]['id']
+            blogs = self.blogger_service.blogs().listByUser(userId="self").execute()
+            if blogs.get("items"):
+                self.blog_id = blogs["items"][0]["id"]
                 print(f"API 설정 완료 - 블로그: {blogs['items'][0]['name']}")
                 return True
             else:
@@ -100,30 +100,28 @@ class BloggerBlogPostService(BaseBlogPostService):
         if not self.blogger_service or not self.blog_id:
             self._authenticate_api()
 
-        post_data = {
-            'title': title,
-            'content': content,
-            'labels': tags or []
-        }
+        post_data = {"title": title, "content": content, "labels": tags or []}
 
         try:
-            result = self.blogger_service.posts().insert(
-                blogId=self.blog_id,
-                body=post_data
-            ).execute()
+            result = (
+                self.blogger_service.posts()
+                .insert(blogId=self.blog_id, body=post_data)
+                .execute()
+            )
 
             print(f"포스트 생성 완료: {result.get('url')}")
         except Exception as e:
             raise BlogPostPublishException(
-                platform="Blogger",
-                reason="API 통신 중 오류가 발생했습니다."
+                platform="Blogger", reason="API 통신 중 오류가 발생했습니다."
             ) from e
 
     def _get_platform_name(self) -> str:
         """플랫폼 이름 반환"""
         return "Blogger"
 
-    def _validate_content(self, title: str, content: str, tags: Optional[List[str]] = None) -> None:
+    def _validate_content(
+        self, title: str, content: str, tags: Optional[List[str]] = None
+    ) -> None:
         """
         공통 유효성 검사 로직
         """
