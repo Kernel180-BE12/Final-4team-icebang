@@ -69,14 +69,14 @@ class ResponseSadaguCrawl(ResponseBase):
 
 # 블로그 콘텐츠 생성
 class RequestBlogCreate(RequestBase):
-    tag: str = Field(..., title="블로그 태그", description="블로그 플랫폼 종류 태그")
-    category: str = Field(..., title="카테고리", description="검색(상품) 카테고리")
+    pass
 
 class ResponseBlogCreate(ResponseBase):
     pass
 
 # 블로그 배포
 class RequestBlogPublish(RequestBase):
+    tag: str = Field(..., title="블로그 태그", description="블로그 플랫폼 종류")
     blog_id: str = Field(..., description= "블로그 아이디")
     blog_pw: str = Field(..., description= "블로그 비밀번호")
     post_title: str = Field(..., description= "포스팅 제목")
