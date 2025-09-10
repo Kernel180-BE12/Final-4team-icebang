@@ -1,0 +1,27 @@
+spring:
+  config:
+    activate:
+      on-profile: production
+
+  datasource:
+    url: jdbc:mariadb://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class-name: org.mariadb.jdbc.Driver
+
+  hikari:
+    connection-timeout: 30000
+    idle-timeout: 600000
+    max-lifetime: 1800000
+    maximum-pool-size: 10
+    minimum-idle: 5
+    pool-name: HikariCP-MyBatis
+
+mybatis:
+  mapper-locations: classpath:mybatis/mapper/**/*.xml
+  type-aliases-package: site.icebang.dto
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  config: classpath:log4j2-production.yml
