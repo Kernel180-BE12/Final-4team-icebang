@@ -3,6 +3,7 @@ package com.gltkorea.icebang.config.security.endpoints;
 public enum SecurityEndpoints {
   PUBLIC(
       "/",
+      "/ping",
       "/v0/auth/login",
       "/api/public/**",
       "/health",
