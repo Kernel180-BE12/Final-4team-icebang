@@ -9,6 +9,8 @@ services:
       - "80:8080"
     networks:
       - app-network
+    env_file:
+      - .env.prod
 
   pre-processing-service:
     image: ghcr.io/kernel180-be12/final-4team-icebang/pre-processing-service:latest
@@ -18,6 +20,8 @@ services:
       - "8000:8000"
     networks:
       - app-network
+    env_file:
+      - .env.prod
       
 networks:
   app-network:
