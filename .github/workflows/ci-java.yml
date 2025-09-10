@@ -89,14 +89,14 @@ jobs:
         if: matrix.java-version == '21'
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts-${{ github.ref_name }}
+          name: build-artifacts-${{ github.run_id }}-${{ github.run_attempt }}
           path: apps/user-service/build/libs/
 
       - name: Upload OpenAPI spec artifacts
         if: matrix.java-version == '21'
         uses: actions/upload-artifact@v4
         with:
-          name: openapi-spec-${{ github.ref_name }}
+          name: openapi-spec-${{ github.run_id }}-${{ github.run_attempt }}
           path: apps/user-service/build/api-spec/
 
   set-image-tag:
@@ -124,7 +124,7 @@ jobs:
       - name: Download build artifacts (JAR)
         uses: actions/download-artifact@v4
         with:
-          name: build-artifacts-${{ github.ref_name }}
+          name: build-artifacts-${{ github.run_id }}-${{ github.run_attempt }}
           path: apps/user-service/build/libs/
 
       - name: Login to Docker Registry
@@ -166,7 +166,7 @@ jobs:
       - name: Download OpenAPI spec artifacts
         uses: actions/download-artifact@v4
         with:
-          name: openapi-spec-${{ github.ref_name }}
+          name: openapi-spec-${{ github.run_id }}-${{ github.run_attempt }}
           path: ./openapi-spec
 
       - name: Generate Swagger UI
