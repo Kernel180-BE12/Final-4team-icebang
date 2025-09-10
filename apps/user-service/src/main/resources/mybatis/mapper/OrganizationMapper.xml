@@ -2,10 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.gltkorea.icebang.mapper.OrganizationMapper">
+<mapper namespace="site.icebang.domain.organization.mapper.OrganizationMapper">
 
     <select id="findAllOrganizations"
-            resultType="com.gltkorea.icebang.domain.organization.dto.OrganizationCardDto">
+            resultType="site.icebang.domain.organization.dto.OrganizationCardDto">
         SELECT
             id,
             name as organizationName
@@ -14,7 +14,7 @@
     </select>
 
     <select id="findDepartmentsByOrganizationId"
-            resultType="com.gltkorea.icebang.domain.department.dto.DepartmentCardDo">
+            resultType="site.icebang.domain.department.dto.DepartmentCardDo">
         SELECT
             id,
             name
@@ -24,7 +24,7 @@
     </select>
 
     <select id="findPositionsByOrganizationId"
-            resultType="com.gltkorea.icebang.domain.position.dto.PositionCardDto">
+            resultType="site.icebang.domain.position.dto.PositionCardDto">
         SELECT
             id,
             title
@@ -34,7 +34,7 @@
     </select>
 
     <select id="findRolesByOrganizationId"
-            resultType="com.gltkorea.icebang.domain.roles.dto.RoleCardDto">
+            resultType="site.icebang.domain.roles.dto.RoleCardDto">
         SELECT
             id,
             name,

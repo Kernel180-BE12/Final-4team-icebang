@@ -35,7 +35,7 @@ spring:
 
 mybatis:
   mapper-locations: classpath:mybatis/mapper/**/*.xml
-  type-aliases-package: com.gltkorea.icebang.dto
+  type-aliases-package: site.icebang.dto
   configuration:
     map-underscore-to-camel-case: true
 

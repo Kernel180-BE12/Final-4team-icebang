@@ -7,9 +7,9 @@ plugins {
 	id 'com.epages.restdocs-api-spec' version '0.18.2'
 }
 
-group = 'com.gltkorea'
+group = 'site.icebang'
 version = '0.0.1-alpha-SNAPSHOT'
-description = 'GLT korea - fast campus team4 ice bang'
+description = 'Ice bang - fast campus team4'
 
 java {
 	toolchain {
@@ -158,7 +158,7 @@ bootJar {
 spotless {
 	java {
 		googleJavaFormat('1.17.0')
-		importOrder('java', 'javax', 'org', 'com', '', 'com.movement')
+		importOrder('java', 'javax', 'org', 'com', '', 'site.icebang')
 		endWithNewline()
 		removeUnusedImports()
 		encoding('UTF-8')

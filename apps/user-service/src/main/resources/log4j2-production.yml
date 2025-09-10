@@ -89,7 +89,7 @@ Configuration:
           - ref: file-error-appender
 
       # 2. 애플리케이션 로그
-      - name: com.gltkorea.icebang
+      - name: site.icebang
         additivity: "false"
         level: TRACE
         AppenderRef:
