@@ -20,7 +20,6 @@ ENV PATH="/root/.local/bin:$PATH"
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# 프로젝트 의존성 설치 (prod 전용)
 COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.create false \
  && poetry install --no-root --without dev\
