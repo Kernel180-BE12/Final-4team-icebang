@@ -82,6 +82,8 @@ jobs:
             ./gradlew unitTest
             ./gradlew integrationTest
           else
+            ./gradlew unitTest
+            ./gradlew integrationTest
             ./gradlew e2eTest
           fi
         working-directory: apps/user-service
