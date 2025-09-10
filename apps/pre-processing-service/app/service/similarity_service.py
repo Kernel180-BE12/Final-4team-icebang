@@ -174,4 +174,4 @@ class SimilarityService:
             logger.error(
                 f"유사도 분석 서비스 오류: job_id={request.job_id}, keyword='{keyword}', error='{e}'"
             )
-            raise InvalidItemDataException(f"유사도 분석 실패: {str(e)}")
+            raise InvalidItemDataException()
