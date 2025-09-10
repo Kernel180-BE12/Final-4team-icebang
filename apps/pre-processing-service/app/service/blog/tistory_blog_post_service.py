@@ -9,6 +9,7 @@ from app.errors.CrawlingException import *
 from app.errors.BlogPostingException import *
 from app.service.blog.base_blog_post_service import BaseBlogPostService
 
+
 class TistoryBlogPostService(BaseBlogPostService):
     """티스토리 블로그 포스팅 서비스"""
 
@@ -24,7 +25,9 @@ class TistoryBlogPostService(BaseBlogPostService):
     def _get_platform_name(self) -> str:
         return "TISTORY_BLOG"
 
-    def _validate_content(self, title: str, content: str, tags: Optional[List[str]] = None) -> None:
+    def _validate_content(
+        self, title: str, content: str, tags: Optional[List[str]] = None
+    ) -> None:
         """공통 유효성 검사 로직"""
 
         if not title or not title.strip():
@@ -81,7 +84,9 @@ class TistoryBlogPostService(BaseBlogPostService):
         except TimeoutException:
             raise PageLoadTimeoutException(self.login_url)
         except WebDriverConnectionException:
-            raise BlogServiceUnavailableException("티스토리 블로그", "네트워크 연결 오류 또는 페이지 로드 실패")
+            raise BlogServiceUnavailableException(
+                "티스토리 블로그", "네트워크 연결 오류 또는 페이지 로드 실패"
+            )
         except Exception as e:
             raise BlogLoginException("티스토리 블로그", f"예상치 못한 오류: {str(e)}")
 
@@ -107,7 +112,11 @@ class TistoryBlogPostService(BaseBlogPostService):
             try:
                 iframe = self.wait_driver.until(
                     EC.presence_of_element_located(
-                        (By.XPATH, "//iframe[contains(@title, 'Rich Text Area') or contains(@id, 'editor')]"))
+                        (
+                            By.XPATH,
+                            "//iframe[contains(@title, 'Rich Text Area') or contains(@id, 'editor')]",
+                        )
+                    )
                 )
                 self.web_driver.switch_to.frame(iframe)
 
@@ -125,13 +134,15 @@ class TistoryBlogPostService(BaseBlogPostService):
                     content_selectors = [
                         "//div[@contenteditable='true']",
                         "//textarea[contains(@class, 'editor')]",
-                        "//div[contains(@class, 'editor')]"
+                        "//div[contains(@class, 'editor')]",
                     ]
 
                     content_area = None
                     for selector in content_selectors:
                         try:
-                            content_area = self.web_driver.find_element(By.XPATH, selector)
+                            content_area = self.web_driver.find_element(
+                                By.XPATH, selector
+                            )
                             break
                         except:
                             continue
@@ -140,7 +151,9 @@ class TistoryBlogPostService(BaseBlogPostService):
                         content_area.clear()
                         content_area.send_keys(content)
                     else:
-                        raise BlogElementInteractionException("본문 입력 필드", "본문 입력")
+                        raise BlogElementInteractionException(
+                            "본문 입력 필드", "본문 입력"
+                        )
 
                 except Exception:
                     raise BlogElementInteractionException("본문 입력 필드", "본문 입력")
@@ -150,7 +163,11 @@ class TistoryBlogPostService(BaseBlogPostService):
                 try:
                     tag_input = self.wait_driver.until(
                         EC.presence_of_element_located(
-                            (By.XPATH, "//input[@placeholder='태그입력' or contains(@placeholder, '태그')]"))
+                            (
+                                By.XPATH,
+                                "//input[@placeholder='태그입력' or contains(@placeholder, '태그')]",
+                            )
+                        )
                     )
                     tag_input.clear()
 
@@ -192,27 +209,37 @@ class TistoryBlogPostService(BaseBlogPostService):
                     publish_selectors = [
                         "//button[contains(text(), '발행')]",
                         "//button[contains(text(), '저장')]",
-                        "//*[@class='btn_publish' or contains(@class, 'publish')]"
+                        "//*[@class='btn_publish' or contains(@class, 'publish')]",
                     ]
 
                     for selector in publish_selectors:
                         try:
-                            publish_btn = self.web_driver.find_element(By.XPATH, selector)
+                            publish_btn = self.web_driver.find_element(
+                                By.XPATH, selector
+                            )
                             publish_btn.click()
                             break
                         except:
                             continue
                     else:
-                        raise BlogPostPublishException("티스토리 블로그", "발행 버튼을 찾을 수 없습니다")
+                        raise BlogPostPublishException(
+                            "티스토리 블로그", "발행 버튼을 찾을 수 없습니다"
+                        )
 
                 except Exception:
-                    raise BlogPostPublishException("티스토리 블로그", "발행 과정에서 오류가 발생했습니다")
+                    raise BlogPostPublishException(
+                        "티스토리 블로그", "발행 과정에서 오류가 발생했습니다"
+                    )
 
         except (BlogElementInteractionException, BlogPostPublishException):
             raise
         except TimeoutException:
             raise PageLoadTimeoutException(self.post_content_url)
         except WebDriverConnectionException:
-            raise BlogServiceUnavailableException("티스토리 블로그", "페이지 로드 중 네트워크 오류")
+            raise BlogServiceUnavailableException(
+                "티스토리 블로그", "페이지 로드 중 네트워크 오류"
+            )
         except Exception as e:
-            raise BlogPostPublishException("티스토리 블로그", f"예상치 못한 오류: {str(e)}")
+            raise BlogPostPublishException(
+                "티스토리 블로그", f"예상치 못한 오류: {str(e)}"
+            )

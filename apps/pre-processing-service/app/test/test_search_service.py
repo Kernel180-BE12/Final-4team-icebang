@@ -7,14 +7,9 @@ client = TestClient(app)
 
 def test_search_success():
     """상품 검색 성공 테스트"""
-    body = {
-        "job_id": 1,
-        "schedule_id": 1,
-        "schedule_his_id": 1,
-        "keyword": "반지"
-    }
+    body = {"job_id": 1, "schedule_id": 1, "schedule_his_id": 1, "keyword": "반지"}
 
-    response = client.post("/product/search", json=body)
+    response = client.post("/products/search", json=body)
     print(f"Search Response: {response.json()}")
 
     assert response.status_code == 200
@@ -27,14 +22,9 @@ def test_search_success():
 
 def test_search_empty_keyword():
     """빈 키워드 검색 테스트"""
-    body = {
-        "job_id": 2,
-        "schedule_id": 2,
-        "schedule_his_id": 2,
-        "keyword": ""
-    }
+    body = {"job_id": 2, "schedule_id": 2, "schedule_his_id": 2, "keyword": ""}
 
-    response = client.post("/product/search", json=body)
+    response = client.post("/products/search", json=body)
     print(f"Empty keyword response: {response.json()}")
 
     # 빈 키워드라도 에러가 아닌 빈 결과를 반환해야 함
@@ -49,10 +39,10 @@ def test_search_nonexistent_keyword():
         "job_id": 3,
         "schedule_id": 3,
         "schedule_his_id": 3,
-        "keyword": "zxcvbnmasdfghjklqwertyuiop123456789"
+        "keyword": "zxcvbnmasdfghjklqwertyuiop123456789",
     }
 
-    response = client.post("/product/search", json=body)
+    response = client.post("/products/search", json=body)
     print(f"Nonexistent keyword response: {response.json()}")
 
     assert response.status_code == 200
