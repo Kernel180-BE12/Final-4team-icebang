@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.unit.annotation;
+package com.gltkorea.icebang.unit.setup.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

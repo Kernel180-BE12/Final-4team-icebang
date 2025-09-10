@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.e2e.support;
+package com.gltkorea.icebang.e2e.setup.support;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
