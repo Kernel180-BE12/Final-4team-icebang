@@ -4,8 +4,6 @@ on:
   push:
     tags:
       - 'user-service-v*'
-    paths:
-      - "apps/user-service/**"
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
