@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.aop.logging;
+package com.gltkorea.icebang.global.aop.logging;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;

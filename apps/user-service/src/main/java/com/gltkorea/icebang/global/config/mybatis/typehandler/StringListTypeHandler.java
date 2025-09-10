@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.config.mybatis.typehandler;
+package com.gltkorea.icebang.global.config.mybatis.typehandler;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;

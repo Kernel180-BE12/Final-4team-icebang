@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.mapper;
+package com.gltkorea.icebang.domain.schedule.mapper;
 
 import java.util.List;
 

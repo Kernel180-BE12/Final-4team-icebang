@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.mapper;
+package com.gltkorea.icebang.domain.user.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @EnableBatchProcessing
 @SpringBootApplication
-@MapperScan("com.gltkorea.icebang.mapper")
+@MapperScan("com.gltkorea.icebang.**.mapper")
 public class UserServiceApplication {
 
   public static void main(String[] args) {

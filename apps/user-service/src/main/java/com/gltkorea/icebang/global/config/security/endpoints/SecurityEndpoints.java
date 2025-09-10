@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.config.security.endpoints;
+package com.gltkorea.icebang.global.config.security.endpoints;
 
 public enum SecurityEndpoints {
   PUBLIC(

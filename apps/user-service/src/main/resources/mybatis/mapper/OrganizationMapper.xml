@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.gltkorea.icebang.mapper.OrganizationMapper">
+<mapper namespace="com.gltkorea.icebang.domain.organization.mapper.OrganizationMapper">
 
     <select id="findAllOrganizations"
             resultType="com.gltkorea.icebang.domain.organization.dto.OrganizationCardDto">

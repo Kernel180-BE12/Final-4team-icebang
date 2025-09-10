@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.gltkorea.icebang.mapper.AuthMapper">
+<mapper namespace="com.gltkorea.icebang.domain.auth.mapper.AuthMapper">
 
     <select id="existsByEmail" parameterType="string" resultType="boolean">
         SELECT EXISTS(

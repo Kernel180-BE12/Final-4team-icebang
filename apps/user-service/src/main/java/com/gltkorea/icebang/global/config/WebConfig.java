@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.config;
+package com.gltkorea.icebang.global.config;
 
 import java.time.Duration;
 

@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.config.security;
+package com.gltkorea.icebang.global.config.security;
 
 import java.security.SecureRandom;
 
@@ -19,8 +19,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import com.gltkorea.icebang.config.security.endpoints.SecurityEndpoints;
 import com.gltkorea.icebang.domain.auth.service.AuthCredentialAdapter;
+import com.gltkorea.icebang.global.config.security.endpoints.SecurityEndpoints;
 
 import lombok.RequiredArgsConstructor;
 

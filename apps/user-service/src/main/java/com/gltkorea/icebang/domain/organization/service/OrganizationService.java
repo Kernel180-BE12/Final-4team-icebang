@@ -9,9 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.gltkorea.icebang.domain.department.dto.DepartmentCardDo;
 import com.gltkorea.icebang.domain.organization.dto.OrganizationCardDto;
 import com.gltkorea.icebang.domain.organization.dto.OrganizationOptionDto;
+import com.gltkorea.icebang.domain.organization.mapper.OrganizationMapper;
 import com.gltkorea.icebang.domain.position.dto.PositionCardDto;
 import com.gltkorea.icebang.domain.roles.dto.RoleCardDto;
-import com.gltkorea.icebang.mapper.OrganizationMapper;
 
 import lombok.RequiredArgsConstructor;
 

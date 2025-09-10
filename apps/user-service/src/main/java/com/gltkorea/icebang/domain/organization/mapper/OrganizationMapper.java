@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.mapper;
+package com.gltkorea.icebang.domain.organization.mapper;
 
 import java.math.BigInteger;
 import java.util.List;

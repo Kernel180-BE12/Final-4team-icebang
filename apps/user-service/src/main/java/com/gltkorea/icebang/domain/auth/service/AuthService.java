@@ -6,9 +6,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.gltkorea.icebang.common.utils.RandomPasswordGenerator;
 import com.gltkorea.icebang.domain.auth.dto.RegisterDto;
+import com.gltkorea.icebang.domain.auth.mapper.AuthMapper;
 import com.gltkorea.icebang.domain.email.dto.EmailRequest;
 import com.gltkorea.icebang.domain.email.service.EmailService;
-import com.gltkorea.icebang.mapper.AuthMapper;
 
 import lombok.RequiredArgsConstructor;
 

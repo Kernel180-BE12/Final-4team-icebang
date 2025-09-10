@@ -1,4 +1,4 @@
-package com.gltkorea.icebang.filter;
+package com.gltkorea.icebang.global.filter;
 
 import java.io.IOException;
 import java.util.UUID;

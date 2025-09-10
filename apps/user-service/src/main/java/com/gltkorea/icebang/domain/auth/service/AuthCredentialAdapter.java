@@ -5,8 +5,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.gltkorea.icebang.domain.auth.mapper.AuthMapper;
 import com.gltkorea.icebang.domain.auth.model.AuthCredential;
-import com.gltkorea.icebang.mapper.AuthMapper;
 
 import lombok.RequiredArgsConstructor;
 
