@@ -19,13 +19,13 @@ class TestMariadbManager:
         """각 테스트 메서드 실행 전 초기화"""
 
         MariadbManager._instance = None
-        if hasattr(MariadbManager, '_initialized'):
+        if hasattr(MariadbManager, "_initialized"):
             MariadbManager._initialized = False
 
     def teardown_method(self):
         """각 테스트 메서드 실행 후 정리"""
 
-        if MariadbManager._instance and hasattr(MariadbManager._instance, '_pool'):
+        if MariadbManager._instance and hasattr(MariadbManager._instance, "_pool"):
             if MariadbManager._instance._pool:
                 MariadbManager._instance.close_pool()
         MariadbManager._instance = None
@@ -63,15 +63,15 @@ class TestMariadbManager:
         manager = MariadbManager()
         config = manager._config
 
-        required_keys = ['host', 'port', 'database', 'user', 'password']
+        required_keys = ["host", "port", "database", "user", "password"]
         for key in required_keys:
             assert key in config, f"필수 설정 {key}가 누락되었습니다"
             assert config[key] is not None, f"설정 {key}의 값이 None입니다"
             if isinstance(config[key], str):
-                assert config[key].strip() != '', f"설정 {key}의 값이 비어있습니다"
+                assert config[key].strip() != "", f"설정 {key}의 값이 비어있습니다"
 
-        assert isinstance(config['port'], int), "포트는 정수여야 합니다"
-        assert config['port'] > 0, "포트는 양수여야 합니다"
+        assert isinstance(config["port"], int), "포트는 정수여야 합니다"
+        assert config["port"] > 0, "포트는 양수여야 합니다"
 
     def test_connection_pool_initialization(self):
         """커넥션풀 초기화 테스트"""

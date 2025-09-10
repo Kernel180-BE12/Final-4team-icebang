@@ -74,7 +74,9 @@ class BaseBlogPostService(ABC):
         pass
 
     @abstractmethod
-    def _validate_content(self, title: str, content: str, tags: Optional[List[str]] = None) -> None:
+    def _validate_content(
+        self, title: str, content: str, tags: Optional[List[str]] = None
+    ) -> None:
         """
         공통 유효성 검사 로직
         :param title: 포스트 제목
@@ -105,10 +107,10 @@ class BaseBlogPostService(ABC):
             "platform": self._get_platform_name(),
             "title": title,
             "content_length": len(content),
-            "tags": tags or []
+            "tags": tags or [],
         }
 
     def __del__(self):
         """공통 리소스 정리"""
-        if hasattr(self, 'web_driver') and self.web_driver:
+        if hasattr(self, "web_driver") and self.web_driver:
             self.web_driver.quit()

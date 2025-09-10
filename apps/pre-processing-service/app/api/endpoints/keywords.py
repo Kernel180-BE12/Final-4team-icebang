@@ -14,7 +14,9 @@ async def root():
     return {"message": "keyword API"}
 
 
-@router.post("/search", response_model=ResponseNaverSearch, summary="네이버 키워드 검색")
+@router.post(
+    "/search", response_model=ResponseNaverSearch, summary="네이버 키워드 검색"
+)
 async def search(request: RequestNaverSearch):
     """
     이 엔드포인트는 JSON 요청으로 네이버 키워드 검색을 수행합니다.
@@ -34,7 +36,11 @@ async def search(request: RequestNaverSearch):
     return response_data
 
 
-@router.post("/ssadagu/validate", response_model=ResponseNaverSearch, summary="사다구몰 키워드 검증")
+@router.post(
+    "/ssadagu/validate",
+    response_model=ResponseNaverSearch,
+    summary="사다구몰 키워드 검증",
+)
 async def ssadagu_validate(request: RequestNaverSearch):
     """
     사다구몰 키워드 검증 테스트용 엔드포인트

@@ -10,6 +10,15 @@ services:
     networks:
       - app-network
 
+  pre-processing-service:
+    image: ghcr.io/kernel180-be12/final-4team-icebang/pre-processing-service:latest
+    container_name: pre-processing-service
+    restart: always
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+      
 networks:
   app-network:
     driver: bridge

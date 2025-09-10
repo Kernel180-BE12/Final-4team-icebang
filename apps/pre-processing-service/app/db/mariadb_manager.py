@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from dotenv import load_dotenv
 from dbutils.pooled_db import PooledDB
 
+
 class MariadbManager:
     """
     MariaDB 매니저 클래스
@@ -43,17 +44,20 @@ class MariadbManager:
             return
 
         self._config = {
-            'host': os.getenv('DB_HOST', 'localhost'),
-            'port': int(os.getenv('DB_PORT', '3306')),
-            'database': os.getenv('DB_NAME', 'pre_process'),
-            'user': os.getenv('DB_USER', 'mariadb'),
-            'password': os.getenv('DB_PASSWORD', 'qwer1234'),
-            'autocommit': False
+            "host": os.getenv("DB_HOST", "localhost"),
+            "port": int(os.getenv("DB_PORT", "3306")),
+            "database": os.getenv("DB_NAME", "pre_process"),
+            "user": os.getenv("DB_USER", "mariadb"),
+            "password": os.getenv("DB_PASSWORD", "qwer1234"),
+            "autocommit": False,
         }
 
-        required_keys = ['host', 'database', 'user', 'password']
-        missing = [k for k, v in self._config.items()
-                   if k in required_keys and (v is None or v == '')]
+        required_keys = ["host", "database", "user", "password"]
+        missing = [
+            k
+            for k, v in self._config.items()
+            if k in required_keys and (v is None or v == "")
+        ]
         if missing:
             raise ValueError(f"필수 데이터베이스 설정이 누락되었습니다: {missing}")
 
@@ -79,7 +83,7 @@ class MariadbManager:
                     maxusage=None,
                     setsession=[],
                     ping=0,
-                    **config
+                    **config,
                 )
             except pymysql.Error as e:
                 raise Exception(f"MariaDB 커넥션 풀 초기화 실패: {e}")

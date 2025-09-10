@@ -16,7 +16,9 @@ class SearchService:
         crawler = SearchCrawler(use_selenium=True)
 
         try:
-            logger.info(f"상품 검색 서비스 시작: job_id={request.job_id}, schedule_id={request.schedule_id}, keyword='{keyword}'")
+            logger.info(
+                f"상품 검색 서비스 시작: job_id={request.job_id}, schedule_id={request.schedule_id}, keyword='{keyword}'"
+            )
 
             # Selenium 또는 httpx로 상품 검색
             if crawler.use_selenium:
@@ -32,7 +34,7 @@ class SearchService:
                     "schedule_his_id": request.schedule_his_id,
                     "keyword": keyword,
                     "search_results": [],
-                    "status": "success"
+                    "status": "success",
                 }
 
             # 상품별 기본 정보 수집 (제목이 없는 경우 다시 크롤링)
@@ -42,20 +44,31 @@ class SearchService:
             for i, product in enumerate(search_results):
                 try:
                     # 이미 제목이 있고 유효한 경우 그대로 사용
-                    if product.get('title') and product['title'] != 'Unknown Title' and len(product['title'].strip()) > 0:
+                    if (
+                        product.get("title")
+                        and product["title"] != "Unknown Title"
+                        and len(product["title"].strip()) > 0
+                    ):
                         enriched_results.append(product)
-                        logger.debug(f"상품 {i + 1}: 기존 제목 사용 - '{product['title'][:30]}'")
+                        logger.debug(
+                            f"상품 {i + 1}: 기존 제목 사용 - '{product['title'][:30]}'"
+                        )
                     else:
                         # 제목이 없거나 유효하지 않은 경우 다시 크롤링
-                        logger.debug(f"상품 {i + 1}: 제목 재수집 중... ({product['url']})")
-                        basic_info = await crawler.get_basic_product_info(product['url'])
+                        logger.debug(
+                            f"상품 {i + 1}: 제목 재수집 중... ({product['url']})"
+                        )
+                        basic_info = await crawler.get_basic_product_info(
+                            product["url"]
+                        )
 
-                        if basic_info and basic_info['title'] != "제목 없음":
-                            enriched_results.append({
-                                'url': product['url'],
-                                'title': basic_info['title']
-                            })
-                            logger.debug(f"상품 {i + 1}: 제목 재수집 성공 - '{basic_info['title'][:30]}'")
+                        if basic_info and basic_info["title"] != "제목 없음":
+                            enriched_results.append(
+                                {"url": product["url"], "title": basic_info["title"]}
+                            )
+                            logger.debug(
+                                f"상품 {i + 1}: 제목 재수집 성공 - '{basic_info['title'][:30]}'"
+                            )
                         else:
                             # 그래도 제목을 못 찾으면 제외
                             logger.debug(f"상품 {i + 1}: 제목 추출 실패, 제외")
@@ -67,10 +80,14 @@ class SearchService:
                         break
 
                 except Exception as e:
-                    logger.error(f"상품 {i + 1} 처리 중 오류: url={product.get('url', 'N/A')}, error='{e}'")
+                    logger.error(
+                        f"상품 {i + 1} 처리 중 오류: url={product.get('url', 'N/A')}, error='{e}'"
+                    )
                     continue
 
-            logger.success(f"상품 검색 완료: keyword='{keyword}', 초기검색={len(search_results)}개, 최종유효상품={len(enriched_results)}개")
+            logger.success(
+                f"상품 검색 완료: keyword='{keyword}', 초기검색={len(search_results)}개, 최종유효상품={len(enriched_results)}개"
+            )
 
             return {
                 "job_id": request.job_id,
@@ -78,11 +95,13 @@ class SearchService:
                 "schedule_his_id": request.schedule_his_id,
                 "keyword": keyword,
                 "search_results": enriched_results,
-                "status": "success"
+                "status": "success",
             }
 
         except Exception as e:
-            logger.error(f"검색 서비스 오류: job_id={request.job_id}, keyword='{keyword}', error='{e}'")
+            logger.error(
+                f"검색 서비스 오류: job_id={request.job_id}, keyword='{keyword}', error='{e}'"
+            )
             raise InvalidItemDataException(f"상품 검색 실패: {str(e)}")
 
         finally:

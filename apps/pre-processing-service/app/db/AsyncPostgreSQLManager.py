@@ -44,11 +44,11 @@ class AsyncPostgreSQLManager:
 
         self._pool = None
         self._config = {
-            'host': os.getenv('DB_HOST', '52.79.235.214'),
-            'port': int(os.getenv('DB_PORT', 5432)),
-            'database': os.getenv('DB_NAME', 'pre_process'),
-            'user': os.getenv('DB_USER', 'postgres'),
-            'password': os.getenv('DB_PASSWORD', 'qwer1234')
+            "host": os.getenv("DB_HOST", "52.79.235.214"),
+            "port": int(os.getenv("DB_PORT", 5432)),
+            "database": os.getenv("DB_NAME", "pre_process"),
+            "user": os.getenv("DB_USER", "postgres"),
+            "password": os.getenv("DB_PASSWORD", "qwer1234"),
         }
         self._initialized = True
 
@@ -72,9 +72,7 @@ class AsyncPostgreSQLManager:
 
         if self._pool is None:
             self._pool = await asyncpg.create_pool(
-                min_size=min_size,
-                max_size=max_size,
-                **self._config
+                min_size=min_size, max_size=max_size, **self._config
             )
         return self._pool
 
@@ -181,6 +179,7 @@ class AsyncPostgreSQLManager:
             await self._pool.close()
             self._pool = None
             print("비동기 DB 연결 풀 전체 종료")
+
 
 """
 # 사용 예시

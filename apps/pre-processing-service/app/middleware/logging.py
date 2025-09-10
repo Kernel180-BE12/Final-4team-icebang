@@ -1,4 +1,3 @@
-
 import time
 from fastapi import Request
 from loguru import logger
@@ -12,7 +11,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         # 1. 요청 시작 로그
         logger.info(
             "요청 시작: IP='{}' 메서드='{}' URL='{}'",
-            request.client.host, request.method, request.url.path
+            request.client.host,
+            request.method,
+            request.url.path,
         )
 
         try:
@@ -23,7 +24,10 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             process_time = time.time() - start_time
             logger.info(
                 "요청 성공: 메서드='{}' URL='{}' 상태코드='{}' (처리 시간: {:.4f}s)",
-                request.method, request.url.path, response.status_code, process_time
+                request.method,
+                request.url.path,
+                response.status_code,
+                process_time,
             )
             return response
 
@@ -32,7 +36,11 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             process_time = time.time() - start_time
             logger.error(
                 "요청 실패: IP='{}' 메서드='{}' URL='{}' 예외='{}' (처리 시간: {:.4f}s)",
-                request.client.host, request.method, request.url.path, e, process_time
+                request.client.host,
+                request.method,
+                request.url.path,
+                e,
+                process_time,
             )
             # 예외를 다시 발생시켜 FastAPI의 기본 핸들러가 처리하도록 함
             raise

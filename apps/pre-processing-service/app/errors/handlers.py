@@ -6,14 +6,17 @@ from fastapi.exceptions import RequestValidationError
 from .messages import ERROR_MESSAGES, get_error_message
 from ..errors.CustomException import CustomException
 
+
 class ErrorBaseModel(BaseModel):
     """
     모든 에러 응답의 기반이 되는 Pydantic 모델.
     API의 에러 응답 형식을 통일하는 역할을 합니다.
     """
+
     status_code: int
     detail: str
     code: str
+
 
 # CustomException 핸들러
 async def custom_exception_handler(request: Request, exc: CustomException):
@@ -22,9 +25,7 @@ async def custom_exception_handler(request: Request, exc: CustomException):
     """
     # 변경점: ErrorBaseModel을 사용하여 응답 본문 생성
     error_content = ErrorBaseModel(
-        status_code=exc.status_code,
-        detail=exc.detail,
-        code=exc.code
+        status_code=exc.status_code, detail=exc.detail, code=exc.code
     )
     return JSONResponse(
         status_code=exc.status_code,
@@ -41,9 +42,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
     # 변경점: ErrorBaseModel을 사용하여 응답 본문 생성
     error_content = ErrorBaseModel(
-        status_code=exc.status_code,
-        detail=message,
-        code=f"HTTP_{exc.status_code}"
+        status_code=exc.status_code, detail=message, code=f"HTTP_{exc.status_code}"
     )
     return JSONResponse(
         status_code=exc.status_code,
@@ -60,7 +59,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     base_error = ErrorBaseModel(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         detail=ERROR_MESSAGES[status.HTTP_422_UNPROCESSABLE_ENTITY],
-        code="VALIDATION_ERROR"
+        code="VALIDATION_ERROR",
     )
 
     # 모델의 내용과 추가적인 'details' 필드를 결합
@@ -82,7 +81,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     error_content = ErrorBaseModel(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail=ERROR_MESSAGES[status.HTTP_500_INTERNAL_SERVER_ERROR],
-        code="INTERNAL_SERVER_ERROR"
+        code="INTERNAL_SERVER_ERROR",
     )
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

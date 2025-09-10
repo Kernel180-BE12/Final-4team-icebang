@@ -5,6 +5,7 @@ import psycopg2.pool
 import os
 import threading
 
+
 class PostgreSQLManager:
     """
     PostgreSQL 매니저 클래스
@@ -42,11 +43,11 @@ class PostgreSQLManager:
 
         self._pool = None
         self._config = {
-            'host': os.getenv('DB_HOST', '52.79.235.214'),
-            'port': int(os.getenv('DB_PORT', '5432')),
-            'database': os.getenv('DB_NAME', 'pre_process'),
-            'user': os.getenv('DB_USER', 'postgres'),
-            'password': os.getenv('DB_PASSWORD', 'qwer1234')
+            "host": os.getenv("DB_HOST", "52.79.235.214"),
+            "port": int(os.getenv("DB_PORT", "5432")),
+            "database": os.getenv("DB_NAME", "pre_process"),
+            "user": os.getenv("DB_USER", "postgres"),
+            "password": os.getenv("DB_PASSWORD", "qwer1234"),
         }
         self._initialized = True
 
@@ -129,6 +130,7 @@ class PostgreSQLManager:
             self._pool.closeall()
             self._pool = None
             print("DB 연결 풀 전체 종료")
+
 
 """ 
 # get_cursor 사용 예시 : 리소스 자동 정리
