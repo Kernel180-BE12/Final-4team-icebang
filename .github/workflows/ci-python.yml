@@ -103,14 +103,19 @@ jobs:
 #         run: poetry run pytest
 
   set-image-tag:
-     name: Set IMAGE_TAG
-     runs-on: ubuntu-latest
-     if: startsWith(github.ref, 'refs/tags/pre-processing-v')
-     steps:
-       - name: Extract version from tag
-         run: |
-           IMAGE_TAG="${GITHUB_REF#refs/tags/pre-processing-}"
-           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+    name: Set IMAGE_TAG
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/pre-processing-v')
+    outputs:
+      image-tag: ${{ steps.extract-tag.outputs.IMAGE_TAG }}
+    steps:
+      - name: Extract version from tag
+        id: extract-tag
+        run: |
+          IMAGE_TAG="${GITHUB_REF#refs/tags/pre-processing-}"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "Extracted IMAGE_TAG: $IMAGE_TAG"
+          
 
   build-and-push-docker:
     name: Build Docker Image and push
@@ -140,10 +145,10 @@ jobs:
           context: ./apps/pre-processing-service
           push: true
           tags: |
-            ghcr.io/${{ env.REPO_LC }}/pre-processing-service:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ env.REPO_LC }}/pre-processing-service:${{ needs.set-image-tag.outputs.image-tag }}
             ghcr.io/${{ env.REPO_LC }}/pre-processing-service:latest
 
       - name: Analyze image layers
         run: |
           echo "=== Image Layer Analysis ==="
-          docker history ghcr.io/${{ env.REPO_LC }}/pre-processing-service:${{ env.IMAGE_TAG }} --human --no-trunc
+          docker history ghcr.io/${{ env.REPO_LC }}/pre-processing-service:${{ needs.set-image-tag.outputs.image-tag }} --human --no-trunc
