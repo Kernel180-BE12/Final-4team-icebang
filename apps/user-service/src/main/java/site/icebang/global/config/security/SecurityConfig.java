@@ -105,7 +105,7 @@ public class SecurityConfig {
     String[] activeProfiles = environment.getActiveProfiles();
 
     for (String profile : activeProfiles) {
-      if ("develop".equals(profile) || profile.contains("test")) {
+      if ("develop".equals(profile) || profile.contains("test") || "production".equals(profile)) {
         return NoOpPasswordEncoder.getInstance();
       }
     }
