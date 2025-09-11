@@ -8,7 +8,9 @@ from ...errors.CustomException import (
 from ...service.crawl_service import CrawlService
 from ...service.search_service import SearchService
 from ...service.match_service import MatchService
-from ...service.similarity_service import SimilarityService
+
+
+# from ...service.similarity_service import SimilarityService
 from ...model.schemas import *
 
 router = APIRouter()
@@ -60,27 +62,27 @@ async def match(request: RequestSadaguMatch):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post(
-    "/similarity", response_model=ResponseSadaguSimilarity, summary="상품 유사도 분석"
-)
-async def similarity(request: RequestSadaguSimilarity):
-    """
-    매칭된 상품들 중 키워드와의 유사도를 계산하여 최적의 상품을 선택합니다.
-    """
-    try:
-        similarity_service = SimilarityService()
-        result = similarity_service.select_product_by_similarity(request)
-
-        if not result:
-            raise CustomException(
-                500, "유사도 분석에 실패했습니다.", "SIMILARITY_FAILED"
-            )
-
-        return result
-    except InvalidItemDataException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# @router.post(
+#     "/similarity", response_model=ResponseSadaguSimilarity, summary="상품 유사도 분석"
+# )
+# async def similarity(request: RequestSadaguSimilarity):
+#     """
+#     매칭된 상품들 중 키워드와의 유사도를 계산하여 최적의 상품을 선택합니다.
+#     """
+#     try:
+#         similarity_service = SimilarityService()
+#         result = similarity_service.select_product_by_similarity(request)
+#
+#         if not result:
+#             raise CustomException(
+#                 500, "유사도 분석에 실패했습니다.", "SIMILARITY_FAILED"
+#             )
+#
+#         return result
+#     except InvalidItemDataException as e:
+#         raise HTTPException(status_code=e.status_code, detail=e.detail)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post(

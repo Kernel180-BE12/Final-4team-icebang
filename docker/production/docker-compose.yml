@@ -1,21 +1,37 @@
 version: "3.9"
 
 services:
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - app-network
+
   user-service:
     image: ghcr.io/kernel180-be12/final-4team-icebang/user-service:latest
     container_name: user-service
-    restart: always
+    restart: on-failure:3
     ports:
-      - "80:8080"
+      - "8080:8080"
     networks:
       - app-network
     env_file:
       - .env.prod
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
 
   pre-processing-service:
     image: ghcr.io/kernel180-be12/final-4team-icebang/pre-processing-service:latest
     container_name: pre-processing-service
-    restart: always
+    restart: on-failure:3
     ports:
       - "8000:8000"
     networks:
@@ -26,9 +42,11 @@ services:
       - onnx_models:/app/models  # ONNX 모델 저장용 볼륨 -> 서버에 만들어야함
 
 volumes:
+  caddy_data:
+  caddy_config:
   onnx_models:
     driver: local
-      
+
 networks:
   app-network:
     driver: bridge
