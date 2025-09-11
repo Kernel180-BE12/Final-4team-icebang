@@ -63,14 +63,33 @@ jobs:
             
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            echo ls
-
+            # 최신 이미지 pull
+            docker-compose pull
+            
+            # 기존 컨테이너 종료 및 제거
             docker-compose down
+            
+            # 새 컨테이너 배포
             docker-compose up -d
-
-            sleep 10
+            
+            # 컨테이너 상태 확인
+            sleep 5
             docker-compose ps
-
+            
+            # 헬스 체크 (컨테이너가 healthy 상태가 될 때까지 대기)
+            echo "Waiting for containers to become healthy..."
+            for i in {1..30}; do
+            unhealthy=$(docker ps --filter "health=unhealthy" --format "{{.Names}}")
+            starting=$(docker ps --filter "health=starting" --format "{{.Names}}")
+            if [ -z "$unhealthy" ] && [ -z "$starting" ]; then
+            echo "All containers are healthy!"
+            break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+            done
+            
+            # 사용하지 않는 dangling 이미지 정리
             docker image prune -f
 
       - name: Send Discord notification - Success
