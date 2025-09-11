@@ -1,4 +1,4 @@
-package site.icebang.common.health.api;
+package site.icebang.common.health.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -6,13 +6,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 
-import site.icebang.common.health.service.FastApiClient;
+import site.icebang.common.health.service.HealthCheckService;
 
 @RestController
 @RequiredArgsConstructor
 public class HealthCheckController {
 
-  private final FastApiClient fastApiClient;
+  private final HealthCheckService healthCheckService;
 
   /**
    * Spring Boot와 FastAPI 서버 간의 연결 상태를 확인하는 헬스 체크 API
@@ -21,7 +21,7 @@ public class HealthCheckController {
    */
   @GetMapping("/ping")
   public ResponseEntity<String> pingFastApi() {
-    String result = fastApiClient.ping();
+    String result = healthCheckService.ping();
 
     if (result.startsWith("ERROR")) {
       // FastAPI 연결 실패 시 503 Service Unavailable 상태 코드와 함께 에러 메시지 반환

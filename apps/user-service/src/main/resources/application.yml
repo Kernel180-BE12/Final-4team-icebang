@@ -11,3 +11,9 @@ mybatis:
   # Mapper XML 파일 위치
   mapper-locations: classpath:mapper/**/*.xml
   type-handlers-package: site.icebang.config.mybatis.typehandler
+
+# 외부 API 연동을 위한 설정 섹션
+api:
+  fastapi:
+    url: http://pre-processing-service:8000  # FastAPI 서버의 기본 URL
+    timeout: 10000  # API 요청 타임아웃 (밀리초 단위)
