@@ -16,7 +16,7 @@ public class FastApiClient {
   private final RestTemplate restTemplate;
 
   // FastAPI 서버의 ping 엔드포인트 URL을 상수로 하드코딩합니다.
-  private static final String FASTAPI_PING_URL = "http://localhost:8000/ping";
+  private static final String FASTAPI_PING_URL = "http://pre-processing-service:8000";
 
   /**
    * FastAPI 서버의 /ping 엔드포인트를 호출하여 연결을 테스트합니다.
