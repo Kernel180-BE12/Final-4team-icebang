@@ -1,0 +1,3 @@
+api.icebang.site {
+    reverse_proxy user-service:8080
+}
