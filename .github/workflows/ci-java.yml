@@ -2,10 +2,8 @@ name: CI (Java)
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - "apps/user-service/**"
+    tags:
+      - 'user-service-v*'
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
@@ -21,8 +19,8 @@ permissions:
   security-events: write
   checks: write
   pull-requests: write
-  pages: write      # GitHub Pages 배포를 위해 추가
-  id-token: write   # GitHub Pages 배포를 위해 추가
+  pages: write      # GitHub Pages 배포
+  id-token: write   # GitHub Pages 배포
 
 jobs:
   spotless-check:
@@ -55,7 +53,7 @@ jobs:
     needs: spotless-check
     strategy:
       matrix:
-        java-version: [ "21" ]
+        java-version: ["21"]
 
     steps:
       - name: Checkout repository
@@ -78,36 +76,48 @@ jobs:
 
       - name: Run Tests
         run: |
-          if [ "${{ github.base_ref }}" == "main" ]; then
-            ./gradlew unitTest
-            ./gradlew integrationTest
-          else
-            ./gradlew unitTest
-            ./gradlew integrationTest
+          ./gradlew unitTest
+          ./gradlew integrationTest
+          if [ "${{ github.base_ref }}" = "main" ]; then
             ./gradlew e2eTest
           fi
         working-directory: apps/user-service
 
       - name: Upload build artifacts
-        if: matrix.java-version == '21' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: matrix.java-version == '21' && startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
+          name: build-artifacts-${{ github.run_id }}-${{ github.run_attempt }}
           path: apps/user-service/build/libs/
 
       - name: Upload OpenAPI spec artifacts
-        if: matrix.java-version == '21' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: matrix.java-version == '21' && startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
         with:
-          name: openapi-spec
+          name: openapi-spec-${{ github.run_id }}-${{ github.run_attempt }}
           path: apps/user-service/build/api-spec/
 
-  docker:
-    name: Build Spring Boot Docker Image and push to registry
+  set-image-tag:
+    name: Set IMAGE_TAG
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: startsWith(github.ref, 'refs/tags/user-service-v')
+    outputs:
+      image-tag: ${{ steps.extract-tag.outputs.IMAGE_TAG }}
+    steps:
+      - name: Extract version from tag
+        id: extract-tag
+        run: |
+          IMAGE_TAG="${GITHUB_REF#refs/tags/user-service-}"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "Extracted IMAGE_TAG: $IMAGE_TAG"
+
+  docker:
+    name: Build Spring Boot Docker Image and push
+    runs-on: ubuntu-latest
     needs:
       - build
+      - set-image-tag
+    if: startsWith(github.ref, 'refs/tags/user-service-v')
 
     steps:
       - name: Checkout repository
@@ -116,7 +126,7 @@ jobs:
       - name: Download build artifacts (JAR)
         uses: actions/download-artifact@v4
         with:
-          name: build-artifacts
+          name: build-artifacts-${{ github.run_id }}-${{ github.run_attempt }}
           path: apps/user-service/build/libs/
 
       - name: Login to Docker Registry
@@ -135,39 +145,41 @@ jobs:
           context: ./apps/user-service
           push: true
           tags: |
+            ghcr.io/${{ env.REPO_LC }}/user-service:${{ needs.set-image-tag.outputs.image-tag }}
             ghcr.io/${{ env.REPO_LC }}/user-service:latest
-            ghcr.io/${{ env.REPO_LC }}/user-service:${{ github.sha }}
 
       - name: Analyze image layers
         run: |
           echo "=== Image Layer Analysis ==="
-          docker history ghcr.io/${{ env.REPO_LC }}/user-service:latest --human --no-trunc
+          docker history ghcr.io/${{ env.REPO_LC }}/user-service:${{ needs.set-image-tag.outputs.image-tag }} --human --no-trunc
 
-  swagger-docs:
-    name: Deploy Swagger Documentation
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: build
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download OpenAPI spec artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: openapi-spec
-          path: ./openapi-spec
-
-      - name: Generate Swagger UI
-        uses: Legion2/swagger-ui-action@v1
-        with:
-          output: user-service-swagger-ui
-          spec-file: openapi-spec/openapi3.yaml
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./user-service-docs
-          destination_dir: user-service
+#  swagger-docs:
+#    name: Deploy Swagger Documentation
+#    runs-on: ubuntu-latest
+#    needs:
+#      - build
+#      - set-image-tag
+#    if: startsWith(github.ref, 'refs/tags/user-service-v')
+#
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#
+#      - name: Download OpenAPI spec artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: openapi-spec-${{ github.run_id }}-${{ github.run_attempt }}
+#          path: ./openapi-spec
+#
+#      - name: Generate Swagger UI
+#        uses: Legion2/swagger-ui-action@v1
+#        with:
+#          output: user-service-swagger-ui-${{ needs.set-image-tag.outputs.image-tag }}
+#          spec-file: openapi-spec/openapi3.yaml
+#
+#      - name: Deploy to GitHub Pages
+#        uses: peaceiris/actions-gh-pages@v3
+#        with:
+#          github_token: ${{ secrets.GITHUB_TOKEN }}
+#          publish_dir: ./user-service-swagger-ui-${{ needs.set-image-tag.outputs.image-tag }}
+#          destination_dir: user-service/${{ needs.set-image-tag.outputs.image-tag }}

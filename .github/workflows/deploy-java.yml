@@ -1,19 +1,26 @@
 name: Deploy
 
 on:
-  workflow_dispatch:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - fix/**
+  workflow_run:
+    workflows: ["CI (Java)", "CI (Python/FastAPI)"]
+    types: [completed]
+
 
 jobs:
   deploy:
     name: Deploy to AWS EC2
     runs-on: ubuntu-latest
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      (startsWith(github.event.workflow_run.head_branch, 'user-service-v') ||
+       startsWith(github.event.workflow_run.head_branch, 'pre-processing-v'))
+
 
     steps:
       - uses: actions/checkout@v4
-
       - name: Create env file
         run: |
           echo "DB_HOST=${{ secrets.DB_HOST }}" > .env.prod
@@ -54,20 +61,35 @@ jobs:
           script: |
             cd ~/app/docker/production
             
-            # Remove existing .env.prod if exists and move new one
-            rm -f .env.prod
-            mv .env.prod.bak .env.prod 2>/dev/null || mv .env.prod .env.prod
-            
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            docker pull ghcr.io/${{ env.REPO_LC }}/user-service:latest
-
-            docker compose down
-            docker compose up -d
-
-            sleep 10
-            docker compose ps
-
+            # 최신 이미지 pull
+            docker-compose pull
+            
+            # 기존 컨테이너 종료 및 제거
+            docker-compose down
+            
+            # 새 컨테이너 배포
+            docker-compose up -d
+            
+            # 컨테이너 상태 확인
+            sleep 5
+            docker-compose ps
+            
+            # 헬스 체크 (컨테이너가 healthy 상태가 될 때까지 대기)
+            echo "Waiting for containers to become healthy..."
+            for i in {1..30}; do
+            unhealthy=$(docker ps --filter "health=unhealthy" --format "{{.Names}}")
+            starting=$(docker ps --filter "health=starting" --format "{{.Names}}")
+            if [ -z "$unhealthy" ] && [ -z "$starting" ]; then
+            echo "All containers are healthy!"
+            break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+            done
+            
+            # 사용하지 않는 dangling 이미지 정리
             docker image prune -f
 
       - name: Send Discord notification - Success

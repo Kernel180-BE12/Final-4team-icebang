@@ -4,20 +4,27 @@ services:
   user-service:
     image: ghcr.io/kernel180-be12/final-4team-icebang/user-service:latest
     container_name: user-service
-    restart: always
+    restart: on-failure:3
     ports:
       - "80:8080"
+      - "443:8080"
     networks:
       - app-network
+    env_file:
+      - .env.prod
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
 
   pre-processing-service:
     image: ghcr.io/kernel180-be12/final-4team-icebang/pre-processing-service:latest
     container_name: pre-processing-service
-    restart: always
+    restart: on-failure:3
     ports:
       - "8000:8000"
     networks:
       - app-network
+    env_file:
+      - .env.prod
       
 networks:
   app-network:

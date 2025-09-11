@@ -102,7 +102,7 @@ class SearchService:
             logger.error(
                 f"검색 서비스 오류: job_id={request.job_id}, keyword='{keyword}', error='{e}'"
             )
-            raise InvalidItemDataException(f"상품 검색 실패: {str(e)}")
+            raise InvalidItemDataException()
 
         finally:
             await crawler.close()

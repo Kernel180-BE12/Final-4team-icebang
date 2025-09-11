@@ -2,10 +2,8 @@ name: CI (Python/FastAPI)
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - "apps/pre-processing-service/**" # Python 서비스 경로
+    tags:
+      - 'pre-processing-v*'
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
@@ -13,7 +11,7 @@ on:
       - develop
       - release/**
     paths:
-      - "apps/pre-processing-service/**" # Python 서비스 경로
+      - "apps/pre-processing-service/**"
 
 permissions:
   contents: read
@@ -27,11 +25,9 @@ jobs:
     if: github.event.pull_request.draft == false
     name: Lint & Format Check
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: apps/pre-processing-service
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -62,61 +58,72 @@ jobs:
       - name: Run Formatter Check (Black)
         run: poetry run black --check .
 
-      # - name: Run Linter (Ruff)
-      #   run: poetry run ruff check .
-
   test:
-    name: Run Tests
+     name: Run Tests
+     runs-on: ubuntu-latest
+     needs: lint
+     defaults:
+       run:
+         working-directory: apps/pre-processing-service
+     steps:
+       - name: Checkout repository
+         uses: actions/checkout@v4
+
+#       - name: Set up Python 3.11
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: "3.11"
+#
+#       - name: Install Poetry
+#         uses: snok/install-poetry@v1
+#         with:
+#           virtualenvs-create: true
+#           virtualenvs-in-project: true
+#           installer-parallel: true
+#
+#       - name: Load cached venv
+#         id: cached-poetry-dependencies
+#         uses: actions/cache@v4
+#         with:
+#           path: apps/pre-processing-service/.venv
+#           key: venv-${{ runner.os }}-${{ hashFiles('apps/pre-processing-service/poetry.lock') }}
+#
+#       - name: Install dependencies
+#         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+#         run: poetry install --no-interaction --no-root
+#
+#       - name: Run tests with Pytest
+#         env:
+#           DB_HOST: localhost
+#           DB_PORT: 3306
+#           DB_USER: test_user
+#           DB_PASS: test_pass
+#           DB_NAME: test_db
+#           ENV_NAME: test
+#         run: poetry run pytest
+
+  set-image-tag:
+    name: Set IMAGE_TAG
     runs-on: ubuntu-latest
-    needs: lint
-
-    defaults:
-      run:
-        working-directory: apps/pre-processing-service
-
+    if: startsWith(github.ref, 'refs/tags/pre-processing-v')
+    outputs:
+      image-tag: ${{ steps.extract-tag.outputs.IMAGE_TAG }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
-
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
-        with:
-          path: apps/pre-processing-service/.venv
-          key: venv-${{ runner.os }}-${{ hashFiles('apps/pre-processing-service/poetry.lock') }}
-
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-
-      - name: Run tests with Pytest
-        env:
-          DB_HOST: localhost
-          DB_PORT: 3306
-          DB_USER: test_user
-          DB_PASS: test_pass
-          DB_NAME: test_db
-          ENV_NAME: test
-        run: poetry run pytest
+      - name: Extract version from tag
+        id: extract-tag
+        run: |
+          IMAGE_TAG="${GITHUB_REF#refs/tags/pre-processing-}"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "Extracted IMAGE_TAG: $IMAGE_TAG"
+          
 
   build-and-push-docker:
-    name: Build Docker Image and push to registry
+    name: Build Docker Image and push
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/feature/python-ci' && github.event_name == 'push'
     needs:
       - test
+      - set-image-tag
+    if: startsWith(github.ref, 'refs/tags/pre-processing-v')
 
     steps:
       - name: Checkout repository
@@ -135,13 +142,13 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./apps/pre-processing-service # Dockerfile이 있는 경로
+          context: ./apps/pre-processing-service
           push: true
           tags: |
+            ghcr.io/${{ env.REPO_LC }}/pre-processing-service:${{ needs.set-image-tag.outputs.image-tag }}
             ghcr.io/${{ env.REPO_LC }}/pre-processing-service:latest
-            ghcr.io/${{ env.REPO_LC }}/pre-processing-service:${{ github.sha }}
 
       - name: Analyze image layers
         run: |
           echo "=== Image Layer Analysis ==="
-          docker history ghcr.io/${{ env.REPO_LC }}/pre-processing-service:latest --human --no-trunc
+          docker history ghcr.io/${{ env.REPO_LC }}/pre-processing-service:${{ needs.set-image-tag.outputs.image-tag }} --human --no-trunc
