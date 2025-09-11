@@ -3,10 +3,11 @@ package site.icebang.common.health.service;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import site.icebang.global.config.properties.FastApiProperties;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import site.icebang.global.config.properties.FastApiProperties;
 
 @Slf4j
 @Service
@@ -17,9 +18,7 @@ public class HealthCheckService {
 
   private final FastApiProperties fastApiProperties;
 
-  /**
-   * FastAPI 서버의 /ping 엔드포인트를 호출하여 연결을 테스트합니다.
-   */
+  /** FastAPI 서버의 /ping 엔드포인트를 호출하여 연결을 테스트합니다. */
   public String ping() {
     String url = fastApiProperties.getUrl() + "/ping";
     log.info("Attempting to connect to FastAPI server at: {}", url);
