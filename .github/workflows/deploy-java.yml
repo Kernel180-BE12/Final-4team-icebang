@@ -1,9 +1,12 @@
 name: Deploy
 
 on:
-  workflow_run:
-    workflows: ["CI (Java)", "CI (Python/FastAPI)"]
-    types: [completed]
+  push:
+    branches:
+      - fix/**
+#  workflow_run:
+#    workflows: ["CI (Java)", "CI (Python/FastAPI)"]
+#    types: [completed]
 
 
 jobs:
@@ -11,9 +14,9 @@ jobs:
     name: Deploy to AWS EC2
     runs-on: ubuntu-latest
     if: |
-      github.event.workflow_run.conclusion == 'success' &&
-      (startsWith(github.event.workflow_run.head_branch, 'user-service-v') ||
-       startsWith(github.event.workflow_run.head_branch, 'pre-processing-v'))
+#      github.event.workflow_run.conclusion == 'success' &&
+#      (startsWith(github.event.workflow_run.head_branch, 'user-service-v') ||
+#       startsWith(github.event.workflow_run.head_branch, 'pre-processing-v'))
 
 
     steps:
@@ -68,16 +71,16 @@ jobs:
             
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            docker pull ghcr.io/${{ env.REPO_LC }}/user-service:latest
-            docker pull ghcr.io/${{ env.REPO_LC }}/pre-processing-service:latest
+            sudo docker pull ghcr.io/${{ env.REPO_LC }}/user-service:latest
+            sudo docker pull ghcr.io/${{ env.REPO_LC }}/pre-processing-service:latest
 
-            docker compose down
-            docker compose up -d
+            sudo docker compose down
+            sudo docker compose up -d
 
             sleep 10
-            docker compose ps
+            sudo docker compose ps
 
-            docker image prune -f
+            sudo docker image prune -f
 
       - name: Send Discord notification - Success
         if: success()
