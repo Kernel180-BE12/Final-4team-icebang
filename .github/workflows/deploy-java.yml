@@ -73,11 +73,11 @@ jobs:
 
             echo ls
 
-            docker compose down
-            docker compose up -d
+            docker-compose down
+            docker-compose up -d
 
             sleep 10
-            docker compose ps
+            docker-compose ps
 
             docker image prune -f
 
