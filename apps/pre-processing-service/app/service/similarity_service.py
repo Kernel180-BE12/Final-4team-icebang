@@ -1,4 +1,4 @@
-from app.utils.similarity_analyzer import SimilarityAnalyzer
+from app.utils.similarity_analyzer import SimilarityAnalyzerONNX
 from app.errors.CustomException import InvalidItemDataException
 from ..model.schemas import RequestSadaguSimilarity
 from loguru import logger
@@ -43,7 +43,7 @@ class SimilarityService:
             analysis_mode = "matched_products"
 
         try:
-            analyzer = SimilarityAnalyzer()
+            analyzer = SimilarityAnalyzerONNX()
 
             logger.info(
                 f"키워드 '{keyword}'와 {len(candidates)}개 상품의 유사도 분석 시작... (모드: {analysis_mode})"
