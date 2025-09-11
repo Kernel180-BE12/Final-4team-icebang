@@ -13,7 +13,7 @@ from ...service.blog.tistory_blog_post_service import TistoryBlogPostService
 from ...service.keyword_service import keyword_search
 from ...service.match_service import MatchService
 from ...service.search_service import SearchService
-from ...service.similarity_service import SimilarityService
+# from ...service.similarity_service import SimilarityService
 from ...db.db_connecter import engine  # ✅ 우리가 만든 DB 유틸 임포트
 
 # 이 파일만의 독립적인 라우터를 생성합니다.
@@ -103,11 +103,11 @@ async def processing_tester():
     # 싸다구 상품 유사도 분석
     keyword["matched_products"] = keyword_match_response.get("matched_products")
     keyword_similarity_request = RequestSadaguSimilarity(**with_meta(meta, keyword))
-    similarity_service = SimilarityService()
-    keyword_similarity_response = similarity_service.select_product_by_similarity(
-        keyword_similarity_request
-    )
-    loguru.logger.info(keyword_similarity_response)
+    # similarity_service = SimilarityService()
+    # keyword_similarity_response = similarity_service.select_product_by_similarity(
+    #     keyword_similarity_request
+    # )
+    # loguru.logger.info(keyword_similarity_response)
 
     # 싸다구 상품 크롤링
 
