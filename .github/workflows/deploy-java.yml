@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - fix/**
-#  workflow_run:
-#    workflows: ["CI (Java)", "CI (Python/FastAPI)"]
-#    types: [completed]
+  workflow_run:
+    workflows: ["CI (Java)", "CI (Python/FastAPI)"]
+    types: [completed]
 
 
 jobs:
@@ -14,21 +14,13 @@ jobs:
     name: Deploy to AWS EC2
     runs-on: ubuntu-latest
     if: |
-#      github.event.workflow_run.conclusion == 'success' &&
-#      (startsWith(github.event.workflow_run.head_branch, 'user-service-v') ||
-#       startsWith(github.event.workflow_run.head_branch, 'pre-processing-v'))
+      github.event.workflow_run.conclusion == 'success' &&
+      (startsWith(github.event.workflow_run.head_branch, 'user-service-v') ||
+       startsWith(github.event.workflow_run.head_branch, 'pre-processing-v'))
 
 
     steps:
       - uses: actions/checkout@v4
-
-#      - name: Dump workflow_run event payload
-#        run: |
-#          echo "---- Full workflow_run payload ----"
-#          echo "${{ toJson(github.event) }}" | jq
-#          echo exit -1
-
-
       - name: Create env file
         run: |
           echo "DB_HOST=${{ secrets.DB_HOST }}" > .env.prod
