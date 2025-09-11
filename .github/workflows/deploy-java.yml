@@ -1,10 +1,10 @@
 name: Deploy
 
 on:
-  workflow_dispatch:
   workflow_run:
     workflows: ["CI (Java)", "CI (Python/FastAPI)"]
     types: [completed]
+
 
 jobs:
   deploy:
@@ -12,9 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      (startsWith(github.event.workflow_run.head_branch, 'refs/tags/user-service-v') ||
-       startsWith(github.event.workflow_run.head_branch, 'refs/tags/pre-processing-v'))
+      startsWith(github.event.workflow_run.head_branch, 'refs/tags/')
 
     steps:
       - uses: actions/checkout@v4
