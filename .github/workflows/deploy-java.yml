@@ -10,12 +10,19 @@ jobs:
   deploy:
     name: Deploy to AWS EC2
     runs-on: ubuntu-latest
-    if: |
-      github.event.workflow_run.conclusion == 'success' &&
-      startsWith(github.event.workflow_run.head_branch, 'refs/tags/')
+#    if: |
+#      github.event.workflow_run.conclusion == 'success' &&
+#      startsWith(github.event.workflow_run.head_branch, 'refs/tags/')
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Dump workflow_run event payload
+        run: |
+          echo "---- Full workflow_run payload ----"
+          echo "${{ toJson(github.event) }}" | jq
+          echo exit -1
+
 
       - name: Create env file
         run: |
