@@ -94,6 +94,19 @@ class BlogConfigurationException(CustomException):
             code="BLOG_CONFIGURATION_ERROR",
         )
 
+class BlogServiceInitializationException(CustomException):
+    """
+    블로그 서비스 초기화 실패 예외
+    @:param platform: 초기화 실패한 플랫폼
+    @:param reason: 초기화 실패 이유
+    """
+
+    def __init__(self, platform: str, reason: str = "서비스 초기화 중 오류가 발생했습니다"):
+        super().__init__(
+            status_code=500,
+            detail=f"{platform} 서비스 초기화 실패: {reason}",
+            code="BLOG_SERVICE_INITIALIZATION_FAILED",
+        )
 
 class BloggerApiException(CustomException):
     """

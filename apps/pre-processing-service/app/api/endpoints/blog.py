@@ -1,10 +1,9 @@
 from ...errors.CustomException import *
-from fastapi import APIRouter
+from ...errors.BlogPostingException import *
+from fastapi import APIRouter, HTTPException
 
 from ...model.schemas import *
-from app.service.blog.tistory_blog_post_service import TistoryBlogPostService
-from app.service.blog.naver_blog_post_service import NaverBlogPostService
-from ...service.blog.blogger_blog_post_service import BloggerBlogPostService
+from app.service.blog.blog_post_service_factory import BlogPostServiceFactory
 
 router = APIRouter()
 
@@ -34,55 +33,53 @@ async def rag_create(request: RequestBlogCreate):
 async def publish(request: RequestBlogPublish):
     """
     생성된 블로그 콘텐츠를 배포합니다.
-    네이버 블로그와 티스토리 블로그를 지원하며,
-    현재는 생성된 콘텐츠가 아닌 임의의 제목, 내용, 태그를 배포합니다.
+    네이버 블로그, 티스토리 블로그, 블로거를 지원합니다.
+    Factory 패턴을 사용하여 플랫폼별 서비스를 생성합니다.
     """
-    if request.tag == "naver":
-        naver_service = NaverBlogPostService()
-        result = naver_service.post_content(
+    try:
+        # Factory를 통해 서비스 생성
+        blog_service = BlogPostServiceFactory.create_service(request.tag)
+
+        # 블로그 포스팅 실행
+        result = blog_service.post_content(
             title=request.post_title,
             content=request.post_content,
             tags=request.post_tags,
         )
 
-        if not result:
-            raise CustomException(
-                "네이버 블로그 포스팅에 실패했습니다.", status_code=500
-            )
         return ResponseBlogPublish(
-            job_id=1, schedule_id=1, schedule_his_id=1, status="200", metadata=result
+            job_id=1,
+            schedule_id=1,
+            schedule_his_id=1,
+            status="200",
+            metadata=result
         )
 
-    elif request.tag == "tistory":
-        tistory_service = TistoryBlogPostService()
-        result = tistory_service.post_content(
-            title=request.post_title,
-            content=request.post_content,
-            tags=request.post_tags,
+    except ValueError as e:
+        # 지원하지 않는 플랫폼
+        raise HTTPException(
+            status_code=400,
+            detail=f"지원하지 않는 플랫폼입니다: {request.tag}"
         )
 
-        if not result:
-            raise CustomException(
-                "티스토리 블로그 포스팅에 실패했습니다.", status_code=500
-            )
+    except BlogLoginException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
 
-        return ResponseBlogPublish(
-            job_id=1, schedule_id=1, schedule_his_id=1, status="200", metadata=result
-        )
+    except BlogContentValidationException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
 
-    elif request.tag == "blogger":
-        blogger_service = BloggerBlogPostService()
-        result = blogger_service.post_content(
-            title=request.post_title,
-            content=request.post_content,
-            tags=request.post_tags,
-        )
+    except BlogPostPublishException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
 
-        if not result:
-            raise CustomException(
-                "블로거 블로그 포스팅에 실패했습니다.", status_code=500
-            )
+    except BlogServiceUnavailableException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
 
-        return ResponseBlogPublish(
-            job_id=1, schedule_id=1, schedule_his_id=1, status="200", metadata=result
+    except BlogServiceInitializationException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+
+    except Exception as e:
+        # 예상치 못한 오류
+        raise HTTPException(
+            status_code=500,
+            detail=f"블로그 포스팅 중 예상치 못한 오류가 발생했습니다: {str(e)}"
         )

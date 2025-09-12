@@ -5,11 +5,11 @@ from sqlalchemy import text
 
 from app.decorators.logging import log_api_call
 from ...errors.CustomException import *
+from ...errors.BlogPostingException import *
 from fastapi import APIRouter
 from typing import Mapping, Any, Dict
 from ...model.schemas import *
-from ...service.blog.naver_blog_post_service import NaverBlogPostService
-from ...service.blog.tistory_blog_post_service import TistoryBlogPostService
+from app.service.blog.blog_post_service_factory import BlogPostServiceFactory
 from ...service.keyword_service import keyword_search
 from ...service.match_service import MatchService
 from ...service.search_service import SearchService
@@ -70,7 +70,7 @@ async def processing_tester():
     meta = {
         "job_id": 1,
         "schedule_id": 1,
-        "schedule_his_id": 1,  # ✅ 타이포 수정
+        "schedule_his_id": 1,
     }
     request_dict = {
         "tag": "naver",
@@ -78,49 +78,84 @@ async def processing_tester():
         "start_date": "2025-09-01",
         "end_date": "2025-09-02",
     }
-    # 네이버 키워드 검색
-    naver_request = RequestNaverSearch(**with_meta(meta, request_dict))
-    response_data = await keyword_search(naver_request)
-    keyword = response_data.get("keyword")
-    loguru.logger.info(keyword)
 
-    keyword = {
-        "keyword": keyword,
-    }
+    try:
+        # 네이버 키워드 검색
+        naver_request = RequestNaverSearch(**with_meta(meta, request_dict))
+        response_data = await keyword_search(naver_request)
+        keyword = response_data.get("keyword")
+        loguru.logger.info(f"검색된 키워드: {keyword}")
 
-    # 싸다구 상품 검색
-    sadagu_request = RequestSadaguSearch(**with_meta(meta, keyword))
-    search_service = SearchService()
-    keyword_result = await search_service.search_products(sadagu_request)
-    loguru.logger.info(keyword_result)
+        keyword = {
+            "keyword": keyword,
+        }
 
-    # 싸다구 상품 매치
-    keyword["search_results"] = keyword_result.get("search_results")
-    keyword_match_request = RequestSadaguMatch(**with_meta(meta, keyword))
-    match_service = MatchService()
-    keyword_match_response = match_service.match_products(keyword_match_request)
-    loguru.logger.info(keyword_match_response)
+        # 싸다구 상품 검색
+        sadagu_request = RequestSadaguSearch(**with_meta(meta, keyword))
+        search_service = SearchService()
+        keyword_result = await search_service.search_products(sadagu_request)
+        loguru.logger.info(f"상품 검색 결과: {keyword_result}")
 
-    # 싸다구 상품 유사도 분석
-    keyword["matched_products"] = keyword_match_response.get("matched_products")
-    keyword_similarity_request = RequestSadaguSimilarity(**with_meta(meta, keyword))
-    # similarity_service = SimilarityService()
-    # keyword_similarity_response = similarity_service.select_product_by_similarity(
-    #     keyword_similarity_request
-    # )
-    # loguru.logger.info(keyword_similarity_response)
+        # 싸다구 상품 매치
+        keyword["search_results"] = keyword_result.get("search_results")
+        keyword_match_request = RequestSadaguMatch(**with_meta(meta, keyword))
+        match_service = MatchService()
+        keyword_match_response = match_service.match_products(keyword_match_request)
+        loguru.logger.info(f"상품 매칭 결과: {keyword_match_response}")
 
-    # 싸다구 상품 크롤링
+        # 싸다구 상품 유사도 분석
+        keyword["matched_products"] = keyword_match_response.get("matched_products")
+        keyword_similarity_request = RequestSadaguSimilarity(**with_meta(meta, keyword))
+        # similarity_service = SimilarityService()
+        # keyword_similarity_response = similarity_service.select_product_by_similarity(
+        #     keyword_similarity_request
+        # )
+        # loguru.logger.info(keyword_similarity_response)
 
-    # 블로그 생성
+        # 싸다구 상품 크롤링
 
-    # 블로그 배포
-    tistory_service = TistoryBlogPostService()
-    result = tistory_service.post_content(
-        title="안녕하살법",
-        content="안녕하살법 받아치기러기 코드 받아치기",
-        tags=["퉁퉁퉁사후르", "짜라짜라"],
-    )
-    loguru.logger.info(result)
+        # 블로그 생성
 
-    return "구웃"
+        # 블로그 배포 - Factory 패턴 사용
+        blog_service = BlogPostServiceFactory.create_service("tistory")
+        result = blog_service.post_content(
+            title="안녕하살법",
+            content="안녕하살법 받아치기러기 코드 받아치기",
+            tags=["퉁퉁퉁사후르", "짜라짜라"],
+        )
+        loguru.logger.info(f"블로그 포스팅 결과: {result}")
+
+        return {
+            "status": "success",
+            "keyword": keyword,
+            "blog_result": result,
+            "message": "전체 파이프라인 처리 완료"
+        }
+
+    except ValueError as e:
+        loguru.logger.error(f"지원하지 않는 플랫폼 오류: {e}")
+        return {"status": "error", "detail": f"지원하지 않는 플랫폼: {str(e)}"}
+
+    except BlogLoginException as e:
+        loguru.logger.error(f"블로그 로그인 실패: {e.detail}")
+        return {"status": "error", "detail": e.detail}
+
+    except BlogContentValidationException as e:
+        loguru.logger.error(f"콘텐츠 유효성 검사 실패: {e.detail}")
+        return {"status": "error", "detail": e.detail}
+
+    except BlogPostPublishException as e:
+        loguru.logger.error(f"블로그 포스트 발행 실패: {e.detail}")
+        return {"status": "error", "detail": e.detail}
+
+    except BlogServiceUnavailableException as e:
+        loguru.logger.error(f"블로그 서비스 이용 불가: {e.detail}")
+        return {"status": "error", "detail": e.detail}
+
+    except BlogServiceInitializationException as e:
+        loguru.logger.error(f"블로그 서비스 초기화 실패: {e.detail}")
+        return {"status": "error", "detail": e.detail}
+
+    except Exception as e:
+        loguru.logger.error(f"예상치 못한 오류: {str(e)}")
+        return {"status": "error", "detail": f"예상치 못한 오류가 발생했습니다: {str(e)}"}
