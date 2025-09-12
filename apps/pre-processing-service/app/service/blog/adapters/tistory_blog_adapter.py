@@ -1,47 +1,37 @@
 import os
 import time
-
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
 from app.errors.CrawlingException import *
 from app.errors.BlogPostingException import *
-from app.service.blog.base_blog_post_service import BaseBlogPostService
+from app.service.blog.adapters.selenium_blog_adapter import SeleniumBlogAdapter
 
 
-class TistoryBlogPostService(BaseBlogPostService):
-    """티스토리 블로그 포스팅 서비스"""
+class TistoryBlogAdapter(SeleniumBlogAdapter):
+    """티스토리 블로그 어댑터"""
 
     def _load_config(self) -> None:
         """티스토리 블로그 설정 로드"""
-
         self.blog_name = os.getenv("TISTORY_BLOG_NAME", "hoons2641")
         self.id = os.getenv("TISTORY_ID", "fair_05@nate.com")
         self.password = os.getenv("TISTORY_PASSWORD", "kdyn264105*")
         self.login_url = "https://accounts.kakao.com/login/?continue=https%3A%2F%2Fkauth.kakao.com%2Foauth%2Fauthorize%3Fclient_id%3D3e6ddd834b023f24221217e370daed18%26state%3DaHR0cHM6Ly93d3cudGlzdG9yeS5jb20v%26redirect_uri%3Dhttps%253A%252F%252Fwww.tistory.com%252Fauth%252Fkakao%252Fredirect%26response_type%3Dcode%26auth_tran_id%3Dslj3F.mFC~2JNOiCOGi5HdGPKOA.Pce4l5tiS~3fZkInLGuEG3tMq~xZkxx4%26ka%3Dsdk%252F2.7.3%2520os%252Fjavascript%2520sdk_type%252Fjavascript%2520lang%252Fko-KR%2520device%252FMacIntel%2520origin%252Fhttps%25253A%25252F%25252Fwww.tistory.com%26is_popup%3Dfalse%26through_account%3Dtrue&talk_login=hidden#login"
         self.post_content_url = f"https://{self.blog_name}.tistory.com/manage/newpost"
 
-    def _get_platform_name(self) -> str:
+    def get_platform_name(self) -> str:
         return "TISTORY_BLOG"
 
-    def _validate_content(
-        self, title: str, content: str, tags: Optional[List[str]] = None
-    ) -> None:
-        """공통 유효성 검사 로직"""
-
-        if not title or not title.strip():
-            raise BlogContentValidationException("title", "제목이 비어있습니다")
-
-        if not content or not content.strip():
-            raise BlogContentValidationException("content", "내용이 비어있습니다")
+    def validate_content(self, title: str, content: str, tags: Optional[List[str]] = None) -> None:
+        """티스토리 블로그 유효성 검사"""
+        super().validate_content(title, content, tags)
 
         if tags is None:
             raise BlogContentValidationException("tags", "태그가 비어있습니다")
 
-    def _login(self) -> None:
+    def authenticate(self) -> None:
         """티스토리 로그인 구현"""
-
         try:
             self.web_driver.get(self.login_url)
 
@@ -90,9 +80,8 @@ class TistoryBlogPostService(BaseBlogPostService):
         except Exception as e:
             raise BlogLoginException("티스토리 블로그", f"예상치 못한 오류: {str(e)}")
 
-    def _write_content(self, title: str, content: str, tags: List[str] = None) -> None:
+    def write_content(self, title: str, content: str, tags: List[str] = None) -> None:
         """티스토리 블로그 포스팅 작성 구현"""
-
         try:
             self.web_driver.get(self.post_content_url)
             time.sleep(3)

@@ -1,48 +1,38 @@
 import os
 import time
 import pyperclip
-
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException
-
 from app.errors.CrawlingException import *
 from app.errors.BlogPostingException import *
-from app.service.blog.base_blog_post_service import BaseBlogPostService
+from app.service.blog.adapters.selenium_blog_adapter import SeleniumBlogAdapter
 
 
-class NaverBlogPostService(BaseBlogPostService):
-    """네이버 블로그 포스팅 서비스 구현"""
+class NaverBlogAdapter(SeleniumBlogAdapter):
+    """네이버 블로그 어댑터"""
 
     def _load_config(self) -> None:
         """네이버 블로그 설정 로드"""
-
         self.id = os.getenv("NAVER_ID", "all2641")
         self.password = os.getenv("NAVER_PASSWORD", "cjh83520*")
         self.login_url = "https://nid.naver.com/nidlogin.login"
         self.post_content_url = f"https://blog.naver.com/PostWriteForm.naver?blogId={self.id}&Redirect=Write&redirect=Write&widgetTypeCall=true&noTrackingCode=true&directAccess=false"
 
-    def _get_platform_name(self) -> str:
+    def get_platform_name(self) -> str:
         return "NAVER_BLOG"
 
-    def _validate_content(
-        self, title: str, content: str, tags: Optional[List[str]] = None
-    ) -> None:
-        """공통 유효성 검사 로직"""
-
-        if not title or not title.strip():
-            raise BlogContentValidationException("title", "제목이 비어있습니다")
-
-        if not content or not content.strip():
-            raise BlogContentValidationException("content", "내용이 비어있습니다")
+    def validate_content(self, title: str, content: str, tags: Optional[List[str]] = None) -> None:
+        """네이버 블로그 유효성 검사"""
+        super().validate_content(title, content, tags)
 
         if tags is None:
             raise BlogContentValidationException("tags", "태그가 비어있습니다")
 
-    def _login(self) -> None:
+    def authenticate(self) -> None:
         """네이버 로그인 구현"""
-
         try:
             self.web_driver.get(self.login_url)
 
@@ -93,14 +83,8 @@ class NaverBlogPostService(BaseBlogPostService):
         except Exception as e:
             raise BlogLoginException("네이버 블로그", f"예상치 못한 오류: {str(e)}")
 
-    def _write_content(self, title: str, content: str, tags: List[str] = None) -> None:
+    def write_content(self, title: str, content: str, tags: List[str] = None) -> None:
         """네이버 블로그 포스팅 작성 구현"""
-        from selenium.webdriver.common.by import By
-        from selenium.webdriver.support import expected_conditions as EC
-        from selenium.webdriver.common.keys import Keys
-        from selenium.webdriver.common.action_chains import ActionChains
-        from selenium.common.exceptions import TimeoutException
-
         try:
             self.web_driver.get(self.post_content_url)
 
