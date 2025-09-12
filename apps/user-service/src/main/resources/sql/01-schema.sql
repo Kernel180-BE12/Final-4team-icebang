@@ -36,6 +36,7 @@ CREATE TABLE `user` (
     `status` varchar(20) NULL,
     `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
     `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `joined_at` timestamp NULL,
     PRIMARY KEY (`id`)
     );
 
@@ -43,6 +44,7 @@ CREATE TABLE `department` (
                                             `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                             `organization_id` bigint unsigned NOT NULL,
                                             `name` varchar(100) NULL,
+    `description` varchar(100) NULL,
     PRIMARY KEY (`id`)
     );
 
@@ -99,6 +101,7 @@ CREATE TABLE `workflow` (
                                           `name` varchar(100) NOT NULL UNIQUE,
     `description` text NULL,
     `is_enabled` boolean DEFAULT TRUE,
+    `default_config`json NULL,
     `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
     `created_by` bigint unsigned NULL,
     `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -118,6 +121,7 @@ CREATE TABLE `schedule` (
     `created_by` bigint unsigned NULL,
     `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `updated_by` bigint unsigned NULL,
+    `schedule_text` varchar(20) NULL,
     PRIMARY KEY (`id`)
     );
 
@@ -147,6 +151,7 @@ CREATE TABLE `workflow_job` (
                                               `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                               `workflow_id` bigint unsigned NOT NULL,
                                               `job_id` bigint unsigned NOT NULL,
+                                              `execution_order` int NULL,
                                               PRIMARY KEY (`id`),
     UNIQUE KEY `uk_workflow_job` (`workflow_id`, `job_id`)
     );
@@ -186,19 +191,6 @@ CREATE TABLE `task_io_data` (
     INDEX `idx_task_io_task_run_id` (`task_run_id`),
     INDEX `idx_task_io_type` (`io_type`),
     INDEX `idx_task_io_name` (`name`)
-    );
-
-CREATE TABLE `config` (
-                                        `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-                                        `target_type` varchar(50) NULL COMMENT 'user, job, workflow',
-    `target_id` bigint unsigned NULL,
-    `version` int NULL,
-    `json` json NULL,
-    `is_active` boolean DEFAULT TRUE,
-    `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
-    `created_by` bigint unsigned NULL,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_config_target` (`target_type`, `target_id`)
     );
 
 CREATE TABLE `category` (
