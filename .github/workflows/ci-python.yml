@@ -2,6 +2,8 @@ name: CI (Python/FastAPI)
 
 on:
   push:
+    branches:
+      - feature/onnx
     tags:
       - 'pre-processing-v*'
   pull_request:
