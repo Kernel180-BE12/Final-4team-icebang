@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
+import site.icebang.common.exception.DuplicateDataException;
 import site.icebang.common.utils.RandomPasswordGenerator;
 import site.icebang.domain.auth.dto.RegisterDto;
 import site.icebang.domain.auth.mapper.AuthMapper;
@@ -23,7 +24,7 @@ public class AuthService {
 
   public void registerUser(RegisterDto registerDto) {
     if (authMapper.existsByEmail(registerDto.getEmail())) {
-      throw new IllegalArgumentException("이미 가입된 이메일입니다.");
+      throw new DuplicateDataException("이미 가입된 이메일입니다.");
     }
     String randomPassword = passwordGenerator.generate();
     String hashedPassword = passwordEncoder.encode(randomPassword);
