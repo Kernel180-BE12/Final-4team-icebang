@@ -19,16 +19,23 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 
 import site.icebang.domain.auth.service.AuthCredentialAdapter;
 import site.icebang.global.config.security.endpoints.SecurityEndpoints;
+import site.icebang.global.handler.exception.RestAccessDeniedHandler;
+import site.icebang.global.handler.exception.RestAuthenticationEntryPoint;
 
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
   private final Environment environment;
   private final AuthCredentialAdapter userDetailsService;
+  private final ObjectMapper objectMapper;
+  private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+  private final RestAccessDeniedHandler restAccessDeniedHandler;
 
   @Bean
   public AuthenticationProvider authenticationProvider() {
@@ -97,6 +104,10 @@ public class SecurityConfig {
         .logout(
             logout -> logout.logoutUrl("/auth/logout").logoutSuccessUrl("/auth/login").permitAll())
         .csrf(AbstractHttpConfigurer::disable)
+        .exceptionHandling(
+            ex ->
+                ex.authenticationEntryPoint(restAuthenticationEntryPoint)
+                    .accessDeniedHandler(restAccessDeniedHandler))
         .build();
   }
 
