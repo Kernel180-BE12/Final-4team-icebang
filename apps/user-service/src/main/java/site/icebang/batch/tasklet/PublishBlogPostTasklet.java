@@ -1,0 +1,39 @@
+package site.icebang.batch.tasklet;
+
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.StepContribution;
+import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.batch.item.ExecutionContext;
+import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class PublishBlogPostTasklet implements Tasklet {
+
+    @Override
+    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+        log.info(">>>> [Step 7] 블로그 포스팅 Task 실행 시작");
+
+        ExecutionContext jobExecutionContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
+        Map<String, String> blogContent = (Map<String, String>) jobExecutionContext.get(GenerateBlogContentTasklet.BLOG_CONTENT);
+
+        if (blogContent == null) {
+            log.warn(">>>> 이전 Step에서 전달된 블로그 콘텐츠가 없습니다. Step 7을 건너뜁니다.");
+            return RepeatStatus.FINISHED;
+        }
+
+        // TODO: 네이버 블로그 API 등을 호출하여 실제 포스팅을 발행하는 로직 구현
+        log.info(">>>> 블로그에 콘텐츠 발행: '{}'", blogContent.get("title"));
+        String publishedUrl = "https://blog.naver.com/myblog/12345"; // 예시 URL
+
+        log.info(">>>> 발행 완료! URL: {}", publishedUrl);
+        log.info(">>>> [Step 7] 블로그 포스팅 Task 실행 완료");
+
+        return RepeatStatus.FINISHED;
+    }
+}
