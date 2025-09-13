@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import site.icebang.common.dto.ApiResponse;
+import site.icebang.common.exception.DuplicateDataException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -43,5 +44,11 @@ public class GlobalExceptionHandler {
   @ResponseStatus(HttpStatus.FORBIDDEN)
   public ApiResponse<String> handleAccessDenied(AccessDeniedException ex) {
     return ApiResponse.error("Access denied: " + ex.getMessage(), HttpStatus.FORBIDDEN);
+  }
+
+  @ExceptionHandler(DuplicateDataException.class)
+  @ResponseStatus(HttpStatus.CONFLICT)
+  public ApiResponse<String> handleDuplicateData(DuplicateDataException ex) {
+    return ApiResponse.error("Duplicate: " + ex.getMessage(), HttpStatus.CONFLICT);
   }
 }
