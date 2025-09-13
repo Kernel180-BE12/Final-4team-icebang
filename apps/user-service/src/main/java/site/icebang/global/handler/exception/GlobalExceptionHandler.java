@@ -1,6 +1,8 @@
 package site.icebang.global.handler.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -29,5 +31,17 @@ public class GlobalExceptionHandler {
   @ResponseStatus(HttpStatus.NOT_FOUND)
   public ApiResponse<String> handleNotFound(NoResourceFoundException ex) {
     return ApiResponse.error("Notfound: " + ex.getMessage(), HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(AuthenticationException.class)
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  public ApiResponse<String> handleAuthentication(AuthenticationException ex) {
+    return ApiResponse.error("Authentication failed: " + ex.getMessage(), HttpStatus.UNAUTHORIZED);
+  }
+
+  @ExceptionHandler(AccessDeniedException.class)
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  public ApiResponse<String> handleAccessDenied(AccessDeniedException ex) {
+    return ApiResponse.error("Access denied: " + ex.getMessage(), HttpStatus.FORBIDDEN);
   }
 }
