@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
@@ -116,52 +115,6 @@ class UserRegistrationFlowE2eTest extends E2eTestSupport {
     logCompletion("ERP 사용자 등록 플로우");
   }
 
-  @Disabled
-  @DisplayName("로그인 없이 리소스 접근 시 모든 요청 차단")
-  void accessResourcesWithoutLogin_shouldFailForAll() {
-    logStep(1, "인증 없이 조직 목록 조회 시도");
-
-    // 1. 로그인 없이 조직 목록 조회 시도
-    ResponseEntity<Map> orgResponse =
-        restTemplate.getForEntity(getV0ApiUrl("/organizations"), Map.class);
-
-    assertThat(orgResponse.getStatusCode()).isIn(HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN);
-    logSuccess("미인증 조직 조회 차단 확인");
-
-    logStep(2, "인증 없이 조직 옵션 조회 시도");
-
-    // 2. 로그인 없이 조직 옵션 조회 시도
-    ResponseEntity<Map> optResponse =
-        restTemplate.getForEntity(getV0ApiUrl("/organizations/1/options"), Map.class);
-
-    assertThat(optResponse.getStatusCode()).isIn(HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN);
-    logSuccess("미인증 옵션 조회 차단 확인");
-
-    logStep(3, "인증 없이 회원가입 시도");
-
-    // 3. 로그인 없이 회원가입 시도
-    Map<String, Object> registerRequest = new HashMap<>();
-    registerRequest.put("name", "테스트사용자");
-    registerRequest.put("email", "test@example.com");
-    registerRequest.put("orgId", 1);
-    registerRequest.put("deptId", 2);
-    registerRequest.put("positionId", 5);
-    registerRequest.put("roleIds", Arrays.asList(6));
-
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-
-    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(registerRequest, headers);
-
-    ResponseEntity<Map> regResponse =
-        restTemplate.postForEntity(getV0ApiUrl("/auth/register"), entity, Map.class);
-
-    assertThat(regResponse.getStatusCode()).isIn(HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN);
-    logSuccess("미인증 회원가입 차단 확인");
-
-    logCompletion("ERP 보안 검증");
-  }
-
   @Test
   @DisplayName("잘못된 자격증명으로 로그인 시도 시 실패")
   void loginWithInvalidCredentials_shouldFail() {
@@ -200,7 +153,7 @@ class UserRegistrationFlowE2eTest extends E2eTestSupport {
   }
 
   @SuppressWarnings("unchecked")
-  @Disabled
+  @Test
   @DisplayName("중복 이메일로 사용자 등록 시도 시 실패")
   void register_withDuplicateEmail_shouldFail() {
     // 선행 조건: 관리자 로그인
