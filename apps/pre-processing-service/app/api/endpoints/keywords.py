@@ -6,14 +6,6 @@ from ...model.schemas import RequestNaverSearch, ResponseNaverSearch
 router = APIRouter()
 
 
-@router.get("/", summary="키워드 API 상태 확인")
-async def root():
-    """
-    키워드 API가 정상 동작하는지 확인
-    """
-    return {"message": "keyword API"}
-
-
 @router.post(
     "/search", response_model=ResponseNaverSearch, summary="네이버 키워드 검색"
 )
