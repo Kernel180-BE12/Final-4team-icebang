@@ -1,6 +1,5 @@
 package site.icebang.batch.tasklet;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.StepContribution;
@@ -9,33 +8,47 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
+import site.icebang.external.fastapi.adapter.FastApiAdapter;
+import site.icebang.external.fastapi.dto.FastApiDto.RequestNaverSearch;
+import site.icebang.external.fastapi.dto.FastApiDto.ResponseNaverSearch;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class ExtractTrendKeywordTasklet implements Tasklet {
 
-    public static final String KEYWORD_LIST = "keywordList";
+    // ExecutionContext에서 사용할 데이터 Key
+    public static final String EXTRACTED_KEYWORD = "extractedKeyword";
+
+    private final FastApiAdapter fastApiAdapter;
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info(">>>> [Step 1] 트렌드 키워드 추출 Task 실행 시작");
+        log.info(">>>> [Step 1] 키워드 추출 Tasklet 실행 시작");
 
-        // TODO: 실제 네이버 트렌드 등에서 키워드를 추출하는 로직 구현
-        // 예시: "캠핑 의자"라는 키워드 목록을 추출했다고 가정
-        List<String> keywordList = List.of("캠핑 의자", "경량 체어", "릴렉스 체어");
+        // 1. FastAPI에 보낼 요청 DTO 생성 (실제 값은 JobParameters 등에서 동적으로 가져와야 함)
+        RequestNaverSearch request = new RequestNaverSearch(1, 1, null, "naver", "50000000", null, null);
 
-        // JobExecution 전체에서 공유되는 ExecutionContext를 가져옴
-        ExecutionContext jobExecutionContext = chunkContext.getStepContext()
-                .getStepExecution()
-                .getJobExecution()
-                .getExecutionContext();
+        // 2. FastApiAdapter를 통해 FastAPI 호출
+        ResponseNaverSearch response = fastApiAdapter.requestNaverKeywordSearch(request);
 
-        // 다음 Step으로 전달하기 위해 추출된 키워드 목록을 저장
-        jobExecutionContext.put(KEYWORD_LIST, keywordList);
-        log.info(">>>> 추출된 키워드: {}, JobExecutionContext에 저장 완료", keywordList);
+        // 3. 응답 검증
+        if (response == null || !"200".equals(response.status())) {
+            throw new RuntimeException("FastAPI로부터 키워드를 추출하는 데 실패했습니다.");
+        }
+        String extractedKeyword = response.keyword();
+        log.info(">>>> FastAPI로부터 추출된 키워드: {}", extractedKeyword);
 
-        log.info(">>>> [Step 1] 트렌드 키워드 추출 Task 실행 완료");
+        // 4. 다음 Step으로 전달하기 위해 결과를 JobExecutionContext에 저장
+        ExecutionContext jobExecutionContext = getJobExecutionContext(chunkContext);
+        jobExecutionContext.put(EXTRACTED_KEYWORD, extractedKeyword);
+
+        log.info(">>>> [Step 1] 키워드 추출 Tasklet 실행 완료");
         return RepeatStatus.FINISHED;
     }
+
+    private ExecutionContext getJobExecutionContext(ChunkContext chunkContext) {
+        return chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
+    }
 }
+
