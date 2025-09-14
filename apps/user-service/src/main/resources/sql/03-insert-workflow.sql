@@ -107,7 +107,7 @@ INSERT INTO `schedule` (`workflow_id`, `cron_expression`, `parameters`, `is_acti
             'timezone', 'Asia/Seoul',
             'retry_count', 3,
             'timeout_minutes', 60,
-            'notification_email', 'admin@example.com'
+            'notification_email', 'admin@icebang.site'
                      ), TRUE, 1);
 
 -- 사용자별 설정 (관리자용)
