@@ -16,14 +16,6 @@ from ...model.schemas import *
 router = APIRouter()
 
 
-@router.get("/", summary="상품 API 상태 확인")
-async def root():
-    """
-    상품 API 서버 상태 확인용 엔드포인트
-    """
-    return {"message": "product API"}
-
-
 @router.post("/search", response_model=ResponseSadaguSearch, summary="상품 검색")
 async def search(request: RequestSadaguSearch):
     """

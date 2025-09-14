@@ -9,11 +9,6 @@ from ...service.blog.blogger_blog_post_service import BloggerBlogPostService
 router = APIRouter()
 
 
-@router.get("/", summary="블로그 API 상태 확인")
-async def root():
-    return {"message": "blog API"}
-
-
 @router.post(
     "/rag/create",
     response_model=ResponseBlogCreate,
