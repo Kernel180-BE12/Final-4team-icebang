@@ -17,7 +17,8 @@ class SearchService:
 
         try:
             logger.info(
-                f"상품 검색 서비스 시작: job_id={request.job_id}, schedule_id={request.schedule_id}, keyword='{keyword}'"
+                # f"상품 검색 서비스 시작: job_id={request.job_id}, schedule_id={request.schedule_id}, keyword='{keyword}'"
+                f"keyword='{keyword}'"
             )
 
             # Selenium 또는 httpx로 상품 검색
@@ -29,9 +30,9 @@ class SearchService:
             if not search_results:
                 logger.warning(f"검색 결과가 없습니다: keyword='{keyword}'")
                 return {
-                    "job_id": request.job_id,
-                    "schedule_id": request.schedule_id,
-                    "schedule_his_id": request.schedule_his_id,
+                    # "job_id": request.job_id,
+                    # "schedule_id": request.schedule_id,
+                    # "schedule_his_id": request.schedule_his_id,
                     "keyword": keyword,
                     "search_results": [],
                     "status": "success",
@@ -90,9 +91,9 @@ class SearchService:
             )
 
             return {
-                "job_id": request.job_id,
-                "schedule_id": request.schedule_id,
-                "schedule_his_id": request.schedule_his_id,
+                # "job_id": request.job_id,
+                # "schedule_id": request.schedule_id,
+                # "schedule_his_id": request.schedule_his_id,
                 "keyword": keyword,
                 "search_results": enriched_results,
                 "status": "success",

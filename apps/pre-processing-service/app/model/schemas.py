@@ -5,29 +5,31 @@ from pydantic import BaseModel, Field, HttpUrl
 
 # 기본 요청
 class RequestBase(BaseModel):
-    job_id: int = Field(
-        ..., title="작업 ID", description="현재 실행 중인 작업의 고유 식별자"
-    )
-    schedule_id: int = Field(
-        ..., title="스케줄 ID", description="예약된 스케줄의 고유 식별자"
-    )
-    schedule_his_id: Optional[int] = Field(
-        None, title="스케줄 히스토리 ID", description="스케줄 실행 이력의 고유 식별자"
-    )
+    # job_id: int = Field(
+    #     ..., title="작업 ID", description="현재 실행 중인 작업의 고유 식별자"
+    # )
+    # schedule_id: int = Field(
+    #     ..., title="스케줄 ID", description="예약된 스케줄의 고유 식별자"
+    # )
+    # schedule_his_id: Optional[int] = Field(
+    #     None, title="스케줄 히스토리 ID", description="스케줄 실행 이력의 고유 식별자"
+    # )
+    pass
 
 
 # 기본 응답
 class ResponseBase(BaseModel):
-    job_id: int = Field(
-        ..., title="작업 ID", description="현재 실행 중인 작업의 고유 식별자"
-    )
-    schedule_id: int = Field(
-        ..., title="스케줄 ID", description="예약된 스케줄의 고유 식별자"
-    )
-    schedule_his_id: Optional[int] = Field(
-        None, title="스케줄 히스토리 ID", description="스케줄 실행 이력의 고유 식별자"
-    )
+    # job_id: int = Field(
+    #     ..., title="작업 ID", description="현재 실행 중인 작업의 고유 식별자"
+    # )
+    # schedule_id: int = Field(
+    #     ..., title="스케줄 ID", description="예약된 스케줄의 고유 식별자"
+    # )
+    # schedule_his_id: Optional[int] = Field(
+    #     None, title="스케줄 히스토리 ID", description="스케줄 실행 이력의 고유 식별자"
+    # )
     status: str = Field(..., title="상태", description="요청 처리 상태")
+    pass
 
 
 # 네이버 키워드 추출
