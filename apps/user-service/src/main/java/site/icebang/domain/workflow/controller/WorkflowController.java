@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import site.icebang.common.dto.ApiResponse;
 import site.icebang.common.dto.PageParams;
 import site.icebang.common.dto.PageResult;
-import site.icebang.common.service.PageService;
 import site.icebang.domain.workflow.dto.WorkflowCardDto;
 import site.icebang.domain.workflow.service.WorkflowService;
 
@@ -18,13 +17,12 @@ import site.icebang.domain.workflow.service.WorkflowService;
 @RequestMapping("/v0/workflows")
 @RequiredArgsConstructor
 public class WorkflowController {
-  private final PageService pageService;
   private final WorkflowService workflowService;
 
   @GetMapping("")
   public ApiResponse<PageResult<WorkflowCardDto>> getWorkflowList(
       @ModelAttribute PageParams pageParams) {
-    return pageService.createPagedResponse(
-        pageParams, workflowService::getWorkflowList, workflowService::getWorkflowCount);
+    PageResult<WorkflowCardDto> result = workflowService.getPagedResult(pageParams);
+    return ApiResponse.success(result);
   }
 }

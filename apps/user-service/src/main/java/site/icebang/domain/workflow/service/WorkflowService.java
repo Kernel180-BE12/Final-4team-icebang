@@ -1,19 +1,27 @@
 package site.icebang.domain.workflow.service;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 
 import site.icebang.common.dto.PageParams;
+import site.icebang.common.dto.PageResult;
+import site.icebang.common.service.PageableService;
 import site.icebang.domain.workflow.dto.WorkflowCardDto;
 
 @Service
-public class WorkflowService {
-  public List<WorkflowCardDto> getWorkflowList(PageParams pageParams) {
-    throw new RuntimeException("Not implemented");
-  }
+@RequiredArgsConstructor
+public class WorkflowService implements PageableService<WorkflowCardDto> {
 
-  public Integer getWorkflowCount(PageParams pageParams) {
+  @Override
+  @Transactional(readOnly = true)
+  public PageResult<WorkflowCardDto> getPagedResult(PageParams pageParams) {
     throw new RuntimeException("Not implemented");
+    //        return PageResult.from(
+    //                pageParams,
+    //                () -> workflowMapper.selectWorkflowList(pageParams),
+    //                () -> workflowMapper.selectWorkflowCount(pageParams)
+    //        );
   }
 }
