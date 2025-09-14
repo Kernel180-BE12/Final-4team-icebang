@@ -44,9 +44,7 @@ async def publish(request: RequestBlogPublish):
             raise CustomException(
                 "네이버 블로그 포스팅에 실패했습니다.", status_code=500
             )
-        return ResponseBlogPublish(
-            job_id=1, schedule_id=1, schedule_his_id=1, status="200", metadata=result
-        )
+        return ResponseBlogPublish(status="success", metadata=result)
 
     elif request.tag == "tistory":
         tistory_service = TistoryBlogPostService()
@@ -61,9 +59,7 @@ async def publish(request: RequestBlogPublish):
                 "티스토리 블로그 포스팅에 실패했습니다.", status_code=500
             )
 
-        return ResponseBlogPublish(
-            job_id=1, schedule_id=1, schedule_his_id=1, status="200", metadata=result
-        )
+        return ResponseBlogPublish(status="success", metadata=result)
 
     elif request.tag == "blogger":
         blogger_service = BloggerBlogPostService()
@@ -78,6 +74,4 @@ async def publish(request: RequestBlogPublish):
                 "블로거 블로그 포스팅에 실패했습니다.", status_code=500
             )
 
-        return ResponseBlogPublish(
-            job_id=1, schedule_id=1, schedule_his_id=1, status="200", metadata=result
-        )
+        return ResponseBlogPublish(status="success", metadata=result)
