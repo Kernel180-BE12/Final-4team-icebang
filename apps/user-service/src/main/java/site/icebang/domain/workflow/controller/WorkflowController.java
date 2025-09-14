@@ -15,7 +15,7 @@ import site.icebang.domain.workflow.dto.WorkflowCardDto;
 import site.icebang.domain.workflow.service.WorkflowService;
 
 @RestController
-@RequestMapping("/workflows")
+@RequestMapping("/v0/workflows")
 @RequiredArgsConstructor
 public class WorkflowController {
   private final PageService pageService;
