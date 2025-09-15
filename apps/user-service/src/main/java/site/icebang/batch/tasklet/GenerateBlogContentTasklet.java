@@ -1,5 +1,6 @@
 package site.icebang.batch.tasklet;
 
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,38 +10,49 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
+import site.icebang.batch.common.JobContextKeys;
+import site.icebang.external.fastapi.adapter.FastApiAdapter;
+import site.icebang.external.fastapi.dto.FastApiDto.RequestBlogCreate;
+import site.icebang.external.fastapi.dto.FastApiDto.ResponseBlogCreate;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class GenerateBlogContentTasklet implements Tasklet {
 
-    public static final String BLOG_CONTENT = "blogContent";
+    private final FastApiAdapter fastApiAdapter;
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info(">>>> [Step 6] 블로그 콘텐츠 생성 Task 실행 시작");
+        log.info(">>>> [Step 6] 블로그 콘텐츠 생성 Tasklet 실행 시작");
 
-        ExecutionContext jobExecutionContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
-        Map<String, Object> productData = (Map<String, Object>) jobExecutionContext.get(CrawlSelectedProductTasklet.CRAWLED_PRODUCT_DATA);
+        ExecutionContext jobExecutionContext = getJobExecutionContext(chunkContext);
+        Map<String, Object> productDetail = (Map<String, Object>) jobExecutionContext.get(JobContextKeys.CRAWLED_PRODUCT_DETAIL);
 
-        if (productData == null) {
-            log.warn(">>>> 이전 Job에서 전달된 상품 정보가 없습니다. Step 6을 건너뜁니다.");
-            return RepeatStatus.FINISHED;
+        // TODO: productDetail을 기반으로 LLM에 전달할 프롬프트 생성
+        RequestBlogCreate request = new RequestBlogCreate(1, 1, null);
+        ResponseBlogCreate response = fastApiAdapter.requestBlogCreation(request);
+
+        if (response == null || !"200".equals(response.status())) {
+            throw new RuntimeException("FastAPI 블로그 콘텐츠 생성에 실패했습니다.");
         }
 
-        log.info(">>>> 상품 정보 '{}'를 기반으로 콘텐츠 생성 시작...", productData.get("productName"));
-        // TODO: FastAPI/LangChain 등을 호출하여 상품 정보로 블로그 원고를 생성하는 로직 구현
-        // 예시: AI가 생성한 블로그 콘텐츠
-        Map<String, String> blogContent = Map.of(
-                "title", "오늘의 추천! " + productData.get("productName"),
-                "body", productData.get("description") + " 이 상품은 정말 최고입니다! 가격은 " + productData.get("price") + "원!"
+        // TODO: 실제 생성된 콘텐츠를 response로부터 받아와야 함 (현재는 더미 데이터)
+        Map<String, Object> generatedContent = Map.of(
+                "title", "엄청난 상품을 소개합니다! " + productDetail.get("title"),
+                "content", "이 상품은 정말... 좋습니다. 상세 정보: " + productDetail.toString(),
+                "tags", List.of("상품리뷰", "최고")
         );
+        log.info(">>>> FastAPI로부터 블로그 콘텐츠 생성 완료");
 
-        jobExecutionContext.put(BLOG_CONTENT, blogContent);
-        log.info(">>>> 생성된 블로그 콘텐츠: {}, JobExecutionContext에 저장 완료", blogContent.get("title"));
+        jobExecutionContext.put(JobContextKeys.GENERATED_CONTENT, generatedContent);
 
-        log.info(">>>> [Step 6] 블로그 콘텐츠 생성 Task 실행 완료");
+        log.info(">>>> [Step 6] 블로그 콘텐츠 생성 Tasklet 실행 완료");
         return RepeatStatus.FINISHED;
     }
+
+    private ExecutionContext getJobExecutionContext(ChunkContext chunkContext) {
+        return chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
+    }
 }
+

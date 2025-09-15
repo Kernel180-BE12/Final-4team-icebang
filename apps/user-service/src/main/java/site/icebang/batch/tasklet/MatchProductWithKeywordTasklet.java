@@ -1,6 +1,7 @@
 package site.icebang.batch.tasklet;
 
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.StepContribution;
@@ -9,34 +10,44 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
+import site.icebang.batch.common.JobContextKeys;
+import site.icebang.external.fastapi.adapter.FastApiAdapter;
+import site.icebang.external.fastapi.dto.FastApiDto.RequestSsadaguMatch;
+import site.icebang.external.fastapi.dto.FastApiDto.ResponseSsadaguMatch;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class MatchProductWithKeywordTasklet implements Tasklet {
 
-    public static final String MATCHED_PRODUCT_ID = "matchedProductId";
+    private final FastApiAdapter fastApiAdapter;
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info(">>>> [Step 3] 상품-키워드 매칭 Task 실행 시작");
+        log.info(">>>> [Step 3] 상품 매칭 Tasklet 실행 시작");
 
-        ExecutionContext jobExecutionContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
-        List<Long> productCandidates = (List<Long>) jobExecutionContext.get(SearchProductsFromMallTasklet.PRODUCT_CANDIDATES);
+        ExecutionContext jobExecutionContext = getJobExecutionContext(chunkContext);
+        String keyword = (String) jobExecutionContext.get(JobContextKeys.EXTRACTED_KEYWORD);
+        List<Map<String, Object>> searchResults = (List<Map<String, Object>>) jobExecutionContext.get(JobContextKeys.SEARCHED_PRODUCTS);
 
-        if (productCandidates == null || productCandidates.isEmpty()) {
-            log.warn(">>>> 이전 Step에서 전달된 상품 후보가 없습니다. Step 3을 건너뜁니다.");
-            return RepeatStatus.FINISHED;
+        RequestSsadaguMatch request = new RequestSsadaguMatch(1, 1, null, keyword, searchResults);
+        ResponseSsadaguMatch response = fastApiAdapter.requestProductMatch(request);
+
+        if (response == null || !"200".equals(response.status())) {
+            throw new RuntimeException("FastAPI 상품 매칭에 실패했습니다.");
         }
 
-        // TODO: 키워드와 상품 후보 목록 간의 매칭 점수를 계산하여 최적의 상품을 찾는 로직 구현
-        // 예시: 첫 번째 상품이 가장 적합하다고 선택
-        Long matchedProductId = productCandidates.get(0);
+        List<Map<String, Object>> matchedProducts = response.matchedProducts();
+        log.info(">>>> FastAPI로부터 매칭된 상품 {}개", matchedProducts.size());
 
-        jobExecutionContext.put(MATCHED_PRODUCT_ID, matchedProductId);
-        log.info(">>>> 최종 매칭 상품 ID: {}, JobExecutionContext에 저장 완료", matchedProductId);
+        jobExecutionContext.put(JobContextKeys.MATCHED_PRODUCTS, matchedProducts);
 
-        log.info(">>>> [Step 3] 상품-키워드 매칭 Task 실행 완료");
+        log.info(">>>> [Step 3] 상품 매칭 Tasklet 실행 완료");
         return RepeatStatus.FINISHED;
     }
+
+    private ExecutionContext getJobExecutionContext(ChunkContext chunkContext) {
+        return chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
+    }
 }
+

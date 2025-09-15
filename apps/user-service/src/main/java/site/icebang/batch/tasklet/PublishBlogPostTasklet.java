@@ -1,5 +1,6 @@
 package site.icebang.batch.tasklet;
 
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,31 +10,53 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
+import site.icebang.batch.common.JobContextKeys;
+import site.icebang.external.fastapi.adapter.FastApiAdapter;
+import site.icebang.external.fastapi.dto.FastApiDto.RequestBlogPublish;
+import site.icebang.external.fastapi.dto.FastApiDto.ResponseBlogPublish;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class PublishBlogPostTasklet implements Tasklet {
 
+    private final FastApiAdapter fastApiAdapter;
+
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info(">>>> [Step 7] 블로그 포스팅 Task 실행 시작");
+        log.info(">>>> [Step 7] 블로그 발행 Tasklet 실행 시작");
 
-        ExecutionContext jobExecutionContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
-        Map<String, String> blogContent = (Map<String, String>) jobExecutionContext.get(GenerateBlogContentTasklet.BLOG_CONTENT);
+        ExecutionContext jobExecutionContext = getJobExecutionContext(chunkContext);
+        Map<String, Object> content = (Map<String, Object>) jobExecutionContext.get(JobContextKeys.GENERATED_CONTENT);
 
-        if (blogContent == null) {
-            log.warn(">>>> 이전 Step에서 전달된 블로그 콘텐츠가 없습니다. Step 7을 건너뜁니다.");
-            return RepeatStatus.FINISHED;
+        // TODO: UserConfig 등에서 실제 블로그 정보(ID, PW)를 가져와야 함
+        String blogId = "my_blog_id";
+        String blogPw = "my_blog_password";
+
+        RequestBlogPublish request = new RequestBlogPublish(
+                1, 1, null,
+                "naver",
+                blogId,
+                blogPw,
+                (String) content.get("title"),
+                (String) content.get("content"),
+                (List<String>) content.get("tags")
+        );
+
+        ResponseBlogPublish response = fastApiAdapter.requestBlogPost(request);
+
+        if (response == null || !"200".equals(response.status())) {
+            throw new RuntimeException("FastAPI 블로그 발행에 실패했습니다.");
         }
 
-        // TODO: 네이버 블로그 API 등을 호출하여 실제 포스팅을 발행하는 로직 구현
-        log.info(">>>> 블로그에 콘텐츠 발행: '{}'", blogContent.get("title"));
-        String publishedUrl = "https://blog.naver.com/myblog/12345"; // 예시 URL
+        log.info(">>>> FastAPI를 통해 블로그 발행 성공: {}", response.metadata());
 
-        log.info(">>>> 발행 완료! URL: {}", publishedUrl);
-        log.info(">>>> [Step 7] 블로그 포스팅 Task 실행 완료");
-
+        log.info(">>>> [Step 7] 블로그 발행 Tasklet 실행 완료");
         return RepeatStatus.FINISHED;
     }
+
+    private ExecutionContext getJobExecutionContext(ChunkContext chunkContext) {
+        return chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
+    }
 }
+

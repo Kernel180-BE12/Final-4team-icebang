@@ -1,5 +1,7 @@
 package site.icebang.batch.tasklet;
 
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.StepContribution;
@@ -8,28 +10,45 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
+import site.icebang.batch.common.JobContextKeys;
+import site.icebang.external.fastapi.adapter.FastApiAdapter;
+import site.icebang.external.fastapi.dto.FastApiDto.RequestSsadaguSimilarity;
+import site.icebang.external.fastapi.dto.FastApiDto.ResponseSsadaguSimilarity;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class FindSimilarProductsTasklet implements Tasklet {
 
+    private final FastApiAdapter fastApiAdapter;
+
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info(">>>> [Step 4] 유사 상품 탐색 Task 실행 시작");
+        log.info(">>>> [Step 4] 상품 유사도 분석 Tasklet 실행 시작");
 
-        ExecutionContext jobExecutionContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
-        Long matchedProductId = (Long) jobExecutionContext.get(MatchProductWithKeywordTasklet.MATCHED_PRODUCT_ID);
+        ExecutionContext jobExecutionContext = getJobExecutionContext(chunkContext);
+        String keyword = (String) jobExecutionContext.get(JobContextKeys.EXTRACTED_KEYWORD);
+        List<Map<String, Object>> matchedProducts = (List<Map<String, Object>>) jobExecutionContext.get(JobContextKeys.MATCHED_PRODUCTS);
+        List<Map<String, Object>> searchResults = (List<Map<String, Object>>) jobExecutionContext.get(JobContextKeys.SEARCHED_PRODUCTS);
 
-        if (matchedProductId == null) {
-            log.warn(">>>> 이전 Step에서 전달된 매칭 상품 ID가 없습니다. Step 4를 건너뜁니다.");
-            return RepeatStatus.FINISHED;
+        RequestSsadaguSimilarity request = new RequestSsadaguSimilarity(1, 1, null, keyword, matchedProducts, searchResults);
+        ResponseSsadaguSimilarity response = fastApiAdapter.requestProductSimilarity(request);
+
+        if (response == null || !"200".equals(response.status())) {
+            throw new RuntimeException("FastAPI 상품 유사도 분석에 실패했습니다.");
         }
 
-        // TODO: 선택된 상품과 유사한 다른 상품들을 탐색하여 콘텐츠를 풍부하게 만드는 로직 구현
-        log.info(">>>> 상품 ID {}에 대한 유사 상품 탐색 수행...", matchedProductId);
+        Map<String, Object> selectedProduct = response.selectedProduct();
+        log.info(">>>> FastAPI로부터 최종 선택된 상품: {}", selectedProduct.get("title"));
 
-        log.info(">>>> [Step 4] 유사 상품 탐색 Task 실행 완료");
+        jobExecutionContext.put(JobContextKeys.SELECTED_PRODUCT, selectedProduct);
+
+        log.info(">>>> [Step 4] 상품 유사도 분석 Tasklet 실행 완료");
         return RepeatStatus.FINISHED;
     }
+
+    private ExecutionContext getJobExecutionContext(ChunkContext chunkContext) {
+        return chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
+    }
 }
+
