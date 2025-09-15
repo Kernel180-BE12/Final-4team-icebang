@@ -5,7 +5,7 @@ Configuration:
   properties:
     property:
       - name: "app-name"
-        value: "${env:APP_NAME:-user-service-app}"
+        value: "user-service"
       - name: "log-path"
         value: "./logs"
       - name: "charset-UTF-8"
@@ -36,19 +36,30 @@ Configuration:
       name: loki-appender
       host: localhost
       port: 3100
-      PatternLayout:
-        pattern: "[%-5level] [%X{traceId}] [%X{spanId}] %d{MM-dd HH:mm:ss} [%t] %msg%n"
+      JsonLayout:
+        compact: true
+        eventEol: true
+        includeStacktrace: true
+        KeyValuePair:
+          - key: "app"
+            value: "${app-name}"
+          - key: "env"
+            value: "develop"
       Label:
         - name: "app"
           value: "${app-name}"
-        - name: "service"
-          value: "user-service"
         - name: "env"
           value: "develop"
         - name: "traceId"
           value: "${ctx:traceId}"
         - name: "spanId"
           value: "${ctx:spanId}"
+        - name: "executionType"
+          value: "${ctx:executionType:-application}"
+        - name: "sourceId"
+          value: "${ctx:sourceId}"
+        - name: "runId"
+          value: "${ctx:runId}"
 
     # 개발용 일반 로그 파일
     File:
