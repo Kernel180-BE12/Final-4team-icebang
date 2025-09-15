@@ -16,15 +16,16 @@ class MatchService:
         products = request.search_results
 
         logger.info(
-            f"키워드 매칭 서비스 시작: job_id={request.job_id}, schedule_id={request.schedule_id}, keyword='{keyword}', products_count={len(products) if products else 0}"
+            # f"키워드 매칭 서비스 시작: job_id={request.job_id}, schedule_id={request.schedule_id}, keyword='{keyword}', products_count={len(products) if products else 0}"
+            f"keyword='{keyword}'"
         )
 
         if not products:
             logger.warning(f"매칭할 상품이 없음: keyword='{keyword}'")
             return {
-                "job_id": request.job_id,
-                "schedule_id": request.schedule_id,
-                "schedule_his_id": request.schedule_his_id,
+                # "job_id": request.job_id,
+                # "schedule_id": request.schedule_id,
+                # "schedule_his_id": request.schedule_his_id,
                 "keyword": keyword,
                 "matched_products": [],
                 "status": "success",
@@ -80,9 +81,9 @@ class MatchService:
                 )
 
             return {
-                "job_id": request.job_id,
-                "schedule_id": request.schedule_id,
-                "schedule_his_id": request.schedule_his_id,
+                # "job_id": request.job_id,
+                # "schedule_id": request.schedule_id,
+                # "schedule_his_id": request.schedule_his_id,
                 "keyword": keyword,
                 "matched_products": matched_products,
                 "status": "success",
@@ -90,6 +91,6 @@ class MatchService:
 
         except Exception as e:
             logger.error(
-                f"매칭 서비스 오류: job_id={request.job_id}, keyword='{keyword}', error='{e}'"
+                # f"매칭 서비스 오류: job_id={request.job_id}, keyword='{keyword}', error='{e}'"
             )
             raise InvalidItemDataException()
