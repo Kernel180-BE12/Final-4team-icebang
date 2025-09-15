@@ -308,37 +308,28 @@ ALTER TABLE `department`
 
 -- v0.4
 -- 기존 execution_log 테이블 수정
-ALTER TABLE `execution_log`
--- 새로운 컬럼 추가
-    ADD COLUMN `run_id` bigint unsigned NULL COMMENT 'workflow_run_id, job_run_id, task_run_id' AFTER `source_id`,
-ADD COLUMN `status` varchar(20) NULL COMMENT 'success, failed, warning, running' AFTER `log_level`,
-ADD COLUMN `duration_ms` int unsigned NULL COMMENT '실행 시간 (밀리초)' AFTER `executed_at`,
-ADD COLUMN `error_code` varchar(50) NULL COMMENT '에러 코드' AFTER `duration_ms`,
+-- 컬럼 추가 (한 번에 하나씩)
+-- 컬럼 추가
+ALTER TABLE execution_log ADD COLUMN run_id BIGINT NULL;
+ALTER TABLE execution_log ADD COLUMN status VARCHAR(20) NULL;
+ALTER TABLE execution_log ADD COLUMN duration_ms INT NULL;
+ALTER TABLE execution_log ADD COLUMN error_code VARCHAR(50) NULL;
+ALTER TABLE execution_log ADD COLUMN reserved1 VARCHAR(100) NULL;
+ALTER TABLE execution_log ADD COLUMN reserved2 VARCHAR(100) NULL;
+ALTER TABLE execution_log ADD COLUMN reserved3 INT NULL;
+ALTER TABLE execution_log ADD COLUMN reserved4 json NULL;
+ALTER TABLE execution_log ADD COLUMN reserved5 TIMESTAMP NULL;
 
--- 예비 컬럼 (향후 확장용)
-ADD COLUMN `reserved1` varchar(100) NULL COMMENT '예비 컬럼 1',
-ADD COLUMN `reserved2` varchar(100) NULL COMMENT '예비 컬럼 2',
-ADD COLUMN `reserved3` int NULL COMMENT '예비 컬럼 3',
-ADD COLUMN `reserved4` json NULL COMMENT '예비 컬럼 4',
-ADD COLUMN `reserved5` timestamp NULL COMMENT '예비 컬럼 5';
+-- 컬럼 수정
+ALTER TABLE execution_log MODIFY COLUMN log_message VARCHAR(500) NOT NULL;
+ALTER TABLE execution_log MODIFY COLUMN executed_at TIMESTAMP NOT NULL;
 
--- 기존 컬럼 수정
-ALTER TABLE `execution_log`
-    MODIFY COLUMN `log_message` varchar(500) NOT NULL COMMENT '요약 메시지',
-    MODIFY COLUMN `executed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '실행 시간';
+-- 컬럼 삭제
+ALTER TABLE execution_log DROP COLUMN config_snapshot;
 
--- 기존 불필요한 컬럼 제거 (있다면)
-ALTER TABLE `execution_log`
-DROP COLUMN IF EXISTS `config_snapshot`;
-
--- 새로운 인덱스 추가
-ALTER TABLE `execution_log`
-    ADD INDEX `idx_run_id` (`run_id`),
-ADD INDEX `idx_log_level_status` (`log_level`, `status`),
-ADD INDEX `idx_error_code` (`error_code`),
-ADD INDEX `idx_duration` (`duration_ms`);
-
--- 기존 인덱스 수정 (복합 인덱스 최적화)
-ALTER TABLE `execution_log`
-DROP INDEX IF EXISTS `idx_source_id_type`,
-ADD INDEX `idx_execution_type_source` (`execution_type`, `source_id`);
+-- 인덱스 생성 (CREATE INDEX 별도)
+CREATE INDEX idx_run_id ON execution_log(run_id);
+CREATE INDEX idx_log_level_status ON execution_log(log_level, status);
+CREATE INDEX idx_error_code ON execution_log(error_code);
+CREATE INDEX idx_duration ON execution_log(duration_ms);
+CREATE INDEX idx_execution_type_source ON execution_log(execution_type, source_id);
