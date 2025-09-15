@@ -1,4 +1,4 @@
-from app.utils.crawler_utils import SearchCrawler
+from app.service.crawlers.search_crawler import SearchCrawler
 from app.errors.CustomException import InvalidItemDataException
 from ..model.schemas import RequestSadaguSearch
 from loguru import logger

@@ -17,7 +17,6 @@ api_router.include_router(product.router, prefix="/products", tags=["product"])
 # 모듈 테스터를 위한 endpoint -> 추후 삭제 예정
 api_router.include_router(test.router, prefix="/tests", tags=["Test"])
 
-
 @api_router.get("/ping")
 async def root():
     return {"message": "서버 실행중입니다."}

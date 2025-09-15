@@ -27,9 +27,6 @@ class SimilarityService:
                     f"매칭된 상품과 검색 결과가 모두 없음: keyword='{keyword}'"
                 )
                 return {
-                    "job_id": request.job_id,
-                    "schedule_id": request.schedule_id,
-                    "schedule_his_id": request.schedule_his_id,
                     "keyword": keyword,
                     "selected_product": None,
                     "reason": "매칭된 상품과 검색 결과가 모두 없음",
@@ -87,9 +84,6 @@ class SimilarityService:
                 )
 
                 return {
-                    "job_id": request.job_id,
-                    "schedule_id": request.schedule_id,
-                    "schedule_his_id": request.schedule_his_id,
                     "keyword": keyword,
                     "selected_product": selected_product,
                     "reason": f"단일 상품 - 유사도: {similarity:.4f} ({analysis_mode})",
@@ -124,9 +118,6 @@ class SimilarityService:
                     f"최고 유사도 미달: similarity={best_result['similarity']:.4f} < threshold={similarity_threshold}"
                 )
                 return {
-                    "job_id": request.job_id,
-                    "schedule_id": request.schedule_id,
-                    "schedule_his_id": request.schedule_his_id,
                     "keyword": keyword,
                     "selected_product": None,
                     "reason": f"최고 유사도({best_result['similarity']:.4f}) < 기준({similarity_threshold})",
@@ -161,9 +152,6 @@ class SimilarityService:
             )
 
             return {
-                "job_id": request.job_id,
-                "schedule_id": request.schedule_id,
-                "schedule_his_id": request.schedule_his_id,
                 "keyword": keyword,
                 "selected_product": selected_product,
                 "reason": reason,

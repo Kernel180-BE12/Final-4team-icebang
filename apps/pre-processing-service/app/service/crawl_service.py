@@ -1,5 +1,5 @@
 import time
-from app.utils.crawler_utils import DetailCrawler
+from app.service.crawlers.detail_crawler import DetailCrawler
 from app.errors.CustomException import InvalidItemDataException
 from app.model.schemas import RequestSadaguCrawl
 from loguru import logger
@@ -37,9 +37,6 @@ class CrawlService:
 
             # 응답 데이터 구성
             response_data = {
-                "job_id": request.job_id,
-                "schedule_id": request.schedule_id,
-                "schedule_his_id": request.schedule_his_id,
                 "tag": request.tag,
                 "product_url": str(request.product_url),
                 "product_detail": product_detail,
