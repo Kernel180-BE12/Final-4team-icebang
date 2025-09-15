@@ -63,6 +63,10 @@ dependencies {
 	// 비동기 로깅
 	implementation 'com.lmax:disruptor:3.4.4'
 
+	implementation "io.micrometer:micrometer-tracing-bridge-brave"
+	implementation "io.micrometer:micrometer-tracing"
+	implementation "org.springframework.boot:spring-boot-starter-actuator"
+
 	// Lombok
 	compileOnly 'org.projectlombok:lombok:1.18.30'
 	annotationProcessor 'org.projectlombok:lombok:1.18.30'

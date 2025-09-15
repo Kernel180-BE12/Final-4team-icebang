@@ -12,7 +12,7 @@ Configuration:
         value: "UTF-8"
       # DEBUG 환경용 콘솔 패턴 - 더 간단하고 가독성 좋게
       - name: "console-layout-pattern"
-        value: "%highlight{[%-5level]} [%X{traceId}] %d{HH:mm:ss} [%t] %logger{20} - %msg%n"
+        value: "%highlight{[%-5level]} [%X{traceId}] [%X{spanId}] %d{HH:mm:ss} [%t] %n   %logger{20} - %msg%n%n "
       # 파일용 패턴
       - name: "file-layout-pattern"
         value: "[%X{traceId}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
@@ -37,8 +37,7 @@ Configuration:
       host: localhost
       port: 3100
       PatternLayout:
-        pattern: "[%-5level] [%X{traceId}] %d{MM-dd HH:mm:ss} [%t] %msg%n"
-        disableAnsi: false
+        pattern: "[%-5level] [%X{traceId}] [%X{spanId}] %d{MM-dd HH:mm:ss} [%t] %msg%n"
       Label:
         - name: "app"
           value: "${app-name}"
@@ -48,6 +47,8 @@ Configuration:
           value: "develop"
         - name: "traceId"
           value: "${ctx:traceId}"
+        - name: "spanId"
+          value: "${ctx:spanId}"
 
     # 개발용 일반 로그 파일
     File:

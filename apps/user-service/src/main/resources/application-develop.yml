@@ -44,3 +44,9 @@ mybatis:
 
 logging:
   config: classpath:log4j2-develop.yml
+
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0   # 100% 샘플링 (개발 환경에서만 권장)
