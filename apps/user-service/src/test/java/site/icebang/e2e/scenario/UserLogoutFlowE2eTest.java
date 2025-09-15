@@ -1,21 +1,18 @@
 package site.icebang.e2e.scenario;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.Disabled;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
 import org.springframework.test.context.jdbc.Sql;
-import site.icebang.e2e.setup.support.E2eTestSupport;
+
 import site.icebang.e2e.setup.annotation.E2eTest;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import site.icebang.e2e.setup.support.E2eTestSupport;
 
 @Sql(
     value = "classpath:sql/01-insert-internal-users.sql",
@@ -52,11 +49,29 @@ class UserLogoutFlowE2eTest extends E2eTestSupport {
 
     logStep(2, "로그인 상태에서 보호된 리소스 접근 확인");
 
+    // 로그인 응답에서 세션 쿠키 추출
+    String sessionCookie = null;
+    java.util.List<String> cookies = loginResponse.getHeaders().get("Set-Cookie");
+    if (cookies != null) {
+      for (String cookie : cookies) {
+        if (cookie.startsWith("JSESSIONID")) {
+          sessionCookie = cookie.split(";")[0]; // JSESSIONID=XXX 부분만 추출
+          break;
+        }
+      }
+    }
 
     // 2. 로그인된 상태에서 본인 프로필 조회로 인증 상태 확인
     // /v0/users/me는 인증된 사용자만 접근 가능한 일반적인 API
+    HttpHeaders authenticatedHeaders = new HttpHeaders();
+    if (sessionCookie != null) {
+      authenticatedHeaders.set("Cookie", sessionCookie);
+    }
+
+    HttpEntity<Void> authenticatedEntity = new HttpEntity<>(authenticatedHeaders);
     ResponseEntity<Map> beforeLogoutResponse =
-            restTemplate.getForEntity(getV0ApiUrl("/users/me"), Map.class);
+        restTemplate.exchange(
+            getV0ApiUrl("/users/me"), HttpMethod.GET, authenticatedEntity, Map.class);
 
     assertThat(beforeLogoutResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat((Boolean) beforeLogoutResponse.getBody().get("success")).isTrue();
@@ -64,46 +79,51 @@ class UserLogoutFlowE2eTest extends E2eTestSupport {
 
     logSuccess("인증된 상태에서 본인 프로필 조회 성공");
 
-    // 3. 로그아웃 API 호출 - 이 단계에서 실패 예상
+    // 3. 로그아웃 API 호출
     HttpHeaders logoutHeaders = new HttpHeaders();
     logoutHeaders.setContentType(MediaType.APPLICATION_JSON);
     logoutHeaders.set("Origin", "https://admin.icebang.site");
     logoutHeaders.set("Referer", "https://admin.icebang.site/");
 
-    HttpEntity<Map<String, Object>> logoutEntity =
-            new HttpEntity<>(new HashMap<>(), logoutHeaders);
+    // 로그아웃 요청에도 세션 쿠키 포함
+    if (sessionCookie != null) {
+      logoutHeaders.set("Cookie", sessionCookie);
+    }
+
+    HttpEntity<Map<String, Object>> logoutEntity = new HttpEntity<>(new HashMap<>(), logoutHeaders);
 
     try {
       ResponseEntity<Map> logoutResponse =
-              restTemplate.postForEntity(getV0ApiUrl("/auth/logout"), logoutEntity, Map.class);
+          restTemplate.postForEntity(getV0ApiUrl("/auth/logout"), logoutEntity, Map.class);
       logStep(4, "로그아웃 응답 검증 (API구현 돼있으면)");
-
-      // 4. 로그아웃 성공 응답 확인 (API가 구현되어 있다면 이 검증이 통과해야 함)
 
       logSuccess("로그아웃 API 호출 성공");
 
       logStep(5, "로그아웃 후 인증 무효화 확인");
 
       // 5. 로그아웃 후 동일한 프로필 API 접근 시 인증 실패 확인
+      HttpEntity<Void> afterLogoutEntity = new HttpEntity<>(authenticatedHeaders);
       ResponseEntity<Map> afterLogoutResponse =
-              restTemplate.getForEntity(getV0ApiUrl("/users/me"), Map.class);
+          restTemplate.exchange(
+              getV0ApiUrl("/users/me"), HttpMethod.GET, afterLogoutEntity, Map.class);
 
       // 핵심 검증: 로그아웃 후에는 인증 실패로 401 또는 403 응답이어야 함
       assertThat(afterLogoutResponse.getStatusCode())
-              .withFailMessage("로그아웃 후 프로필 접근이 차단되어야 합니다. 현재 상태코드: %s",
-                      afterLogoutResponse.getStatusCode())
-              .isIn(HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN);
+          .withFailMessage(
+              "로그아웃 후 프로필 접근이 차단되어야 합니다. 현재 상태코드: %s", afterLogoutResponse.getStatusCode())
+          .isIn(HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN);
       logSuccess("로그아웃 후 프로필 접근 차단 확인 - 인증 무효화 성공");
 
       logCompletion("일반 사용자 로그아웃 플로우");
 
-    } catch(org.springframework.web.client.HttpClientErrorException.NotFound ex) {
+    } catch (org.springframework.web.client.HttpClientErrorException.NotFound ex) {
       logError("예상된 실패: 로그아웃 API가 구현되지 않음 (404 Not Found");
       logError("에러 메시지 : " + ex.getMessage());
 
-      // TDD Red 단계에서는 이런 실패가 예상됨
-      fail("로그아웃 API (/v0/auth/logout)가 구현되지 않았습니다. " +
-              "다음 단계에서 API를 구현해야 합니다. 에러: " + ex.getMessage());
+      fail(
+          "로그아웃 API (/v0/auth/logout)가 구현되지 않았습니다. "
+              + "다음 단계에서 API를 구현해야 합니다. 에러: "
+              + ex.getMessage());
     } catch (Exception ex) {
       logError("예상치 못한 오류 발생: " + ex.getClass().getSimpleName());
       logError("에러 메시지: " + ex.getMessage());
@@ -113,11 +133,7 @@ class UserLogoutFlowE2eTest extends E2eTestSupport {
     }
   }
 
-
-  /**
-   * 일반 사용자 로그인을 수행하는 헬퍼 메서드
-   * 관리자가 아닌 콘텐츠팀장으로 로그인
-   */
+  /** 일반 사용자 로그인을 수행하는 헬퍼 메서드 관리자가 아닌 콘텐츠팀장으로 로그인 */
   private void performRegularUserLogin() {
     Map<String, String> loginRequest = new HashMap<>();
     loginRequest.put("email", "viral.jung@icebang.site");
@@ -131,7 +147,7 @@ class UserLogoutFlowE2eTest extends E2eTestSupport {
     HttpEntity<Map<String, String>> entity = new HttpEntity<>(loginRequest, headers);
 
     ResponseEntity<Map> response =
-            restTemplate.postForEntity(getV0ApiUrl("/auth/login"), entity, Map.class);
+        restTemplate.postForEntity(getV0ApiUrl("/auth/login"), entity, Map.class);
 
     if (response.getStatusCode() != HttpStatus.OK) {
       logError("일반 사용자 로그인 실패: " + response.getStatusCode());
