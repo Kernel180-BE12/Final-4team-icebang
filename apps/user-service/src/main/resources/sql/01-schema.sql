@@ -285,3 +285,23 @@ CREATE TABLE `task_run` (
     INDEX `idx_task_run_status` (`status`),
     INDEX `idx_task_run_task_id` (`task_id`)
     );
+
+-- v0.0.3
+DROP TABLE IF EXISTS `config`;
+
+ALTER TABLE `workflow_job`
+    ADD COLUMN `execution_order` INT NULL AFTER `job_id`;
+
+
+ALTER TABLE `schedule`
+    ADD COLUMN `schedule_text` varchar(20) NULL;
+
+ALTER TABLE `workflow`
+    ADD COLUMN `default_config`json NULL;
+
+
+ALTER TABLE `user`
+    ADD COLUMN `joined_at` timestamp NULL;
+
+ALTER TABLE `department`
+    ADD COLUMN `description` varchar(100) NULL;
