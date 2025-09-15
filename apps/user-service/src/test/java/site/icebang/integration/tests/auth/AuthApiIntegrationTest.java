@@ -13,6 +13,7 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +72,64 @@ class AuthApiIntegrationTest extends IntegrationTestSupport {
                             fieldWithPath("data")
                                 .type(JsonFieldType.NULL)
                                 .description("응답 데이터 (로그인 성공 시 null)"),
+                            fieldWithPath("message")
+                                .type(JsonFieldType.STRING)
+                                .description("응답 메시지"),
+                            fieldWithPath("status")
+                                .type(JsonFieldType.STRING)
+                                .description("HTTP 상태"))
+                        .build())));
+  }
+
+  @Test
+  @DisplayName("사용자 로그아웃 성공")
+  void logout_success() throws Exception {
+    // given - 먼저 로그인
+    Map<String, String> loginRequest = new HashMap<>();
+    loginRequest.put("email", "admin@icebang.site");
+    loginRequest.put("password", "qwer1234!A");
+
+    MockHttpSession session = new MockHttpSession();
+
+    // 로그인 먼저 수행
+    mockMvc
+        .perform(
+            post(getApiUrlForDocs("/v0/auth/login"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .session(session)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+        .andExpect(status().isOk());
+
+    // when & then - 로그아웃 수행
+    mockMvc
+        .perform(
+            post(getApiUrlForDocs("/v0/auth/logout"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .session(session)
+                .header("Origin", "https://admin.icebang.site")
+                .header("Referer", "https://admin.icebang.site/"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.status").value("OK"))
+        .andExpect(jsonPath("$.message").value("OK"))
+        .andExpect(jsonPath("$.data").isEmpty())
+        .andDo(
+            document(
+                "auth-logout",
+                preprocessRequest(prettyPrint()),
+                preprocessResponse(prettyPrint()),
+                resource(
+                    ResourceSnippetParameters.builder()
+                        .tag("Authentication")
+                        .summary("사용자 로그아웃")
+                        .description("현재 인증된 사용자의 세션을 무효화합니다")
+                        .responseFields(
+                            fieldWithPath("success")
+                                .type(JsonFieldType.BOOLEAN)
+                                .description("요청 성공 여부"),
+                            fieldWithPath("data")
+                                .type(JsonFieldType.NULL)
+                                .description("응답 데이터 (로그아웃 성공 시 null)"),
                             fieldWithPath("message")
                                 .type(JsonFieldType.STRING)
                                 .description("응답 메시지"),
