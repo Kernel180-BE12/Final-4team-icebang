@@ -22,7 +22,7 @@ public class ExtractTrendKeywordTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info(">>>> [Step 1] 키워드 추출 Tasklet 실행 시작");
+        // log.info(">>>> [Step 1] 키워드 추출 Tasklet 실행 시작");
 
         RequestNaverSearch request = new RequestNaverSearch(1, 1, null, "naver", "50000000", null, null);
         ResponseNaverSearch response = fastApiAdapter.requestNaverKeywordSearch(request);
@@ -37,7 +37,7 @@ public class ExtractTrendKeywordTasklet implements Tasklet {
         // 다른 클래스의 상수를 직접 참조하는 대신 공용 인터페이스의 키를 사용
         jobExecutionContext.put(JobContextKeys.EXTRACTED_KEYWORD, extractedKeyword);
 
-        log.info(">>>> [Step 1] 키워드 추출 Tasklet 실행 완료");
+        // log.info(">>>> [Step 1] 키워드 추출 Tasklet 실행 완료");
         return RepeatStatus.FINISHED;
     }
 

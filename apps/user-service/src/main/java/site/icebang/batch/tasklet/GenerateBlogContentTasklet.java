@@ -24,7 +24,7 @@ public class GenerateBlogContentTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info(">>>> [Step 6] 블로그 콘텐츠 생성 Tasklet 실행 시작");
+        // log.info(">>>> [Step 6] 블로그 콘텐츠 생성 Tasklet 실행 시작");
 
         ExecutionContext jobExecutionContext = getJobExecutionContext(chunkContext);
         Map<String, Object> productDetail = (Map<String, Object>) jobExecutionContext.get(JobContextKeys.CRAWLED_PRODUCT_DETAIL);
@@ -47,7 +47,7 @@ public class GenerateBlogContentTasklet implements Tasklet {
 
         jobExecutionContext.put(JobContextKeys.GENERATED_CONTENT, generatedContent);
 
-        log.info(">>>> [Step 6] 블로그 콘텐츠 생성 Tasklet 실행 완료");
+        // log.info(">>>> [Step 6] 블로그 콘텐츠 생성 Tasklet 실행 완료");
         return RepeatStatus.FINISHED;
     }
 

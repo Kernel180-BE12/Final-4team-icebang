@@ -24,7 +24,7 @@ public class FindSimilarProductsTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info(">>>> [Step 4] 상품 유사도 분석 Tasklet 실행 시작");
+        // log.info(">>>> [Step 4] 상품 유사도 분석 Tasklet 실행 시작");
 
         ExecutionContext jobExecutionContext = getJobExecutionContext(chunkContext);
         String keyword = (String) jobExecutionContext.get(JobContextKeys.EXTRACTED_KEYWORD);
@@ -43,7 +43,7 @@ public class FindSimilarProductsTasklet implements Tasklet {
 
         jobExecutionContext.put(JobContextKeys.SELECTED_PRODUCT, selectedProduct);
 
-        log.info(">>>> [Step 4] 상품 유사도 분석 Tasklet 실행 완료");
+        // log.info(">>>> [Step 4] 상품 유사도 분석 Tasklet 실행 완료");
         return RepeatStatus.FINISHED;
     }
 

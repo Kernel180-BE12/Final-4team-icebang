@@ -24,7 +24,7 @@ public class SearchProductsFromMallTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info(">>>> [Step 2] 상품 검색 Tasklet 실행 시작");
+        // log.info(">>>> [Step 2] 상품 검색 Tasklet 실행 시작");
 
         ExecutionContext jobExecutionContext = getJobExecutionContext(chunkContext);
         String keyword = (String) jobExecutionContext.get(JobContextKeys.EXTRACTED_KEYWORD);
@@ -44,7 +44,7 @@ public class SearchProductsFromMallTasklet implements Tasklet {
 
         jobExecutionContext.put(JobContextKeys.SEARCHED_PRODUCTS, searchResults);
 
-        log.info(">>>> [Step 2] 상품 검색 Tasklet 실행 완료");
+        // log.info(">>>> [Step 2] 상품 검색 Tasklet 실행 완료");
         return RepeatStatus.FINISHED;
     }
 

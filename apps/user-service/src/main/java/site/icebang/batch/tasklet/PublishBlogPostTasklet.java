@@ -24,7 +24,7 @@ public class PublishBlogPostTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info(">>>> [Step 7] 블로그 발행 Tasklet 실행 시작");
+        // log.info(">>>> [Step 7] 블로그 발행 Tasklet 실행 시작");
 
         ExecutionContext jobExecutionContext = getJobExecutionContext(chunkContext);
         Map<String, Object> content = (Map<String, Object>) jobExecutionContext.get(JobContextKeys.GENERATED_CONTENT);
@@ -51,7 +51,7 @@ public class PublishBlogPostTasklet implements Tasklet {
 
         log.info(">>>> FastAPI를 통해 블로그 발행 성공: {}", response.metadata());
 
-        log.info(">>>> [Step 7] 블로그 발행 Tasklet 실행 완료");
+        // log.info(">>>> [Step 7] 블로그 발행 Tasklet 실행 완료");
         return RepeatStatus.FINISHED;
     }
 

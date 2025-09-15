@@ -24,7 +24,7 @@ public class MatchProductWithKeywordTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info(">>>> [Step 3] 상품 매칭 Tasklet 실행 시작");
+        // log.info(">>>> [Step 3] 상품 매칭 Tasklet 실행 시작");
 
         ExecutionContext jobExecutionContext = getJobExecutionContext(chunkContext);
         String keyword = (String) jobExecutionContext.get(JobContextKeys.EXTRACTED_KEYWORD);

@@ -23,7 +23,7 @@ public class CrawlSelectedProductTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info(">>>> [Step 5] 최종 상품 크롤링 Tasklet 실행 시작");
+        // log.info(">>>> [Step 5] 최종 상품 크롤링 Tasklet 실행 시작");
 
         ExecutionContext jobExecutionContext = getJobExecutionContext(chunkContext);
         Map<String, Object> selectedProduct = (Map<String, Object>) jobExecutionContext.get(JobContextKeys.SELECTED_PRODUCT);
@@ -45,7 +45,7 @@ public class CrawlSelectedProductTasklet implements Tasklet {
 
         jobExecutionContext.put(JobContextKeys.CRAWLED_PRODUCT_DETAIL, productDetail);
 
-        log.info(">>>> [Step 5] 최종 상품 크롤링 Tasklet 실행 완료");
+        // log.info(">>>> [Step 5] 최종 상품 크롤링 Tasklet 실행 완료");
         return RepeatStatus.FINISHED;
     }
 
