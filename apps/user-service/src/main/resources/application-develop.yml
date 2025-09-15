@@ -33,6 +33,7 @@ spring:
         - classpath:sql/00-truncate.sql
         - classpath:sql/01-insert-internal-users.sql
         - classpath:sql/02-insert-external-users.sql
+        - classpath:sql/03-insert-workflow.sql
       encoding: UTF-8
 
 mybatis:

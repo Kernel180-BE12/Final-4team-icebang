@@ -285,3 +285,51 @@ CREATE TABLE `task_run` (
     INDEX `idx_task_run_status` (`status`),
     INDEX `idx_task_run_task_id` (`task_id`)
     );
+
+-- v0.0.3
+DROP TABLE IF EXISTS `config`;
+
+ALTER TABLE `workflow_job`
+    ADD COLUMN `execution_order` INT NULL AFTER `job_id`;
+
+
+ALTER TABLE `schedule`
+    ADD COLUMN `schedule_text` varchar(20) NULL;
+
+ALTER TABLE `workflow`
+    ADD COLUMN `default_config`json NULL;
+
+
+ALTER TABLE `user`
+    ADD COLUMN `joined_at` timestamp NULL;
+
+ALTER TABLE `department`
+    ADD COLUMN `description` varchar(100) NULL;
+
+-- v0.4
+-- 기존 execution_log 테이블 수정
+-- 컬럼 추가 (한 번에 하나씩)
+-- 컬럼 추가
+ALTER TABLE execution_log ADD COLUMN run_id BIGINT NULL;
+ALTER TABLE execution_log ADD COLUMN status VARCHAR(20) NULL;
+ALTER TABLE execution_log ADD COLUMN duration_ms INT NULL;
+ALTER TABLE execution_log ADD COLUMN error_code VARCHAR(50) NULL;
+ALTER TABLE execution_log ADD COLUMN reserved1 VARCHAR(100) NULL;
+ALTER TABLE execution_log ADD COLUMN reserved2 VARCHAR(100) NULL;
+ALTER TABLE execution_log ADD COLUMN reserved3 INT NULL;
+ALTER TABLE execution_log ADD COLUMN reserved4 json NULL;
+ALTER TABLE execution_log ADD COLUMN reserved5 TIMESTAMP NULL;
+
+-- 컬럼 수정
+ALTER TABLE execution_log MODIFY COLUMN log_message VARCHAR(500) NOT NULL;
+ALTER TABLE execution_log MODIFY COLUMN executed_at TIMESTAMP NOT NULL;
+
+-- 컬럼 삭제
+ALTER TABLE execution_log DROP COLUMN config_snapshot;
+
+-- 인덱스 생성 (CREATE INDEX 별도)
+CREATE INDEX idx_run_id ON execution_log(run_id);
+CREATE INDEX idx_log_level_status ON execution_log(log_level, status);
+CREATE INDEX idx_error_code ON execution_log(error_code);
+CREATE INDEX idx_duration ON execution_log(duration_ms);
+CREATE INDEX idx_execution_type_source ON execution_log(execution_type, source_id);

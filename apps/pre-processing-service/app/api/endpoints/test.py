@@ -21,11 +21,6 @@ from ...db.db_connecter import engine  # ✅ 우리가 만든 DB 유틸 임포�
 router = APIRouter()
 
 
-@router.get("/")
-async def root():
-    return {"message": "테스트 API"}
-
-
 @router.get("/hello/{name}", tags=["hello"])
 # @log_api_call
 async def say_hello(name: str):
