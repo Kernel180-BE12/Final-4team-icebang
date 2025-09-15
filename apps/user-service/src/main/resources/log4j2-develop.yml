@@ -6,45 +6,129 @@ Configuration:
     property:
       - name: "app-name"
         value: "${env:APP_NAME:-user-service-app}"
+      - name: "log-path"
+        value: "./logs"
+      - name: "charset-UTF-8"
+        value: "UTF-8"
+      # DEBUG 환경용 콘솔 패턴 - 더 간단하고 가독성 좋게
+      - name: "console-layout-pattern"
+        value: "%highlight{[%-5level]} [%X{traceId}] %d{HH:mm:ss} [%t] %logger{20} - %msg%n"
+      # 파일용 패턴
+      - name: "file-layout-pattern"
+        value: "[%X{traceId}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
+      # 개발 환경용 로그 파일들
+      - name: "dev-log"
+        value: ${log-path}/develop/app.log
+      - name: "error-log"
+        value: ${log-path}/develop/error.log
 
   Appenders:
-    # 콘솔 appender
+    # 콘솔 출력 - 개발 시 주요 출력
     Console:
       name: console-appender
       target: SYSTEM_OUT
       PatternLayout:
-        pattern: "[%-5level] [%X{traceId}] %d{MM-dd HH:mm:ss} [%t] %msg%n"
+        pattern: ${console-layout-pattern}
+        disableAnsi: false
 
-    # Tjahzi Loki Appender (올바른 문법)
+    # Loki Appender - 개발환경 모니터링용
     Loki:
       name: loki-appender
       host: localhost
       port: 3100
       PatternLayout:
         pattern: "[%-5level] [%X{traceId}] %d{MM-dd HH:mm:ss} [%t] %msg%n"
+        disableAnsi: false
       Label:
         - name: "app"
-          value: "${app-name}"           # 고정 값
+          value: "${app-name}"
         - name: "service"
-          value: "user-service"          # 고정 값
+          value: "user-service"
+        - name: "env"
+          value: "develop"
         - name: "traceId"
-          value: "${ctx:traceId}"           # MDC에서 가져올 값만 넣음
+          value: "${ctx:traceId}"
+
+    # 개발용 일반 로그 파일
+    File:
+      - name: file-dev-appender
+        fileName: ${dev-log}
+        PatternLayout:
+          pattern: ${file-layout-pattern}
+      - name: file-error-appender
+        fileName: ${error-log}
+        PatternLayout:
+          pattern: ${file-layout-pattern}
+        ThresholdFilter:
+          level: ERROR
 
   Loggers:
+    # Root 로거 - 개발환경에서는 기본적으로 INFO 레벨
     Root:
       level: INFO
       AppenderRef:
         - ref: console-appender
 
     Logger:
-      # 애플리케이션 로그만 Loki로 전송 (additivity 문법 수정)
+      # 애플리케이션 로그 - 개발 시 모든 레벨 + Loki 전송
       - name: site.icebang
+        additivity: false
+        level: DEBUG
+        AppenderRef:
+          - ref: console-appender
+          - ref: loki-appender
+          - ref: file-dev-appender
+          - ref: file-error-appender
+
+      # Spring Framework - 개발 시 필요한 정보만
+      - name: org.springframework
         additivity: false
         level: INFO
         AppenderRef:
           - ref: console-appender
+          - ref: file-dev-appender
+
+      # Spring Security - 인증 디버깅용
+      - name: org.springframework.security
+        level: DEBUG
+        additivity: false
+        AppenderRef:
+          - ref: console-appender
+          - ref: file-dev-appender
+          - ref: loki-appender
+
+      # 웹 요청 로그 - API 개발 시 유용
+      - name: org.springframework.web
+        level: DEBUG
+        additivity: false
+        AppenderRef:
+          - ref: console-appender
+          - ref: file-dev-appender
+          - ref: loki-appender
+
+      # 트랜잭션 로그 - DB 작업 디버깅
+      - name: org.springframework.transaction
+        level: DEBUG
+        additivity: false
+        AppenderRef:
+          - ref: console-appender
+          - ref: file-dev-appender
           - ref: loki-appender
 
       # HikariCP 로그 비활성화
       - name: com.zaxxer.hikari
         level: OFF
+
+      # SQL 로그 - 개발 시 쿼리 확인용 (필요시 활성화)
+      - name: org.hibernate.SQL
+        level: DEBUG
+        additivity: false
+        AppenderRef:
+          - ref: console-appender
+
+      # 파라미터 바인딩 로그 (필요시 활성화)
+      - name: org.hibernate.type.descriptor.sql.BasicBinder
+        level: TRACE
+        additivity: false
+        AppenderRef:
+          - ref: console-appender
