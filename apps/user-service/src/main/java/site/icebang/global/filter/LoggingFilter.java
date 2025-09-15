@@ -30,7 +30,8 @@ public class LoggingFilter extends OncePerRequestFilter {
       traceId = UUID.randomUUID().toString();
     }
 
-    MDC.put("traceId", traceId.substring(0, 8));
+    //    MDC.put("traceId", traceId.substring(0, 8));
+    MDC.put("traceId", traceId);
 
     // ⭐️ 요청 객체에 attribute로 traceId를 저장하여 컨트롤러 등에서 사용할 수 있게 함
     request.setAttribute("X-Request-ID", traceId);
