@@ -24,12 +24,12 @@ async def search(request: RequestSadaguSearch):
     """
     try:
         search_service = SearchService()
-        result = await search_service.search_products(request)
+        response_data = await search_service.search_products(request)
 
-        if not result:
+        if not response_data:
             raise CustomException(500, "상품 검색에 실패했습니다.", "SEARCH_FAILED")
 
-        return result
+        return response_data
     except InvalidItemDataException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
@@ -43,12 +43,12 @@ async def match(request: RequestSadaguMatch):
     """
     try:
         match_service = MatchService()
-        result = match_service.match_products(request)
+        response_data = match_service.match_products(request)
 
-        if not result:
+        if not response_data:
             raise CustomException(500, "상품 매칭에 실패했습니다.", "MATCH_FAILED")
 
-        return result
+        return response_data
     except InvalidItemDataException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
