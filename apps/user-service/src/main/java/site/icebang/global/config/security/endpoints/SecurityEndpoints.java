@@ -12,7 +12,7 @@ public enum SecurityEndpoints {
       "/images/**",
       "/v0/organizations/**",
       "/v0/auth/register",
-      "/v0/hi"),
+      "/v0/check-execution-log-insert"),
 
   // 데이터 관리 관련 엔드포인트
   DATA_ADMIN("/admin/**", "/api/admin/**", "/management/**", "/actuator/**"),

@@ -12,9 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import site.icebang.common.dto.ApiResponse;
 
 @RestController
-@RequestMapping("/v0/hi")
+@RequestMapping("/v0/check-execution-log-insert")
 @Slf4j
-public class TestController {
+public class WorkflowLogInsertExampleController {
   private static final Logger workflowLogger = LoggerFactory.getLogger("WORKFLOW_HISTORY");
 
   @GetMapping("")
