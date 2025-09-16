@@ -1,4 +1,3 @@
-# product_blog_posting_service.py
 import json
 import logging
 import os
@@ -7,7 +6,7 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from enum import Enum
 
-import openai
+from openai import OpenAI
 from dotenv import load_dotenv
 
 from app.service.blog.blogger_blog_post_adapter import BloggerBlogPostAdapter
@@ -16,6 +15,7 @@ from app.errors.BlogPostingException import *
 # 환경변수 로드
 load_dotenv('.env.dev')
 
+client = OpenAI()
 
 class PostingStatus(Enum):
     PENDING = "pending"
@@ -82,7 +82,7 @@ class ProductContentGenerator:
         if not self.openai_api_key:
             raise ValueError("OPENAI_API_KEY가 .env.dev 파일에 설정되지 않았습니다.")
 
-        openai.api_key = self.openai_api_key
+        client.api_key = self.openai_api_key
 
     def generate_blog_content(self, product_data: ProductData, request: BlogContentRequest) -> BlogPostContent:
         """상품 데이터를 기반으로 블로그 콘텐츠 생성"""
@@ -95,8 +95,9 @@ class ProductContentGenerator:
 
         # 3. GPT를 통한 콘텐츠 생성
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
                 messages=[
                     {
                         "role": "system",
@@ -194,9 +195,11 @@ class ProductContentGenerator:
 3. 상품의 핵심 특징과 장점을 구체적으로 설명
 4. 실제 사용 시나리오나 활용 팁
 5. 구매 결정에 도움이 되는 정보
-6. 자연스러운 마무리
 
-HTML 태그를 사용해서 구조화된 콘텐츠로 작성해주세요.
+⚠️ 주의:
+- 절대로 마지막에 '이 HTML 구조는…' 같은 자기 평가 문장을 추가하지 마세요.
+- 출력 시 ```나 ```html 같은 코드 블록 구문을 포함하지 마세요.
+- 오직 HTML 태그만 사용하여 구조화된 콘텐츠를 작성해주세요.
 (예: <h2>, <h3>, <p>, <ul>, <li> 등)
 """
 
@@ -303,7 +306,6 @@ HTML 태그를 사용해서 구조화된 콘텐츠로 작성해주세요.
             tags=[product_data.tag] if product_data.tag else ["상품정보"]
         )
 
-
 class ProductBlogPostingService:
     """상품 데이터를 Blogger에 포스팅하는 메인 서비스"""
 
@@ -311,22 +313,20 @@ class ProductBlogPostingService:
         self.content_generator = ProductContentGenerator()
         self.blogger_service = BloggerBlogPostAdapter()
 
-    def post_product_to_blogger(self, product_data_dict: Dict, request: BlogContentRequest) -> Dict[str, Any]:
+    def post_product_to_blogger(self, product_data: ProductData, request: BlogContentRequest) -> dict:
         """상품 데이터를 Blogger에 포스팅"""
         try:
-            # 1. 상품 데이터 파싱
-            product_data = ProductData.from_dict(product_data_dict)
-
-            # 2. GPT를 통한 콘텐츠 생성
+            # 1. GPT를 통한 콘텐츠 생성
             blog_content = self.content_generator.generate_blog_content(product_data, request)
 
-            # 3. Blogger에 포스팅
+            # 2. Blogger에 포스팅
             self.blogger_service.post_content(
                 title=blog_content.title,
                 content=blog_content.content,
                 tags=blog_content.tags
             )
 
+            # 3. 성공 결과 반환
             return {
                 "status": "success",
                 "platform": "blogger",
@@ -338,68 +338,25 @@ class ProductBlogPostingService:
 
         except Exception as e:
             logging.error(f"Blogger 포스팅 실패: {e}")
+            # ProductData 객체 기준으로 처리
             return {
                 "status": "failed",
                 "error": str(e),
                 "platform": "blogger",
                 "attempted_at": datetime.now().isoformat(),
-                "product_tag": product_data_dict.get("tag", "unknown")
+                "product_tag": getattr(product_data, "tag", "unknown")
             }
 
-    def batch_post_products(self, products_data: List[Dict], request: BlogContentRequest) -> List[Dict[str, Any]]:
-        """여러 상품을 일괄 포스팅"""
-        results = []
-
-        for product_data in products_data:
-            result = self.post_product_to_blogger(product_data, request)
-            results.append(result)
-
-            # API 호출 제한을 고려한 딜레이
-            import time
-            time.sleep(3)  # 3초 대기
-
-        return results
-
-
-# 사용 예시
-if __name__ == "__main__":
-    # 크롤링된 상품 데이터
-    sample_product_data = {
-        "tag": "test001",
-        "product_url": "https://ssadagu.kr/shop/view.php?platform=1688&num_iid=902500949447",
-        "status": "success",
-        "product_detail": {
-            "url": "https://ssadagu.kr/shop/view.php?platform=1688&num_iid=902500949447",
-            "title": "코닝 적용 가능한 애플 13 강화 필름 iphone16/15promax 휴대 전화 필름 애플 11 안티-peep 및 먼지없는 빈",
-            "price": 430,
-            "rating": 5.0,
-            "options": [
-                {"name": "먼지 없는 창고 2차 필름 [코닝글라스 방폭丨초투명]", "stock": 0},
-                {"name": "먼지 없는 창고 2차 필름 [코닝글라스 방폭丨훔쳐보기 방지]", "stock": 0}
-            ],
-            "material_info": {
-                "상표": "다른",
-                "재료": "강화 유리",
-                "필름 종류": "전막",
-                "크기": "애플 16프로맥스( 6.9inch )",
-                "적용 모델": "iPhone13 Pro Max"
-            },
-            "product_images": []
-        },
-        "crawled_at": "2025-09-16 11:49:24"
-    }
-
-    # 서비스 초기화 (환경변수에서 자동으로 API 키 로드)
-    service = ProductBlogPostingService()
-
-    # 블로그 포스팅 요청 설정
-    blog_request = BlogContentRequest(
-        content_style="informative",  # "informative", "promotional", "review"
-        target_keywords=["아이폰", "강화필름", "보호필름", "스마트폰액세서리"],
-        include_pricing=True,
-        content_length="medium"
-    )
-
-    # 블로그 포스팅 실행
-    result = service.post_product_to_blogger(sample_product_data, blog_request)
-    print(json.dumps(result, indent=2, ensure_ascii=False))
+    # def batch_post_products(self, products_data: List[Dict], request: BlogContentRequest) -> List[Dict[str, Any]]:
+    #     """여러 상품을 일괄 포스팅"""
+    #     results = []
+    #
+    #     for product_data in products_data:
+    #         result = self.post_product_to_blogger(product_data, request)
+    #         results.append(result)
+    #
+    #         # API 호출 제한을 고려한 딜레이
+    #         import time
+    #         time.sleep(3)  # 3초 대기
+    #
+    #     return results
