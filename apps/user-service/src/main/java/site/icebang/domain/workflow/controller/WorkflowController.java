@@ -11,6 +11,7 @@ import site.icebang.common.dto.PageResult;
 import site.icebang.domain.workflow.dto.WorkflowCardDto;
 import site.icebang.domain.workflow.service.WorkflowExecutionService;
 import site.icebang.domain.workflow.service.WorkflowService;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/v0/workflows")
@@ -26,23 +27,10 @@ public class WorkflowController {
     return ApiResponse.success(result);
   }
 
-
-  /**
-   * 지정된 ID의 워크플로우를 수동으로 실행합니다.
-   *
-   * @param workflowId 실행할 워크플로우의 ID
-   * @return HTTP 202 Accepted
-   */
-  @PostMapping("/{workflowId}/execute")
-  public ResponseEntity<Void> executeWorkflow(@PathVariable Long workflowId) {
-    // TODO: Spring Security 등 인증 체계에서 실제 사용자 ID를 가져와야 합니다.
-    Long currentUserId = 1L; // 임시 사용자 ID
-
-    // 워크플로우 실행 서비스 호출. 'MANUAL' 타입으로 실행을 요청합니다.
-    // @Async로 동작하므로, 이 호출은 즉시 반환되고 워크플로우는 백그라운드에서 실행됩니다.
-    workflowExecutionService.execute(workflowId, "MANUAL", currentUserId);
-
-    // 작업이 성공적으로 접수되었음을 알리는 202 Accepted 상태를 반환합니다.
+  @PostMapping("/{workflowId}/run")
+  public ResponseEntity<Void> runWorkflow(@PathVariable Long workflowId) {
+    // HTTP 요청/응답 스레드를 블로킹하지 않도록 비동기 실행
+    CompletableFuture.runAsync(() -> workflowExecutionService.executeWorkflow(workflowId));
     return ResponseEntity.accepted().build();
   }
 }
