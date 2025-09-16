@@ -10,7 +10,7 @@ class CrawlingUtil:
     블로그 포스팅과 상품 크롤링 모두 지원
     """
 
-    def __init__(self, headless: bool = False, for_blog_posting: bool = False):
+    def __init__(self, headless: bool = True, for_blog_posting: bool = False):
         """
         :param headless: 헤드리스 모드 사용 여부
         :param for_blog_posting: 블로그 포스팅용 설정 사용 여부
