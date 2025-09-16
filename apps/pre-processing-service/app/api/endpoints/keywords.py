@@ -6,6 +6,11 @@ from ...model.schemas import RequestNaverSearch, ResponseNaverSearch
 router = APIRouter()
 
 
+@router.get("/")
+async def root():
+    return {"message": "keyword API"}
+
+
 @router.post(
     "/search", response_model=ResponseNaverSearch, summary="네이버 키워드 검색"
 )
@@ -15,9 +20,6 @@ async def search(request: RequestNaverSearch):
 
     요청 예시:
     {
-        "job_id": 1,
-        "schedule_id": 1,
-        "schedule_his_id": 1,
         "tag": "naver",
         "category": "50000000",
         "start_date": "2025-09-01",

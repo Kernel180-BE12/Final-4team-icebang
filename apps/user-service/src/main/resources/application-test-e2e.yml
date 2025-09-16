@@ -18,4 +18,4 @@ mybatis:
     map-underscore-to-camel-case: true
 
 logging:
-  config: classpath:log4j2-production.yml
+  config: classpath:log4j2-test-e2e.yml

@@ -4,7 +4,9 @@ from fastapi import APIRouter
 from ...model.schemas import *
 from app.service.blog.tistory_blog_post_service import TistoryBlogPostService
 from app.service.blog.naver_blog_post_service import NaverBlogPostService
-from ...service.blog.blogger_blog_post_service import BloggerBlogPostService
+from ...service.blog.blogger_blog_post_adapter import (
+    BloggerBlogPostAdapter,
+)  # 수정된 import
 
 router = APIRouter()
 
@@ -62,7 +64,7 @@ async def publish(request: RequestBlogPublish):
         return ResponseBlogPublish(status="success", metadata=result)
 
     elif request.tag == "blogger":
-        blogger_service = BloggerBlogPostService()
+        blogger_service = BloggerBlogPostAdapter()  # 수정: Adapter 사용
         result = blogger_service.post_content(
             title=request.post_title,
             content=request.post_content,

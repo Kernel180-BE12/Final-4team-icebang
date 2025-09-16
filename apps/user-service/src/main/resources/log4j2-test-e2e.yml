@@ -1,6 +1,6 @@
 Configuration:
-  status: INFO
-  name: production
+  status: DEBUG
+  name: e2e
 
   properties:
     property:
@@ -10,31 +10,31 @@ Configuration:
         value: "./logs"
       - name: "charset-UTF-8"
         value: "UTF-8"
-      # 프로덕션 환경용 콘솔 패턴 - 구조화된 로그
+      # DEBUG 환경용 콘솔 패턴 - 더 간단하고 가독성 좋게
       - name: "console-layout-pattern"
-        value: "%highlight{[%-5level]} [%X{traceId}] [%X{spanId}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %logger{36} - %msg%n"
+        value: "%highlight{[%-5level]} [%X{traceId}] [%X{spanId}] %d{HH:mm:ss} [%t] %n   %logger{20} - %msg%n%n "
       # 파일용 패턴
       - name: "file-layout-pattern"
         value: "[%X{traceId}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
-      # 프로덕션 환경용 로그 파일들
-      - name: "prod-log"
-        value: ${log-path}/production/app.log
+      # 개발 환경용 로그 파일들
+      - name: "dev-log"
+        value: ${log-path}/develop/app.log
       - name: "error-log"
-        value: ${log-path}/production/error.log
+        value: ${log-path}/develop/error.log
 
   Appenders:
-    # 콘솔 출력 - 프로덕션에서는 최소한의 정보만
+    # 콘솔 출력 - 개발 시 주요 출력
     Console:
       name: console-appender
       target: SYSTEM_OUT
       PatternLayout:
         pattern: ${console-layout-pattern}
+        disableAnsi: false
 
-    # Loki Appender - 프로덕션 모니터링용
     Loki:
       name: loki-appender
       host: localhost
-      port: 3100
+      port: "${loki-port}"
       JsonLayout:
         compact: true
         eventEol: true
@@ -43,12 +43,12 @@ Configuration:
           - key: "app"
             value: "${app-name}"
           - key: "env"
-            value: "production"
+            value: "test-e2e"
       Label:
         - name: "app"
           value: "${app-name}"
         - name: "env"
-          value: "production"
+          value: "test-e2e"
         - name: "traceId"
           value: "${ctx:traceId}"
         - name: "spanId"
@@ -67,10 +67,10 @@ Configuration:
       ignoreExceptions: false
 
       DriverManager:
-        connectionString: "jdbc:mariadb://${env:DB_HOST}:${env:DB_PORT}/${env:DB_NAME}"
-        driverClassName: "org.mariadb.jdbc.Driver"
-        userName: "${env:DB_USER}"
-        password: "${env:DB_PASS}"
+        connectionString: ${DriverManager.connectionString}
+        driverClassName: ${DriverManager.driverClassName}
+        userName: ${DriverManager.userName}
+        password: ${DriverManager.password}
 
       ColumnMapping:
         - name: "execution_type"
@@ -80,7 +80,7 @@ Configuration:
         - name: "log_level"
           pattern: "%level"
         - name: "executed_at"
-          pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS}"
+          pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS}"  # 패턴으로 시간 직접 지정
         - name: "log_message"
           pattern: "%message"
         - name: "trace_id"
@@ -88,107 +88,96 @@ Configuration:
         - name: "reserved1"
           pattern: "%X{spanId}"
 
+    # 개발용 일반 로그 파일
     File:
-      - name: file-prod-appender
-        fileName: ${prod-log}
+      - name: file-dev-appender
+        fileName: ${dev-log}
         PatternLayout:
           pattern: ${file-layout-pattern}
-        # 로그 파일 롤링 설정
-        Policies:
-          TimeBasedTriggeringPolicy:
-            interval: 1
-            modulate: true
-          SizeBasedTriggeringPolicy:
-            size: "100 MB"
-        DefaultRolloverStrategy:
-          max: 30
-        filePattern: ${log-path}/production/app.%d{yyyy-MM-dd}.%i.log
-
       - name: file-error-appender
         fileName: ${error-log}
         PatternLayout:
           pattern: ${file-layout-pattern}
         ThresholdFilter:
           level: ERROR
-        Policies:
-          TimeBasedTriggeringPolicy:
-            interval: 1
-            modulate: true
-          SizeBasedTriggeringPolicy:
-            size: "100 MB"
-        DefaultRolloverStrategy:
-          max: 30
-        filePattern: ${log-path}/production/error.%d{yyyy-MM-dd}.%i.log
 
   Loggers:
-    # Root 로거 - 프로덕션에서는 WARN 레벨
+    # Root 로거 - 개발환경에서는 기본적으로 INFO 레벨
     Root:
-      level: WARN
+      level: INFO
       AppenderRef:
         - ref: console-appender
 
     Logger:
-      # 애플리케이션 로그 - 프로덕션에서는 INFO 레벨
+      # 애플리케이션 로그 - 개발 시 모든 레벨 + Loki 전송
       - name: site.icebang
-        additivity: "false"
-        level: INFO
+        additivity: false
+        level: DEBUG
         AppenderRef:
           - ref: console-appender
           - ref: loki-appender
-          - ref: file-prod-appender
+          - ref: file-dev-appender
           - ref: file-error-appender
 
       - name: "WORKFLOW_HISTORY"
-        level: INFO
+        level: DEBUG
         additivity: "false"
         AppenderRef:
           - ref: workflow-appender
           - ref: loki-appender
           - ref: console-appender
-          - ref: file-prod-appender
+          - ref: file-dev-appender
           - ref: file-error-appender
 
-      # Spring Framework - 프로덕션에서는 WARN 레벨
+      # Spring Framework - 개발 시 필요한 정보만
       - name: org.springframework
-        additivity: "false"
-        level: WARN
-        AppenderRef:
-          - ref: console-appender
-          - ref: file-prod-appender
-
-      # Spring Security - 프로덕션에서는 WARN 레벨
-      - name: org.springframework.security
-        level: WARN
-        additivity: "false"
-        AppenderRef:
-          - ref: console-appender
-          - ref: file-prod-appender
-
-      # 웹 요청 로그 - 프로덕션에서는 INFO 레벨
-      - name: org.springframework.web
+        additivity: false
         level: INFO
-        additivity: "false"
         AppenderRef:
           - ref: console-appender
-          - ref: file-prod-appender
+          - ref: file-dev-appender
+
+      # Spring Security - 인증 디버깅용
+      - name: org.springframework.security
+        level: DEBUG
+        additivity: false
+        AppenderRef:
+          - ref: console-appender
+          - ref: file-dev-appender
           - ref: loki-appender
 
-      # 트랜잭션 로그 - 프로덕션에서는 WARN 레벨
-      - name: org.springframework.transaction
-        level: WARN
-        additivity: "false"
+      # 웹 요청 로그 - API 개발 시 유용
+      - name: org.springframework.web
+        level: DEBUG
+        additivity: false
         AppenderRef:
           - ref: console-appender
-          - ref: file-prod-appender
+          - ref: file-dev-appender
+          - ref: loki-appender
+
+      # 트랜잭션 로그 - DB 작업 디버깅
+      - name: org.springframework.transaction
+        level: DEBUG
+        additivity: false
+        AppenderRef:
+          - ref: console-appender
+          - ref: file-dev-appender
+          - ref: loki-appender
 
       # HikariCP 로그 비활성화
       - name: com.zaxxer.hikari
         level: "OFF"
 
-      # SQL 로그 비활성화 - 프로덕션에서는 성능상 비활성화
+      # SQL 로그 - 개발 시 쿼리 확인용 (필요시 활성화)
       - name: org.hibernate.SQL
-        level: "OFF"
+        level: DEBUG
+        additivity: false
+        AppenderRef:
+          - ref: console-appender
 
-      # 파라미터 바인딩 로그 비활성화
+      # 파라미터 바인딩 로그 (필요시 활성화)
       - name: org.hibernate.type.descriptor.sql.BasicBinder
-        level: "OFF"
+        level: TRACE
+        additivity: false
+        AppenderRef:
+          - ref: console-appender

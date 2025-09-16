@@ -4,10 +4,6 @@ from app.main import app
 
 client = TestClient(app)
 
-JOB_ID = 1
-SCHEDULE_ID = 1
-SCHEDULE_HIS_ID = 1
-
 
 def test_read_root():
     response = client.get("/keywords/")
@@ -26,9 +22,6 @@ def test_read_root():
 )
 def test_search(tag, category, start_date, end_date):
     body = {
-        "job_id": JOB_ID,
-        "schedule_id": SCHEDULE_ID,
-        "schedule_his_id": SCHEDULE_HIS_ID,  # 오타 수정
         "tag": tag,
         "category": category,
         "start_date": start_date,
@@ -39,9 +32,6 @@ def test_search(tag, category, start_date, end_date):
     assert response.status_code == 200
 
     response_data = response.json()
-    assert response_data["job_id"] == body["job_id"]
-    assert response_data["schedule_id"] == body["schedule_id"]
-    assert response_data["schedule_his_id"] == body["schedule_his_id"]  # 오타 수정
     assert response_data["status"] == "success"
     assert "keyword" in response_data
     assert isinstance(response_data["total_keyword"], dict)

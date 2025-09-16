@@ -5,14 +5,23 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MariaDBContainer;
+import org.testcontainers.containers.Network;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.testcontainers.utility.DockerImageName;
 
 @TestConfiguration(proxyBeanMethods = false)
 public class E2eTestConfiguration {
   @Bean
   public ObjectMapper objectMapper() {
     return new ObjectMapper();
+  }
+
+  @Bean
+  public Network testNetwork() {
+    return Network.newNetwork();
   }
 
   @Bean
@@ -24,8 +33,20 @@ public class E2eTestConfiguration {
         .withPassword("qwer1234");
   }
 
+  @Bean
+  GenericContainer<?> lokiContainer(Network network) {
+    return new GenericContainer<>(DockerImageName.parse("grafana/loki:2.9.0"))
+        .withNetwork(network)
+        .withNetworkAliases("loki")
+        .withExposedPorts(3100)
+        .withCommand("-config.file=/etc/loki/local-config.yaml")
+        .waitingFor(Wait.forHttp("/ready"))
+        .withStartupTimeout(java.time.Duration.ofMinutes(2));
+  }
+
   @DynamicPropertySource
-  static void configureProperties(DynamicPropertyRegistry registry, MariaDBContainer<?> mariadb) {
+  static void configureProperties(
+      DynamicPropertyRegistry registry, MariaDBContainer<?> mariadb, GenericContainer<?> loki) {
     // MariaDB 연결 설정
     registry.add("spring.datasource.url", mariadb::getJdbcUrl);
     registry.add("spring.datasource.username", mariadb::getUsername);
@@ -39,5 +60,7 @@ public class E2eTestConfiguration {
     registry.add("spring.hikari.maximum-pool-size", () -> "10");
     registry.add("spring.hikari.minimum-idle", () -> "5");
     registry.add("spring.hikari.pool-name", () -> "HikariCP-E2E");
+
+    System.setProperty("loki.port", String.valueOf(loki.getMappedPort(3100)));
   }
 }

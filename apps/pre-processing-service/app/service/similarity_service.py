@@ -17,7 +17,7 @@ class SimilarityService:
         fallback_products = request.search_results or []
 
         logger.info(
-            f"유사도 분석 서비스 시작: job_id={request.job_id}, keyword='{keyword}', matched_count={len(candidates) if candidates else 0}, fallback_count={len(fallback_products)}"
+            f"유사도 분석 서비스 시작: keyword='{keyword}', matched_count={len(candidates) if candidates else 0}, fallback_count={len(fallback_products)}"
         )
 
         # 매칭된 상품이 없으면 전체 검색 결과로 폴백
@@ -27,9 +27,6 @@ class SimilarityService:
                     f"매칭된 상품과 검색 결과가 모두 없음: keyword='{keyword}'"
                 )
                 return {
-                    "job_id": request.job_id,
-                    "schedule_id": request.schedule_id,
-                    "schedule_his_id": request.schedule_his_id,
                     "keyword": keyword,
                     "selected_product": None,
                     "reason": "매칭된 상품과 검색 결과가 모두 없음",
@@ -67,9 +64,6 @@ class SimilarityService:
                             f"단일 상품 유사도 미달: similarity={similarity:.4f} < threshold={similarity_threshold}"
                         )
                         return {
-                            "job_id": request.job_id,
-                            "schedule_id": request.schedule_id,
-                            "schedule_his_id": request.schedule_his_id,
                             "keyword": keyword,
                             "selected_product": None,
                             "reason": f"단일 상품 유사도({similarity:.4f}) < 기준({similarity_threshold})",
@@ -87,9 +81,6 @@ class SimilarityService:
                 )
 
                 return {
-                    "job_id": request.job_id,
-                    "schedule_id": request.schedule_id,
-                    "schedule_his_id": request.schedule_his_id,
                     "keyword": keyword,
                     "selected_product": selected_product,
                     "reason": f"단일 상품 - 유사도: {similarity:.4f} ({analysis_mode})",
@@ -124,9 +115,6 @@ class SimilarityService:
                     f"최고 유사도 미달: similarity={best_result['similarity']:.4f} < threshold={similarity_threshold}"
                 )
                 return {
-                    "job_id": request.job_id,
-                    "schedule_id": request.schedule_id,
-                    "schedule_his_id": request.schedule_his_id,
                     "keyword": keyword,
                     "selected_product": None,
                     "reason": f"최고 유사도({best_result['similarity']:.4f}) < 기준({similarity_threshold})",
@@ -161,9 +149,6 @@ class SimilarityService:
             )
 
             return {
-                "job_id": request.job_id,
-                "schedule_id": request.schedule_id,
-                "schedule_his_id": request.schedule_his_id,
                 "keyword": keyword,
                 "selected_product": selected_product,
                 "reason": reason,
@@ -171,7 +156,5 @@ class SimilarityService:
             }
 
         except Exception as e:
-            logger.error(
-                f"유사도 분석 서비스 오류: job_id={request.job_id}, keyword='{keyword}', error='{e}'"
-            )
+            logger.error(f"유사도 분석 서비스 오류: keyword='{keyword}', error='{e}'")
             raise InvalidItemDataException()
