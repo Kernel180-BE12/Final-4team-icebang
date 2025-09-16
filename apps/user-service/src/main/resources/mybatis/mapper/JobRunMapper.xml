@@ -1,21 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="site.icebang.domain.execution.mapper.JobRunMapper">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-    <insert id="save" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO job_run (workflow_run_id, job_id, status, execution_order)
-        VALUES (#{workflowRunId}, #{jobId}, #{status}, #{executionOrder})
+<mapper namespace="site.icebang.domain.workflow.mapper.execution.JobRunMapper">
+
+    <resultMap id="JobRunResultMap" type="site.icebang.domain.workflow.model.execution.JobRun">
+        <id property="id" column="id"/>
+        <result property="workflowRunId" column="workflow_run_id"/>
+        <result property="jobId" column="job_id"/>
+        <result property="status" column="status"/>
+        <result property="startedAt" column="started_at"/>
+        <result property="finishedAt" column="finished_at"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO job_run (workflow_run_id, job_id, status, started_at, created_at)
+        VALUES (#{workflowRunId}, #{jobId}, #{status}, #{startedAt}, #{createdAt})
     </insert>
 
     <update id="update">
         UPDATE job_run
-        <set>
-            <if test="status != null">status = #{status},</if>
-            <if test="startedAt != null">started_at = #{startedAt},</if>
-            <if test="finishedAt != null">finished_at = #{finishedAt},</if>
-        </set>
+        SET status = #{status},
+            finished_at = #{finishedAt}
         WHERE id = #{id}
     </update>
 
