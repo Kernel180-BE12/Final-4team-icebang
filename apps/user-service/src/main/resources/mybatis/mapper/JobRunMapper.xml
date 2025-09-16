@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="site.icebang.domain.execution.mapper.JobRunMapper">
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO job_run (workflow_run_id, job_id, status, execution_order)
+        VALUES (#{workflowRunId}, #{jobId}, #{status}, #{executionOrder})
+    </insert>
+
+    <update id="update">
+        UPDATE job_run
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="startedAt != null">started_at = #{startedAt},</if>
+            <if test="finishedAt != null">finished_at = #{finishedAt},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>

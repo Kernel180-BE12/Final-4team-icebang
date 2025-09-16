@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="site.icebang.domain.execution.mapper.WorkflowRunMapper">
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO workflow_run (workflow_id, trace_id, run_number, status, trigger_type, started_at, finished_at, created_by)
+        VALUES (#{workflowId}, #{traceId}, #{runNumber}, #{status}, #{triggerType}, #{startedAt}, #{finishedAt}, #{createdBy})
+    </insert>
+
+    <update id="update">
+        UPDATE workflow_run
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="startedAt != null">started_at = #{startedAt},</if>
+            <if test="finishedAt != null">finished_at = #{finishedAt},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>
