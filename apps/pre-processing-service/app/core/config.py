@@ -80,6 +80,9 @@ class BaseSettingsConfig(BaseSettings):
     # MeCab 사전 경로 (자동 감지)
     mecab_path: Optional[str] = None
 
+    # 테스트/추가용 필드
+    openai_api_key: Optional[str] = None  # << 이 부분 추가
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
