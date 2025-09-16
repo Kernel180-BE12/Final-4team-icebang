@@ -41,6 +41,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+	// Java 표준 라이프사이클 어노테이션 (@PostConstruct, @PreDestroy)
+	implementation 'javax.annotation:javax.annotation-api:1.3.2'
+
 	// MyBatis
 	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5'
 
