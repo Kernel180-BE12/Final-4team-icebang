@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="site.icebang.domain.workflow.mapper.TaskMapper">
+
+    <resultMap id="TaskResultMap" type="site.icebang.domain.workflow.model.Task">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="type" column="type"/>
+        <result property="parameters" column="parameters" javaType="com.fasterxml.jackson.databind.JsonNode" jdbcType="VARCHAR" typeHandler="site.icebang.global.config.mybatis.JsonNodeTypeHandler"/>
+    </resultMap>
+
+    <select id="findById" resultMap="TaskResultMap">
+        SELECT * FROM task
+        WHERE id = #{taskId}
+    </select>
+
+</mapper>
