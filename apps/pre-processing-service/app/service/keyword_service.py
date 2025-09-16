@@ -1,4 +1,3 @@
-# Pydantic 모델을 가져오기 위해 schemas 파일 import
 import json
 import random
 
