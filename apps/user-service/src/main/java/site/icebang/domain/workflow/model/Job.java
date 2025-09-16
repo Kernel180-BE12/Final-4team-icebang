@@ -1,4 +1,4 @@
-package site.icebang.domain.job.model;
+package site.icebang.domain.workflow.model;
 
 import java.time.LocalDateTime;
 import lombok.AccessLevel;

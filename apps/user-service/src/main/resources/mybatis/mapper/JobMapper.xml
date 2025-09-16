@@ -1,23 +1,20 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="site.icebang.domain.job.mapper.JobMapper">
+<mapper namespace="site.icebang.domain.workflow.mapper.JobMapper">
+    <resultMap id="JobResultMap" type="site.icebang.domain.workflow.model.Job">
+    </resultMap>
+    <resultMap id="TaskResultMap" type="site.icebang.domain.workflow.model.Task">
+    </resultMap>
 
-    <select id="findById" resultType="site.icebang.domain.job.model.Job">
-        SELECT
-            id,
-            name,
-            description,
-            is_enabled AS isEnabled,
-            created_at AS createdAt,
-            created_by AS createdBy,
-            updated_at AS updatedAt,
-            updated_by AS updatedBy
-        FROM
-            job
-        WHERE
-            id = #{id}
+    <select id="findJobsByWorkflowId" resultMap="JobResultMap">
+        SELECT j.* FROM job j
+        JOIN workflow_job wj ON j.id = wj.job_id
+        WHERE wj.workflow_id = #{workflowId}
+        ORDER BY wj.execution_order ASC
     </select>
 
+    <select id="findTasksByJobId" resultMap="TaskResultMap">
+        SELECT t.* FROM task t
+        JOIN job_task jt ON t.id = jt.task_id
+        WHERE jt.job_id = #{jobId}
+        ORDER BY jt.execution_order ASC
+    </select>
 </mapper>
