@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@Deprecated
 /** FastAPI 서버와 통신하기 위한 DTO 클래스 모음. Java의 record를 사용하여 불변 데이터 객체를 간결하게 정의합니다. */
 public final class FastApiDto {
 
