@@ -13,10 +13,10 @@ Configuration:
       # DEBUG 환경용 콘솔 패턴 - 더 간단하고 가독성 좋게
       - name: "console-layout-pattern"
         value: "%highlight{[%-5level]} [%X{traceId}] [%X{spanId}] %d{HH:mm:ss} [%t] %n   %logger{20} - %msg%n%n "
-      # 파일용 패턴
+      # 파일용 패턴 - Promtail이 파싱하기 쉽게 구조화 (UTC 시간 사용)
       - name: "file-layout-pattern"
-        value: "[%X{traceId}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
-      # 개발 환경용 로그 파일들
+        value: "[%X{traceId}] %d{yyyy-MM-dd HH:mm:ss.SSS}{UTC} [%t] %-5level %logger{36} - %msg%n"
+      # 개발 환경용 로그 파일들 - 절대경로나 상대경로 설정
       - name: "dev-log"
         value: ${log-path}/develop/app.log
       - name: "error-log"
@@ -29,37 +29,8 @@ Configuration:
       target: SYSTEM_OUT
       PatternLayout:
         pattern: ${console-layout-pattern}
-#        disableAnsi: false
 
-    # Loki Appender - 개발환경 모니터링용
-    Loki:
-      name: loki-appender
-      host: localhost
-      port: 3100
-      JsonLayout:
-        compact: true
-        eventEol: true
-        includeStacktrace: true
-        KeyValuePair:
-          - key: "app"
-            value: "${app-name}"
-          - key: "env"
-            value: "develop"
-      Label:
-        - name: "app"
-          value: "${app-name}"
-        - name: "env"
-          value: "develop"
-        - name: "traceId"
-          value: "${ctx:traceId}"
-        - name: "spanId"
-          value: "${ctx:spanId}"
-        - name: "executionType"
-          value: "${ctx:executionType:-application}"
-        - name: "sourceId"
-          value: "${ctx:sourceId}"
-        - name: "runId"
-          value: "${ctx:runId}"
+    # JDBC Appender - 워크플로우 로그용
     JDBC:
       name: workflow-appender
       tableName: "execution_log"
@@ -80,20 +51,27 @@ Configuration:
         - name: "log_level"
           pattern: "%level"
         - name: "executed_at"
-          pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS}"  # 패턴으로 시간 직접 지정
+          pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS}"
         - name: "log_message"
           pattern: "%message"
         - name: "trace_id"
           pattern: "%X{traceId}"
         - name: "reserved1"
           pattern: "%X{spanId}"
-#        - name: "config_snapshot"
-#          pattern: "%X{configSnapshot}"
+
+    # 파일 Appenders - Promtail이 이 파일들을 읽음
     File:
       - name: file-dev-appender
         fileName: ${dev-log}
         PatternLayout:
           pattern: ${file-layout-pattern}
+        # 로그 로테이션 설정 (선택사항)
+        # Policies:
+        #   SizeBasedTriggeringPolicy:
+        #     size: 10MB
+        # DefaultRolloverStrategy:
+        #   max: 10
+
       - name: file-error-appender
         fileName: ${error-log}
         PatternLayout:
@@ -102,20 +80,19 @@ Configuration:
           level: ERROR
 
   Loggers:
-    # Root 로거 - 개발환경에서는 기본적으로 INFO 레벨
+    # Root 로거
     Root:
       level: INFO
       AppenderRef:
         - ref: console-appender
 
     Logger:
-      # 애플리케이션 로그 - 개발 시 모든 레벨 + Loki 전송
+      # 애플리케이션 로그 - 파일로만 저장 (Promtail이 읽어감)
       - name: site.icebang
         additivity: "false"
         level: DEBUG
         AppenderRef:
           - ref: console-appender
-          - ref: loki-appender
           - ref: file-dev-appender
           - ref: file-error-appender
 
@@ -124,12 +101,11 @@ Configuration:
         additivity: "false"
         AppenderRef:
           - ref: workflow-appender
-          - ref: loki-appender
           - ref: console-appender
           - ref: file-dev-appender
           - ref: file-error-appender
 
-      # Spring Framework - 개발 시 필요한 정보만
+      # Spring Framework
       - name: org.springframework
         additivity: "false"
         level: INFO
@@ -137,45 +113,42 @@ Configuration:
           - ref: console-appender
           - ref: file-dev-appender
 
-      # Spring Security - 인증 디버깅용
+      # Spring Security
       - name: org.springframework.security
         level: DEBUG
         additivity: "false"
         AppenderRef:
           - ref: console-appender
           - ref: file-dev-appender
-          - ref: loki-appender
 
-      # 웹 요청 로그 - API 개발 시 유용
+      # 웹 요청 로그
       - name: org.springframework.web
         level: DEBUG
         additivity: "false"
         AppenderRef:
           - ref: console-appender
           - ref: file-dev-appender
-          - ref: loki-appender
 
-      # 트랜잭션 로그 - DB 작업 디버깅
+      # 트랜잭션 로그
       - name: org.springframework.transaction
         level: DEBUG
         additivity: "false"
         AppenderRef:
           - ref: console-appender
           - ref: file-dev-appender
-          - ref: loki-appender
 
       # HikariCP 로그 비활성화
       - name: com.zaxxer.hikari
         level: "OFF"
 
-      # SQL 로그 - 개발 시 쿼리 확인용 (필요시 활성화)
+      # SQL 로그
       - name: org.hibernate.SQL
         level: DEBUG
         additivity: "false"
         AppenderRef:
           - ref: console-appender
 
-      # 파라미터 바인딩 로그 (필요시 활성화)
+      # 파라미터 바인딩 로그
       - name: org.hibernate.type.descriptor.sql.BasicBinder
         level: TRACE
         additivity: "false"

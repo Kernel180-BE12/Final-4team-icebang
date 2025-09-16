@@ -1,0 +1,47 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: user-service-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: user-service
+          app: user-service
+          env: develop
+          __path__: /logs/develop/app.log
+    pipeline_stages:
+      - regex:
+          expression: '^\[(?P<traceId>[^\]]*)\] (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) \[(?P<thread>[^\]]+)\] (?P<level>\w+)\s+(?P<logger>\S+) - (?P<message>.*)$'
+      - labels:
+          traceId:
+          level:
+          thread:
+          logger:
+
+  - job_name: user-service-errors
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: user-service-errors
+          app: user-service
+          env: develop
+          log_type: error
+          __path__: /logs/develop/error.log
+    pipeline_stages:
+      - regex:
+          expression: '^\[(?P<traceId>[^\]]*)\] (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) \[(?P<thread>[^\]]+)\] (?P<level>\w+)\s+(?P<logger>\S+) - (?P<message>.*)$'
+      - labels:
+          traceId:
+          level:
+          thread:
+          logger:
