@@ -1,6 +1,13 @@
 package site.icebang.domain.workflow.dto;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Data
-public class WorkflowCardDto {}
+@Getter
+@NoArgsConstructor
+public class WorkflowCardDto {
+    private Long id;
+    private String name;
+    private String description;
+    private boolean isEnabled;
+}
