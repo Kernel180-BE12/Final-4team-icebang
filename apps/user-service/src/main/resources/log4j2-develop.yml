@@ -166,7 +166,7 @@ Configuration:
 
       # HikariCP 로그 비활성화
       - name: com.zaxxer.hikari
-        level: OFF
+        level: "OFF"
 
       # SQL 로그 - 개발 시 쿼리 확인용 (필요시 활성화)
       - name: org.hibernate.SQL
