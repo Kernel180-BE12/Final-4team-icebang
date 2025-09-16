@@ -22,9 +22,6 @@ public class LoggingAspect {
   @Pointcut("execution(public * site.icebang..service..mapper..*(..))")
   public void repositoryMethods() {}
 
-  @Pointcut("execution(public * site.icebang.batch.tasklet..*(..))")
-  public void taskletMethods() {}
-
   @Around("controllerMethods()")
   public Object logController(ProceedingJoinPoint joinPoint) throws Throwable {
     long start = System.currentTimeMillis();
@@ -52,17 +49,6 @@ public class LoggingAspect {
     Object result = joinPoint.proceed();
     long duration = System.currentTimeMillis() - start;
     log.debug("[REPOSITORY] End: {} ({}ms)", joinPoint.getSignature(), duration);
-    return result;
-  }
-
-  @Around("taskletMethods()")
-  public Object logTasklet(ProceedingJoinPoint joinPoint) throws Throwable {
-    long start = System.currentTimeMillis();
-    // Tasklet 이름만으로도 구분이 되므로, 클래스명 + 메서드명으로 로그를 남깁니다.
-    log.info(">>>> [TASKLET] Start: {}", joinPoint.getSignature().toShortString());
-    Object result = joinPoint.proceed(); // 실제 Tasklet의 execute() 메서드 실행
-    long duration = System.currentTimeMillis() - start;
-    log.info("<<<< [TASKLET] End: {} ({}ms)", joinPoint.getSignature().toShortString(), duration);
     return result;
   }
 }
