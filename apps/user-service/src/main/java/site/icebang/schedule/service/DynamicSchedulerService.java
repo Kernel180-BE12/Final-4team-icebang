@@ -1,4 +1,4 @@
-package site.icebang.domain.schedule.service;
+package site.icebang.schedule.service;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import site.icebang.domain.schedule.model.Schedule;
+import site.icebang.schedule.model.Schedule;
 
 @Slf4j
 @Service
