@@ -1,6 +1,6 @@
 Configuration:
   status: DEBUG
-  name: develop
+  name: e2e
 
   properties:
     property:
@@ -31,11 +31,10 @@ Configuration:
         pattern: ${console-layout-pattern}
         disableAnsi: false
 
-    # Loki Appender - 개발환경 모니터링용
     Loki:
       name: loki-appender
       host: localhost
-      port: 3100
+      port: ${sys:loki.port}
       JsonLayout:
         compact: true
         eventEol: true
@@ -44,12 +43,12 @@ Configuration:
           - key: "app"
             value: "${app-name}"
           - key: "env"
-            value: "develop"
+            value: "test-e2e"
       Label:
         - name: "app"
           value: "${app-name}"
         - name: "env"
-          value: "develop"
+          value: "test-e2e"
         - name: "traceId"
           value: "${ctx:traceId}"
         - name: "spanId"
