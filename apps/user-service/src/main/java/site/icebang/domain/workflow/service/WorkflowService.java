@@ -9,19 +9,28 @@ import site.icebang.common.dto.PageParams;
 import site.icebang.common.dto.PageResult;
 import site.icebang.common.service.PageableService;
 import site.icebang.domain.workflow.dto.WorkflowCardDto;
+import site.icebang.domain.workflow.mapper.WorkflowMapper;
+
+import java.math.BigInteger;
 
 @Service
 @RequiredArgsConstructor
 public class WorkflowService implements PageableService<WorkflowCardDto> {
 
-  @Override
-  @Transactional(readOnly = true)
-  public PageResult<WorkflowCardDto> getPagedResult(PageParams pageParams) {
-    throw new RuntimeException("Not implemented");
-    //        return PageResult.from(
-    //                pageParams,
-    //                () -> workflowMapper.selectWorkflowList(pageParams),
-    //                () -> workflowMapper.selectWorkflowCount(pageParams)
-    //        );
-  }
+    private final WorkflowMapper workflowMapper;
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResult<WorkflowCardDto> getPagedResult(PageParams pageParams) {
+        return PageResult.from(
+                pageParams,
+                () -> workflowMapper.selectWorkflowList(pageParams),
+                () -> workflowMapper.selectWorkflowCount(pageParams)
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public WorkflowCardDto getWorkflowById(BigInteger id) {
+        return workflowMapper.selectWorkflowById(id);
+    }
 }
