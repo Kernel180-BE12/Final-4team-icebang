@@ -1,4 +1,4 @@
-package site.icebang.schedule.runner;
+package site.icebang.domain.schedule.runner;
 
 import java.util.List;
 
@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import site.icebang.schedule.mapper.ScheduleMapper;
-import site.icebang.schedule.model.Schedule;
-import site.icebang.schedule.service.DynamicSchedulerService;
+import site.icebang.domain.schedule.mapper.ScheduleMapper;
+import site.icebang.domain.schedule.model.Schedule;
+import site.icebang.domain.schedule.service.DynamicSchedulerService;
 
 @Slf4j
 @Component
