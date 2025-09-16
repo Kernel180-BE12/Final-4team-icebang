@@ -16,20 +16,21 @@ class MatchService:
         products = request.search_results
 
         logger.info(
-            # f"키워드 매칭 서비스 시작: job_id={request.job_id}, schedule_id={request.schedule_id}, keyword='{keyword}', products_count={len(products) if products else 0}"
-            f"keyword='{keyword}'"
+            f"키워드 매칭 서비스 시작: keyword='{keyword}'"
         )
 
         if not products:
             logger.warning(f"매칭할 상품이 없음: keyword='{keyword}'")
-            return {
-                # "job_id": request.job_id,
-                # "schedule_id": request.schedule_id,
-                # "schedule_his_id": request.schedule_his_id,
-                "keyword": keyword,
-                "matched_products": [],
-                "status": "success",
+            response_data = {
+                "success": True,
+                "data":{
+                    "keyword": keyword,
+                    "matched_products": [],
+                },
+                "status": "OK",
+                "message": "매칭할 상품이 없습니다."
             }
+            return response_data
 
         try:
             matcher = KeywordMatcher()
@@ -79,15 +80,16 @@ class MatchService:
                 logger.info(
                     f"최고 매칭 상품: title='{best_match['title'][:30]}', score={best_match['match_info']['match_score']:.3f}"
                 )
-
-            return {
-                # "job_id": request.job_id,
-                # "schedule_id": request.schedule_id,
-                # "schedule_his_id": request.schedule_his_id,
-                "keyword": keyword,
-                "matched_products": matched_products,
-                "status": "success",
+            response_data = {
+                "success": True,
+                "data":{
+                    "keyword": keyword,
+                    "matched_products": matched_products,
+                },
+                "status": "OK",
+                "message": "매칭할 상품이 없습니다."
             }
+            return response_data
 
         except Exception as e:
             logger.error(
