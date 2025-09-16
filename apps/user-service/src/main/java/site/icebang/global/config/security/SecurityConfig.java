@@ -64,6 +64,7 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/auth/login", "/auth/logout")
                     .permitAll()
+                    .requestMatchers("/v0/workflows/**").permitAll()
                     .requestMatchers("/v0/auth/check-session")
                     .authenticated()
                     .requestMatchers(SecurityEndpoints.DATA_ADMIN.getMatchers())
