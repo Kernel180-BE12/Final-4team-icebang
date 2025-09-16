@@ -1,6 +1,7 @@
 package site.icebang.domain.schedule.model;
 
 import java.time.LocalDateTime;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
