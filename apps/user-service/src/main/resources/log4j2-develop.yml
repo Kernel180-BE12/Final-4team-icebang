@@ -7,7 +7,7 @@ Configuration:
       - name: "app-name"
         value: "user-service"
       - name: "log-path"
-        value: "./logs"
+        value: "./docker/local/logs"
       - name: "charset-UTF-8"
         value: "UTF-8"
       # DEBUG 환경용 콘솔 패턴 - 더 간단하고 가독성 좋게
