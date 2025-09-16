@@ -64,14 +64,14 @@ async def similarity(request: RequestSadaguSimilarity):
     """
     try:
         similarity_service = SimilarityService()
-        result = similarity_service.select_product_by_similarity(request)
+        response_data = similarity_service.select_product_by_similarity(request)
 
-        if not result:
+        if not response_data:
             raise CustomException(
                 500, "유사도 분석에 실패했습니다.", "SIMILARITY_FAILED"
             )
 
-        return result
+        return response_data
     except InvalidItemDataException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
@@ -87,12 +87,12 @@ async def crawl(body: RequestSadaguCrawl):
     """
     try:
         crawl_service = CrawlService()
-        result = await crawl_service.crawl_product_detail(body)
+        response_data = await crawl_service.crawl_product_detail(body)
 
-        if not result:
+        if not response_data:
             raise CustomException(500, "상품 크롤링에 실패했습니다.", "CRAWL_FAILED")
 
-        return result
+        return response_data
     except InvalidItemDataException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except ItemNotFoundException as e:

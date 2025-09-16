@@ -1,13 +1,12 @@
 import json
 import random
-from unicodedata import category
-
+from app.utils.response import Response
 import httpx
-from starlette import status
 
 from ..errors.CustomException import InvalidItemDataException
 from ..model.schemas import RequestNaverSearch
 from datetime import date, timedelta
+
 
 async def keyword_search(request: RequestNaverSearch) -> dict:
     """
@@ -26,16 +25,11 @@ async def keyword_search(request: RequestNaverSearch) -> dict:
     if not trending_keywords:
         raise InvalidItemDataException()
 
-    response_data = {
-        "success": True,
-        "data": {
-            "keyword": random.choice(list(trending_keywords.values())),
-         "total_keyword": trending_keywords
-        },
-        "status": "OK",
-        "message": "OK"
+    data = {
+        "keyword": random.choice(list(trending_keywords.values())),
+        "total_keyword": trending_keywords,
     }
-    return response_data
+    return Response.ok(data)
 
 
 async def search_naver_rank() -> dict[int, str]:
@@ -48,7 +42,18 @@ async def search_naver_rank() -> dict[int, str]:
         "Referer": "https://datalab.naver.com/shoppingInsight/sCategory.naver",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
     }
-    categorys = ['50000000', '50000001', '50000002', '50000003', '50000004', '50000005', '50000006', '50000007', '50000008', '50000009']
+    categorys = [
+        "50000000",
+        "50000001",
+        "50000002",
+        "50000003",
+        "50000004",
+        "50000005",
+        "50000006",
+        "50000007",
+        "50000008",
+        "50000009",
+    ]
     category = random.choice(categorys)
     today = date.today()
     yesterday = today - timedelta(days=1)

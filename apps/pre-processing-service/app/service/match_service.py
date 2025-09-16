@@ -2,6 +2,7 @@ from app.utils.keyword_matcher import KeywordMatcher
 from app.errors.CustomException import InvalidItemDataException
 from ..model.schemas import RequestSadaguMatch
 from loguru import logger
+from app.utils.response import Response
 
 
 class MatchService:
@@ -15,22 +16,16 @@ class MatchService:
         keyword = request.keyword
         products = request.search_results
 
-        logger.info(
-            f"키워드 매칭 서비스 시작: keyword='{keyword}'"
-        )
+        logger.info(f"키워드 매칭 서비스 시작: keyword='{keyword}'")
 
         if not products:
             logger.warning(f"매칭할 상품이 없음: keyword='{keyword}'")
-            response_data = {
-                "success": True,
-                "data":{
-                    "keyword": keyword,
-                    "matched_products": [],
-                },
-                "status": "OK",
-                "message": "매칭할 상품이 없습니다."
+
+            data = {
+                "keyword": keyword,
+                "matched_products": [],
             }
-            return response_data
+            return Response.ok(data, "매칭상품이 존재하지 않습니다.")
 
         try:
             matcher = KeywordMatcher()
@@ -80,19 +75,12 @@ class MatchService:
                 logger.info(
                     f"최고 매칭 상품: title='{best_match['title'][:30]}', score={best_match['match_info']['match_score']:.3f}"
                 )
-            response_data = {
-                "success": True,
-                "data":{
-                    "keyword": keyword,
-                    "matched_products": matched_products,
-                },
-                "status": "OK",
-                "message": "매칭할 상품이 없습니다."
+            data = {
+                "keyword": keyword,
+                "matched_products": matched_products,
             }
-            return response_data
+            return Response.ok(data)
 
         except Exception as e:
-            logger.error(
-                # f"매칭 서비스 오류: job_id={request.job_id}, keyword='{keyword}', error='{e}'"
-            )
+            logger.error(f"매칭 서비스 오류: error='{e}'")
             raise InvalidItemDataException()

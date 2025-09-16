@@ -3,6 +3,7 @@ from app.service.crawlers.detail_crawler import DetailCrawler
 from app.errors.CustomException import InvalidItemDataException
 from app.model.schemas import RequestSadaguCrawl
 from loguru import logger
+from app.utils.response import Response
 
 
 class CrawlService:
@@ -36,16 +37,15 @@ class CrawlService:
             )
 
             # 응답 데이터 구성
-            response_data = {
+            data = {
                 "tag": request.tag,
                 "product_url": str(request.product_url),
                 "product_detail": product_detail,
-                "status": "success",
                 "crawled_at": time.strftime("%Y-%m-%d %H:%M:%S"),
             }
 
             logger.info(f"상품 상세 크롤링 서비스 완료: status=success")
-            return response_data
+            return Response.ok(data)
 
         except Exception as e:
             logger.error(

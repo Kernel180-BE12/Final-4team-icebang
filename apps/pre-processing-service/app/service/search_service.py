@@ -2,7 +2,7 @@ from app.service.crawlers.search_crawler import SearchCrawler
 from app.errors.CustomException import InvalidItemDataException
 from ..model.schemas import RequestSadaguSearch
 from loguru import logger
-
+from app.utils.response import Response
 from datetime import datetime
 import time
 
@@ -22,9 +22,7 @@ class SearchService:
         start_time = time.time()
 
         try:
-            logger.info(
-                f"keyword='{keyword}'"
-            )
+            logger.info(f"keyword='{keyword}'")
 
             # Selenium 또는 httpx로 상품 검색
             if crawler.use_selenium:
@@ -36,14 +34,11 @@ class SearchService:
                 logger.warning(f"검색 결과가 없습니다: keyword='{keyword}'")
 
                 # SadaguSearchData 구조에 맞춰 response_data 생성
-                response_data = {
-                    "success": True,
-                    "data": {"keyword": keyword,
-                             "search_results": [], },
-                    "status": "OK",
-                    "message": "검색결과가 없습니다."
+                data = {
+                    "keyword": keyword,
+                    "search_results": [],
                 }
-                return response_data
+                return Response.ok(data, "검색 결과가 없습니다.")
 
             # 상품별 기본 정보 수집 (제목이 없는 경우 다시 크롤링)
             enriched_results = []
@@ -53,9 +48,9 @@ class SearchService:
                 try:
                     # 이미 제목이 있고 유효한 경우 그대로 사용
                     if (
-                            product.get("title")
-                            and product["title"] != "Unknown Title"
-                            and len(product["title"].strip()) > 0
+                        product.get("title")
+                        and product["title"] != "Unknown Title"
+                        and len(product["title"].strip()) > 0
                     ):
                         enriched_results.append(product)
                         logger.debug(
@@ -102,14 +97,11 @@ class SearchService:
             )
 
             # SadaguSearchData 구조에 맞춰 response_data 생성
-            response_data = {
-                "success": True,
-                "data":{"keyword": keyword,
-                 "search_results": enriched_results, },
-                "status": "OK",
-                "message": "OK"
+            data = {
+                "keyword": keyword,
+                "search_results": enriched_results,
             }
-            return response_data
+            return Response.ok(data)
 
         except Exception as e:
             logger.error(f"검색 서비스 오류: keyword='{keyword}', error='{e}'")
