@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 from app.utils.response import Response
+
 client = TestClient(app)
 
 
@@ -30,4 +31,3 @@ def test_search(tag, category, start_date, end_date):
     assert response_data["status"] == "OK"
     assert "keyword" in response_data["data"]
     assert isinstance(response_data["data"]["total_keyword"], dict)
-
