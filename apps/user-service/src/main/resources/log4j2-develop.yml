@@ -1,133 +1,146 @@
 Configuration:
+  status: DEBUG
   name: develop
 
   properties:
     property:
+      - name: "app-name"
+        value: "user-service"
       - name: "log-path"
         value: "./logs"
       - name: "charset-UTF-8"
         value: "UTF-8"
-      # 통일된 콘솔 패턴 - 모든 로그에 RequestId 포함
+      # DEBUG 환경용 콘솔 패턴 - 더 간단하고 가독성 좋게
       - name: "console-layout-pattern"
-        value: "%highlight{[%-5level]} [%X{traceId}] %d{MM-dd HH:mm:ss} [%t]  %n %msg%n%n"
-      # 파일용 상세 패턴 - RequestId 포함
+        value: "%highlight{[%-5level]} [%X{traceId}] [%X{spanId}] %d{HH:mm:ss} [%t] %n   %logger{20} - %msg%n%n "
+      # 파일용 패턴
       - name: "file-layout-pattern"
         value: "[%X{traceId}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
-      # 로그 파일 경로들
-      - name: "info-log"
-        value: ${log-path}/user-service/info.log
+      # 개발 환경용 로그 파일들
+      - name: "dev-log"
+        value: ${log-path}/develop/app.log
       - name: "error-log"
-        value: ${log-path}/user-service/error.log
-      - name: "auth-log"
-        value: ${log-path}/user-service/auth.log
-      - name: "json-log"
-        value: ${log-path}/user-service/json-info.log
+        value: ${log-path}/develop/error.log
 
-  # [Appenders] 로그 기록방식 정의
   Appenders:
-    # 통일된 콘솔 출력
+    # 콘솔 출력 - 개발 시 주요 출력
     Console:
       name: console-appender
       target: SYSTEM_OUT
       PatternLayout:
         pattern: ${console-layout-pattern}
+        disableAnsi: false
 
-    # 롤링 파일 로그
-    RollingFile:
-      name: rolling-file-appender
-      fileName: ${log-path}/rolling-file.log
-      filePattern: "logs/archive/rolling-file.log.%d{yyyy-MM-dd-hh-mm}_%i.gz"
-      PatternLayout:
-        charset: ${charset-UTF-8}
-        pattern: ${file-layout-pattern}
-      Policies:
-        SizeBasedTriggeringPolicy:
-          size: "200KB"
-        TimeBasedTriggeringPolicy:
-          interval: "1"
-      DefaultRollOverStrategy:
-        max: "30"
-        fileIndex: "max"
+    # Loki Appender - 개발환경 모니터링용
+    Loki:
+      name: loki-appender
+      host: localhost
+      port: 3100
+      JsonLayout:
+        compact: true
+        eventEol: true
+        includeStacktrace: true
+        KeyValuePair:
+          - key: "app"
+            value: "${app-name}"
+          - key: "env"
+            value: "develop"
+      Label:
+        - name: "app"
+          value: "${app-name}"
+        - name: "env"
+          value: "develop"
+        - name: "traceId"
+          value: "${ctx:traceId}"
+        - name: "spanId"
+          value: "${ctx:spanId}"
+        - name: "executionType"
+          value: "${ctx:executionType:-application}"
+        - name: "sourceId"
+          value: "${ctx:sourceId}"
+        - name: "runId"
+          value: "${ctx:runId}"
 
-    # 파일 로그들
+    # 개발용 일반 로그 파일
     File:
-      - name: file-info-appender
-        fileName: ${info-log}
+      - name: file-dev-appender
+        fileName: ${dev-log}
         PatternLayout:
           pattern: ${file-layout-pattern}
       - name: file-error-appender
         fileName: ${error-log}
         PatternLayout:
           pattern: ${file-layout-pattern}
-      - name: file-auth-appender
-        fileName: ${auth-log}
-        PatternLayout:
-          pattern: ${file-layout-pattern}
-      - name: file-json-info-appender
-        fileName: ${json-log}
-        PatternLayout:
-          pattern: ${file-layout-pattern}
+        ThresholdFilter:
+          level: ERROR
 
-  # [Loggers] 로그 출력 범위를 정의
   Loggers:
-    # [Loggers - Root] 모든 로그를 기록하는 최상위 로그를 정의
+    # Root 로거 - 개발환경에서는 기본적으로 INFO 레벨
     Root:
-      level: OFF
+      level: INFO
       AppenderRef:
         - ref: console-appender
-        - ref: rolling-file-appender
 
-    # [Loggers - Loggers] 특정 패키지나 클래스에 대한 로그를 정의
     Logger:
-      # 1. Spring Framework 로그
-      - name: org.springframework
-        additivity: "false"
+      # 애플리케이션 로그 - 개발 시 모든 레벨 + Loki 전송
+      - name: site.icebang
+        additivity: false
         level: DEBUG
         AppenderRef:
           - ref: console-appender
-          - ref: file-info-appender
+          - ref: loki-appender
+          - ref: file-dev-appender
           - ref: file-error-appender
 
-      # 2. 애플리케이션 로그
-      - name: site.icebang
-        additivity: "false"
-        level: TRACE
+      # Spring Framework - 개발 시 필요한 정보만
+      - name: org.springframework
+        additivity: false
+        level: INFO
         AppenderRef:
           - ref: console-appender
-          - ref: file-info-appender
-          - ref: file-error-appender
+          - ref: file-dev-appender
 
-      # 3. HikariCP 로그 비활성화
+      # Spring Security - 인증 디버깅용
+      - name: org.springframework.security
+        level: DEBUG
+        additivity: false
+        AppenderRef:
+          - ref: console-appender
+          - ref: file-dev-appender
+          - ref: loki-appender
+
+      # 웹 요청 로그 - API 개발 시 유용
+      - name: org.springframework.web
+        level: DEBUG
+        additivity: false
+        AppenderRef:
+          - ref: console-appender
+          - ref: file-dev-appender
+          - ref: loki-appender
+
+      # 트랜잭션 로그 - DB 작업 디버깅
+      - name: org.springframework.transaction
+        level: DEBUG
+        additivity: false
+        AppenderRef:
+          - ref: console-appender
+          - ref: file-dev-appender
+          - ref: loki-appender
+
+      # HikariCP 로그 비활성화
       - name: com.zaxxer.hikari
         level: OFF
 
-      # 4. Spring Security 로그 - 인증/인가 추적에 중요
-      - name: org.springframework.security
+      # SQL 로그 - 개발 시 쿼리 확인용 (필요시 활성화)
+      - name: org.hibernate.SQL
         level: DEBUG
-        additivity: "false"
+        additivity: false
         AppenderRef:
           - ref: console-appender
-          - ref: file-auth-appender
 
-      # 5. 웹 요청 로그 - 요청 처리 과정 추적
-      - name: org.springframework.web
-        level: DEBUG
-        additivity: "false"
+      # 파라미터 바인딩 로그 (필요시 활성화)
+      - name: org.hibernate.type.descriptor.sql.BasicBinder
+        level: TRACE
+        additivity: false
         AppenderRef:
           - ref: console-appender
-          - ref: file-info-appender
-
-      # 6. 트랜잭션 로그 - DB 작업 추적
-      - name: org.springframework.transaction
-        level: DEBUG
-        additivity: "false"
-        AppenderRef:
-          - ref: console-appender
-          - ref: file-info-appender
-
-      - name: site.icebang.domain.auth.mapper
-        level: DEBUG
-        additivity: "false"
-        AppenderRef:
-          - ref: console-appender
-          - ref: file-info-appender
