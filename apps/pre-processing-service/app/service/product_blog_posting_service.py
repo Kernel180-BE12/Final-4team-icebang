@@ -13,9 +13,10 @@ from app.service.blog.blogger_blog_post_adapter import BloggerBlogPostAdapter
 from app.errors.BlogPostingException import *
 
 # 환경변수 로드
-load_dotenv('.env.dev')
+load_dotenv(".env.dev")
 
 client = OpenAI()
+
 
 class PostingStatus(Enum):
     PENDING = "pending"
@@ -28,6 +29,7 @@ class PostingStatus(Enum):
 @dataclass
 class ProductData:
     """크롤링된 상품 데이터 모델"""
+
     tag: str
     product_url: str
     title: str
@@ -39,25 +41,26 @@ class ProductData:
     crawled_at: str
 
     @classmethod
-    def from_dict(cls, data: Dict) -> 'ProductData':
+    def from_dict(cls, data: Dict) -> "ProductData":
         """딕셔너리에서 ProductData 객체 생성"""
-        product_detail = data.get('product_detail', {})
+        product_detail = data.get("product_detail", {})
         return cls(
-            tag=data.get('tag', ''),
-            product_url=product_detail.get('url', ''),
-            title=product_detail.get('title', ''),
-            price=product_detail.get('price', 0),
-            rating=product_detail.get('rating', 0.0),
-            options=product_detail.get('options', []),
-            material_info=product_detail.get('material_info', {}),
-            product_images=product_detail.get('product_images', []),
-            crawled_at=data.get('crawled_at', '')
+            tag=data.get("tag", ""),
+            product_url=product_detail.get("url", ""),
+            title=product_detail.get("title", ""),
+            price=product_detail.get("price", 0),
+            rating=product_detail.get("rating", 0.0),
+            options=product_detail.get("options", []),
+            material_info=product_detail.get("material_info", {}),
+            product_images=product_detail.get("product_images", []),
+            crawled_at=data.get("crawled_at", ""),
         )
 
 
 @dataclass
 class BlogPostContent:
     """생성된 블로그 포스트 콘텐츠"""
+
     title: str
     content: str
     tags: List[str]
@@ -66,6 +69,7 @@ class BlogPostContent:
 @dataclass
 class BlogContentRequest:
     """블로그 콘텐츠 생성 요청"""
+
     content_style: str = "informative"  # "informative", "promotional", "review"
     target_keywords: List[str] = None
     include_pricing: bool = True
@@ -78,13 +82,15 @@ class ProductContentGenerator:
 
     def __init__(self):
         # 환경변수에서 OpenAI API 키 로드
-        self.openai_api_key = os.getenv('OPENAI_API_KEY')
+        self.openai_api_key = os.getenv("OPENAI_API_KEY")
         if not self.openai_api_key:
             raise ValueError("OPENAI_API_KEY가 .env.dev 파일에 설정되지 않았습니다.")
 
         client.api_key = self.openai_api_key
 
-    def generate_blog_content(self, product_data: ProductData, request: BlogContentRequest) -> BlogPostContent:
+    def generate_blog_content(
+        self, product_data: ProductData, request: BlogContentRequest
+    ) -> BlogPostContent:
         """상품 데이터를 기반으로 블로그 콘텐츠 생성"""
 
         # 1. 상품 정보 정리
@@ -101,27 +107,28 @@ class ProductContentGenerator:
                 messages=[
                     {
                         "role": "system",
-                        "content": "당신은 전문적인 블로그 콘텐츠 작성자입니다. 상품 리뷰와 정보성 콘텐츠를 매력적이고 SEO 친화적으로 작성합니다."
+                        "content": "당신은 전문적인 블로그 콘텐츠 작성자입니다. 상품 리뷰와 정보성 콘텐츠를 매력적이고 SEO 친화적으로 작성합니다.",
                     },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
+                    {"role": "user", "content": prompt},
                 ],
                 temperature=0.7,
-                max_tokens=2000
+                max_tokens=2000,
             )
 
             generated_content = response.choices[0].message.content
 
             # 4. 콘텐츠 파싱 및 구조화
-            return self._parse_generated_content(generated_content, product_data, request)
+            return self._parse_generated_content(
+                generated_content, product_data, request
+            )
 
         except Exception as e:
             logging.error(f"콘텐츠 생성 실패: {e}")
             return self._create_fallback_content(product_data, request)
 
-    def _format_product_info(self, product_data: ProductData, request: BlogContentRequest) -> str:
+    def _format_product_info(
+        self, product_data: ProductData, request: BlogContentRequest
+    ) -> str:
         """상품 정보를 텍스트로 포맷팅"""
         info_parts = [
             f"상품명: {product_data.title}",
@@ -153,25 +160,31 @@ class ProductContentGenerator:
 
         return "\n".join(info_parts)
 
-    def _create_blog_prompt(self, product_info: str, request: BlogContentRequest) -> str:
+    def _create_blog_prompt(
+        self, product_info: str, request: BlogContentRequest
+    ) -> str:
         """블로그 작성용 프롬프트 생성"""
 
         # 스타일별 가이드라인
         style_guidelines = {
             "informative": "객관적이고 상세한 정보 제공 중심으로, 독자가 제품을 이해할 수 있도록 전문적으로 작성",
             "promotional": "제품의 장점과 매력을 강조하며, 구매 의욕을 자극할 수 있도록 매력적으로 작성",
-            "review": "실제 사용 경험을 바탕으로 한 솔직한 평가와 추천 중심으로 작성"
+            "review": "실제 사용 경험을 바탕으로 한 솔직한 평가와 추천 중심으로 작성",
         }
 
         # 길이별 가이드라인
         length_guidelines = {
             "short": "800자 내외의 간결한 내용",
             "medium": "1200자 내외의 적당한 길이",
-            "long": "1500자 이상의 상세한 내용"
+            "long": "1500자 이상의 상세한 내용",
         }
 
-        style_guide = style_guidelines.get(request.content_style, style_guidelines["informative"])
-        length_guide = length_guidelines.get(request.content_length, length_guidelines["medium"])
+        style_guide = style_guidelines.get(
+            request.content_style, style_guidelines["informative"]
+        )
+        length_guide = length_guidelines.get(
+            request.content_length, length_guidelines["medium"]
+        )
 
         # 키워드 정보
         keywords_text = ""
@@ -205,17 +218,24 @@ class ProductContentGenerator:
 
         return prompt
 
-    def _parse_generated_content(self, content: str, product_data: ProductData,
-                                 request: BlogContentRequest) -> BlogPostContent:
+    def _parse_generated_content(
+        self, content: str, product_data: ProductData, request: BlogContentRequest
+    ) -> BlogPostContent:
         """생성된 콘텐츠를 파싱하여 구조화"""
 
         # 제목 추출 (첫 번째 h1이나 강조된 줄)
-        lines = content.strip().split('\n')
+        lines = content.strip().split("\n")
         title = product_data.title  # 기본값
 
         for line in lines[:10]:  # 처음 10줄에서 제목 찾기
-            clean_line = line.strip().replace('#', '').replace('<h1>', '').replace('</h1>', '')
-            if clean_line and len(clean_line) > 5 and ('제목' in line or '<h1>' in line or line.startswith('#')):
+            clean_line = (
+                line.strip().replace("#", "").replace("<h1>", "").replace("</h1>", "")
+            )
+            if (
+                clean_line
+                and len(clean_line) > 5
+                and ("제목" in line or "<h1>" in line or line.startswith("#"))
+            ):
                 title = clean_line
                 break
             elif clean_line and len(clean_line) > 10 and len(clean_line) < 100:
@@ -226,13 +246,11 @@ class ProductContentGenerator:
         # 태그 생성
         tags = self._generate_tags_from_product(product_data, request)
 
-        return BlogPostContent(
-            title=title,
-            content=content,
-            tags=tags
-        )
+        return BlogPostContent(title=title, content=content, tags=tags)
 
-    def _generate_tags_from_product(self, product_data: ProductData, request: BlogContentRequest) -> List[str]:
+    def _generate_tags_from_product(
+        self, product_data: ProductData, request: BlogContentRequest
+    ) -> List[str]:
         """상품 정보 기반 태그 생성"""
         tags = []
 
@@ -269,7 +287,9 @@ class ProductContentGenerator:
 
         return unique_tags
 
-    def _create_fallback_content(self, product_data: ProductData, request: BlogContentRequest) -> BlogPostContent:
+    def _create_fallback_content(
+        self, product_data: ProductData, request: BlogContentRequest
+    ) -> BlogPostContent:
         """콘텐츠 생성 실패 시 대안 콘텐츠 생성"""
         title = f"{product_data.title} - 상품 정보 및 구매 가이드"
 
@@ -303,8 +323,9 @@ class ProductContentGenerator:
         return BlogPostContent(
             title=title,
             content=content,
-            tags=[product_data.tag] if product_data.tag else ["상품정보"]
+            tags=[product_data.tag] if product_data.tag else ["상품정보"],
         )
+
 
 class ProductBlogPostingService:
     """상품 데이터를 Blogger에 포스팅하는 메인 서비스"""
@@ -313,17 +334,21 @@ class ProductBlogPostingService:
         self.content_generator = ProductContentGenerator()
         self.blogger_service = BloggerBlogPostAdapter()
 
-    def post_product_to_blogger(self, product_data: ProductData, request: BlogContentRequest) -> dict:
+    def post_product_to_blogger(
+        self, product_data: ProductData, request: BlogContentRequest
+    ) -> dict:
         """상품 데이터를 Blogger에 포스팅"""
         try:
             # 1. GPT를 통한 콘텐츠 생성
-            blog_content = self.content_generator.generate_blog_content(product_data, request)
+            blog_content = self.content_generator.generate_blog_content(
+                product_data, request
+            )
 
             # 2. Blogger에 포스팅
             self.blogger_service.post_content(
                 title=blog_content.title,
                 content=blog_content.content,
-                tags=blog_content.tags
+                tags=blog_content.tags,
             )
 
             # 3. 성공 결과 반환
@@ -333,7 +358,7 @@ class ProductBlogPostingService:
                 "title": blog_content.title,
                 "tags": blog_content.tags,
                 "posted_at": datetime.now().isoformat(),
-                "product_tag": product_data.tag
+                "product_tag": product_data.tag,
             }
 
         except Exception as e:
@@ -344,7 +369,7 @@ class ProductBlogPostingService:
                 "error": str(e),
                 "platform": "blogger",
                 "attempted_at": datetime.now().isoformat(),
-                "product_tag": getattr(product_data, "tag", "unknown")
+                "product_tag": getattr(product_data, "tag", "unknown"),
             }
 
     # def batch_post_products(self, products_data: List[Dict], request: BlogContentRequest) -> List[Dict[str, Any]]:
