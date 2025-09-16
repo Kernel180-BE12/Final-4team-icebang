@@ -7,9 +7,6 @@ client = TestClient(app)
 
 def test_crawl_success():
     body = {
-        "job_id": 1,  # 문자열 -> 숫자로 수정
-        "schedule_id": 1,  # 문자열 -> 숫자로 수정
-        "schedule_his_id": 1,
         "tag": "detail",
         "product_url": "https://ssadagu.kr/shop/view.php?platform=1688&num_iid=886788894790",
         "use_selenium": False,
@@ -21,8 +18,6 @@ def test_crawl_success():
 
     assert response.status_code == 200
     data = response.json()
-    assert data["job_id"] == body["job_id"]
-    assert data["schedule_id"] == body["schedule_id"]
     assert data["product_url"] == body["product_url"]
     assert "product_detail" in data
 
@@ -39,7 +34,7 @@ def test_crawl_success():
 #         "include_images": False,
 #     }
 #
-#     response = client.post("/products/crawl", json=body)
+#     response = client.post("/products/crawlers", json=body)
 #     print(f"Response: {response.json()}")
 #
 #     assert response.status_code == 200
@@ -62,7 +57,7 @@ def test_crawl_success():
 #         "include_images": False,
 #     }
 #
-#     response = client.post("/products/crawl", json=body)
+#     response = client.post("/products/crawlers", json=body)
 #     print(f"Response: {response.json()}")
 #
 #     assert response.status_code in (400, 422, 500)
@@ -79,7 +74,7 @@ def test_crawl_success():
 #         "include_images": True,
 #     }
 #
-#     response = client.post("/products/crawl", json=body)
+#     response = client.post("/products/crawlers", json=body)
 #     print(f"Response: {response.json()}")
 #
 #     assert response.status_code == 200

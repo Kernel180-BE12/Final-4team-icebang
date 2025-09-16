@@ -23,9 +23,6 @@ def test_match_success():
     ]
 
     body = {
-        "job_id": 1,
-        "schedule_id": 1,
-        "schedule_his_id": 1,
         "keyword": "반지",
         "search_results": sample_search_results,
     }
@@ -35,7 +32,6 @@ def test_match_success():
 
     assert response.status_code == 200
     data = response.json()
-    assert data["job_id"] == body["job_id"]
     assert data["keyword"] == body["keyword"]
     assert data["status"] == "success"
     assert isinstance(data["matched_products"], list)
@@ -51,9 +47,6 @@ def test_match_success():
 def test_match_no_results():
     """검색 결과가 없는 경우"""
     body = {
-        "job_id": 2,
-        "schedule_id": 2,
-        "schedule_his_id": 2,
         "keyword": "반지",
         "search_results": [],
     }
@@ -80,9 +73,6 @@ def test_match_no_matches():
     ]
 
     body = {
-        "job_id": 3,
-        "schedule_id": 3,
-        "schedule_his_id": 3,
         "keyword": "반지",
         "search_results": sample_search_results,
     }

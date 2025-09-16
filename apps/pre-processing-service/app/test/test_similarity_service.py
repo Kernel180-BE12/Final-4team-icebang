@@ -29,9 +29,6 @@ def test_similarity_with_matched_products():
     ]
 
     body = {
-        "job_id": 1,
-        "schedule_id": 1,
-        "schedule_his_id": 1,
         "keyword": "반지",
         "matched_products": matched_products,
     }
@@ -41,7 +38,6 @@ def test_similarity_with_matched_products():
 
     assert response.status_code == 200
     data = response.json()
-    assert data["job_id"] == body["job_id"]
     assert data["keyword"] == body["keyword"]
     assert data["status"] == "success"
 
@@ -65,9 +61,6 @@ def test_similarity_fallback_to_search_results():
     ]
 
     body = {
-        "job_id": 2,
-        "schedule_id": 2,
-        "schedule_his_id": 2,
         "keyword": "반지",
         "matched_products": [],  # 매칭된 상품 없음
         "search_results": search_results,  # 폴백용
@@ -100,9 +93,6 @@ def test_similarity_single_candidate():
     ]
 
     body = {
-        "job_id": 3,
-        "schedule_id": 3,
-        "schedule_his_id": 3,
         "keyword": "반지",
         "matched_products": single_product,
     }
@@ -122,9 +112,6 @@ def test_similarity_single_candidate():
 def test_similarity_no_candidates():
     """후보가 없는 경우"""
     body = {
-        "job_id": 4,
-        "schedule_id": 4,
-        "schedule_his_id": 4,
         "keyword": "반지",
         "matched_products": [],
         "search_results": [],
