@@ -5,6 +5,7 @@ from loguru import logger
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 
+
 class SearchCrawler(BaseCrawler):
     """상품 검색 전용 크롤러"""
 

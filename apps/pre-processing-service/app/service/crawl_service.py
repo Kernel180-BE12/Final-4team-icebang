@@ -44,9 +44,7 @@ class CrawlService:
                 "crawled_at": time.strftime("%Y-%m-%d %H:%M:%S"),
             }
 
-            logger.info(
-                f"상품 상세 크롤링 서비스 완료: status=success"
-            )
+            logger.info(f"상품 상세 크롤링 서비스 완료: status=success")
             return response_data
 
         except Exception as e:

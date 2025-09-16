@@ -5,9 +5,11 @@ from ...model.schemas import RequestNaverSearch, ResponseNaverSearch
 
 router = APIRouter()
 
+
 @router.get("/")
 async def root():
     return {"message": "keyword API"}
+
 
 @router.post(
     "/search", response_model=ResponseNaverSearch, summary="네이버 키워드 검색"

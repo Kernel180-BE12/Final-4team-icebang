@@ -94,9 +94,7 @@ class SearchService:
             }
 
         except Exception as e:
-            logger.error(
-                f"검색 서비스 오류: keyword='{keyword}', error='{e}'"
-            )
+            logger.error(f"검색 서비스 오류: keyword='{keyword}', error='{e}'")
             raise InvalidItemDataException()
 
         finally:

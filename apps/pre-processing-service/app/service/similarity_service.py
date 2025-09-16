@@ -156,7 +156,5 @@ class SimilarityService:
             }
 
         except Exception as e:
-            logger.error(
-                f"유사도 분석 서비스 오류: keyword='{keyword}', error='{e}'"
-            )
+            logger.error(f"유사도 분석 서비스 오류: keyword='{keyword}', error='{e}'")
             raise InvalidItemDataException()

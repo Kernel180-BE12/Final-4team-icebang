@@ -42,13 +42,13 @@ class BaseCrawler(ABC):
 
     async def close(self):
         """리소스 정리"""
-        if self.use_selenium and hasattr(self, 'crawling_util'):
+        if self.use_selenium and hasattr(self, "crawling_util"):
             try:
                 self.crawling_util.close()
                 logger.info("Selenium WebDriver 종료 완료")
             except Exception as e:
                 logger.warning(f"Selenium WebDriver 종료 중 오류: {e}")
-        elif hasattr(self, 'client'):
+        elif hasattr(self, "client"):
             try:
                 await self.client.aclose()
                 logger.info("httpx 클라이언트 종료 완료")

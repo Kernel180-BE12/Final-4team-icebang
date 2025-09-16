@@ -81,16 +81,14 @@ class BloggerApiService:
         except Exception as e:
             raise BloggerApiException("API 인증 실패", e)
 
-    def create_post_via_api(self, title: str, content: str, labels: List[str] = None) -> Dict:
+    def create_post_via_api(
+        self, title: str, content: str, labels: List[str] = None
+    ) -> Dict:
         """API를 통한 포스트 생성 (Selenium write_content와 완전히 다름)"""
         if not self.authenticated:
             self.authenticate_with_google_oauth()
 
-        post_data = {
-            "title": title,
-            "content": content,
-            "labels": labels or []
-        }
+        post_data = {"title": title, "content": content, "labels": labels or []}
 
         try:
             result = (
@@ -102,14 +100,16 @@ class BloggerApiService:
             return {
                 "blogger_post_id": result.get("id"),
                 "published_url": result.get("url"),
-                "status": "published"
+                "status": "published",
             }
         except Exception as e:
             raise BlogPostPublishException(
                 platform="Blogger", reason="API 통신 중 오류가 발생했습니다."
             ) from e
 
-    def validate_api_content(self, title: str, content: str, labels: List[str] = None) -> None:
+    def validate_api_content(
+        self, title: str, content: str, labels: List[str] = None
+    ) -> None:
         """API 전용 유효성 검사"""
         if not title or not title.strip():
             raise BlogContentValidationException("title", "제목이 비어있습니다")

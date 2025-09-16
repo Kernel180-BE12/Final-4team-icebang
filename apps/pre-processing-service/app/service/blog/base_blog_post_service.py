@@ -5,6 +5,7 @@ from app.utils.crawling_util import CrawlingUtil
 from app.errors.BlogPostingException import *
 from app.errors.CrawlingException import *
 
+
 class BaseBlogPostService(ABC):
     """
     블로그 포스팅 서비스 추상 클래스
@@ -22,7 +23,7 @@ class BaseBlogPostService(ABC):
                 # 블로그 포스팅용 설정으로 초기화
                 self.crawling_service = CrawlingUtil(
                     headless=False,  # 네이버 탐지 우회를 위해 headless 비활성화
-                    for_blog_posting=True
+                    for_blog_posting=True,
                 )
                 self.web_driver = self.crawling_service.get_driver()
                 self.wait_driver = self.crawling_service.get_wait()
@@ -61,7 +62,9 @@ class BaseBlogPostService(ABC):
         pass
 
     @abstractmethod
-    def _validate_content(self, title: str, content: str, tags: Optional[List[str]] = None) -> None:
+    def _validate_content(
+        self, title: str, content: str, tags: Optional[List[str]] = None
+    ) -> None:
         """
         공통 유효성 검사 로직
         :param title: 포스트 제목
@@ -100,10 +103,10 @@ class BaseBlogPostService(ABC):
             "platform": self._get_platform_name(),
             "title": title,
             "content_length": len(content),
-            "tags": tags or []
+            "tags": tags or [],
         }
 
     def __del__(self):
         """공통 리소스 정리"""
-        if hasattr(self, 'web_driver') and self.web_driver:
+        if hasattr(self, "web_driver") and self.web_driver:
             self.web_driver.quit()

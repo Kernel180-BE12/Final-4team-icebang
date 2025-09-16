@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from .search_crawler import SearchCrawler
 from loguru import logger
 
+
 class DetailCrawler(SearchCrawler):
     """SearchCrawler를 확장한 상세 크롤링 클래스"""
 
