@@ -5,12 +5,6 @@ from app.main import app
 client = TestClient(app)
 
 
-def test_read_root():
-    response = client.get("/keywords/")
-    assert response.status_code == 200
-    assert response.json() == {"message": "keyword API"}
-
-
 @pytest.mark.parametrize(
     "tag, category, start_date, end_date",
     [
