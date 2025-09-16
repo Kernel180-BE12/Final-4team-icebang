@@ -57,7 +57,9 @@ class BloggerBlogPostAdapter(BaseBlogPostService):
         """플랫폼 이름 반환"""
         return "Blogger"
 
-    def _validate_content(self, title: str, content: str, tags: Optional[List[str]] = None) -> None:
+    def _validate_content(
+        self, title: str, content: str, tags: Optional[List[str]] = None
+    ) -> None:
         """
         API 전용 유효성 검사 호출
         """

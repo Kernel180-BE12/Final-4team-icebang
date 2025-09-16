@@ -1,4 +1,4 @@
-package site.icebang.domain.schedule.model;
+package site.icebang.schedule.model;
 
 import lombok.Getter;
 import lombok.Setter;

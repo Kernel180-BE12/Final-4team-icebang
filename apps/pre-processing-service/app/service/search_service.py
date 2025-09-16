@@ -30,9 +30,6 @@ class SearchService:
             if not search_results:
                 logger.warning(f"검색 결과가 없습니다: keyword='{keyword}'")
                 return {
-                    # "job_id": request.job_id,
-                    # "schedule_id": request.schedule_id,
-                    # "schedule_his_id": request.schedule_his_id,
                     "keyword": keyword,
                     "search_results": [],
                     "status": "success",
@@ -91,18 +88,13 @@ class SearchService:
             )
 
             return {
-                # "job_id": request.job_id,
-                # "schedule_id": request.schedule_id,
-                # "schedule_his_id": request.schedule_his_id,
                 "keyword": keyword,
                 "search_results": enriched_results,
                 "status": "success",
             }
 
         except Exception as e:
-            logger.error(
-                f"검색 서비스 오류: job_id={request.job_id}, keyword='{keyword}', error='{e}'"
-            )
+            logger.error(f"검색 서비스 오류: keyword='{keyword}', error='{e}'")
             raise InvalidItemDataException()
 
         finally:

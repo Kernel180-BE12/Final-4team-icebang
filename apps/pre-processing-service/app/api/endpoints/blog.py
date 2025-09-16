@@ -4,7 +4,9 @@ from fastapi import APIRouter
 from ...model.schemas import *
 from app.service.blog.tistory_blog_post_service import TistoryBlogPostService
 from app.service.blog.naver_blog_post_service import NaverBlogPostService
-from ...service.blog.blogger_blog_post_adapter import BloggerBlogPostAdapter  # 수정된 import
+from ...service.blog.blogger_blog_post_adapter import (
+    BloggerBlogPostAdapter,
+)  # 수정된 import
 
 router = APIRouter()
 

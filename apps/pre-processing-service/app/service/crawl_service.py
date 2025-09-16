@@ -18,7 +18,7 @@ class CrawlService:
 
         try:
             logger.info(
-                f"상품 상세 크롤링 서비스 시작: job_id={request.job_id}, schedule_id={request.schedule_id}, product_url={request.product_url}"
+                f"상품 상세 크롤링 서비스 시작: product_url={request.product_url}"
             )
 
             # 상세 정보 크롤링 실행
@@ -44,14 +44,12 @@ class CrawlService:
                 "crawled_at": time.strftime("%Y-%m-%d %H:%M:%S"),
             }
 
-            logger.info(
-                f"상품 상세 크롤링 서비스 완료: job_id={request.job_id}, status=success"
-            )
+            logger.info(f"상품 상세 크롤링 서비스 완료: status=success")
             return response_data
 
         except Exception as e:
             logger.error(
-                f"크롤링 서비스 오류: job_id={request.job_id}, product_url={request.product_url}, error='{e}'"
+                f"크롤링 서비스 오류: product_url={request.product_url}, error='{e}'"
             )
             raise InvalidItemDataException()
         finally:
