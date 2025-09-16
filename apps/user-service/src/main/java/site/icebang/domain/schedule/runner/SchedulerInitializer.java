@@ -24,7 +24,7 @@ public class SchedulerInitializer implements ApplicationRunner {
   @Override
   public void run(ApplicationArguments args) {
     log.info(">>>> Initializing schedules from database...");
-    List<Schedule> activeSchedules = scheduleMapper.findAllByIsActive(true);
+    List<Schedule> activeSchedules = scheduleMapper.findAllActive();
     activeSchedules.forEach(dynamicSchedulerService::register);
     log.info(">>>> {} active schedules have been registered.", activeSchedules.size());
   }
