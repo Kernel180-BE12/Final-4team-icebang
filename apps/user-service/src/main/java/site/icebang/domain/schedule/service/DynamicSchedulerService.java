@@ -102,7 +102,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import site.icebang.domain.schedule.model.Schedule;
-import site.icebang.workflow.service.WorkflowExecutionService;
+import site.icebang.domain.workflow.service.WorkflowExecutionService;
 
 @Slf4j
 @Service
