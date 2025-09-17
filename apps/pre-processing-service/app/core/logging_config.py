@@ -18,8 +18,15 @@ def setup_file_logging():
     # 기존 loguru 핸들러 제거 (기본 콘솔 출력 제거)
     logger.remove()
 
+
+    # 환경변수로 로그 디렉토리 설정 (기본값: logs/develop)
+    log_dir = "../../docker/local/logs/develop"
+
+    # 로그 디렉토리가 없으면 생성
+
     # 로그 파일 경로 설정
-    log_file_path = "pre-processing-app.log"
+    log_file_path = log_dir + "/pre-processing-app.log"
+    error_log_file_path = log_dir + "/pre-processing-app-error.log"
 
     # trace_id를 포함한 간단한 포맷 문자열 사용
     def add_trace_id_filter(record):
@@ -57,7 +64,7 @@ def setup_file_logging():
 
     # 에러 레벨 이상은 별도 파일에도 기록 - trace_id 포함, LoggingMiddleware 제외
     logger.add(
-        "pre-processing-app-error.log",
+        error_log_file_path,
         format="[{extra[trace_id]}] {time:YYYY-MM-DD HH:mm:ss.SSS} | {level} | {name}:{function}:{line} | {message}",
         level="ERROR",
         rotation="50 MB",
