@@ -30,37 +30,6 @@ Configuration:
       PatternLayout:
         pattern: ${console-layout-pattern}
 
-    # Loki Appender - 프로덕션 모니터링용
-    Loki:
-      name: loki-appender
-      url: ${LOKI_URL}                 # Grafana Cloud Loki URL
-      basicAuthUsername: ${LOKI_USERNAME}   # Grafana Cloud 사용자 이름
-      basicAuthPassword: ${LOKI_PASSWORD}   # Grafana Cloud API Key
-      JsonLayout:
-        compact: true
-        eventEol: true
-        includeStacktrace: true
-        KeyValuePair:
-          - key: "app"
-            value: "${app-name}"
-          - key: "env"
-            value: "production"
-      Label:
-        - name: "app"
-          value: "${app-name}"
-        - name: "env"
-          value: "production"
-        - name: "traceId"
-          value: "${ctx:traceId}"
-        - name: "spanId"
-          value: "${ctx:spanId}"
-        - name: "executionType"
-          value: "${ctx:executionType:-application}"
-        - name: "sourceId"
-          value: "${ctx:sourceId}"
-        - name: "runId"
-          value: "${ctx:runId}"
-
     JDBC:
       name: workflow-appender
       tableName: "execution_log"
@@ -135,7 +104,6 @@ Configuration:
         level: INFO
         AppenderRef:
           - ref: console-appender
-          - ref: loki-appender
           - ref: file-prod-appender
           - ref: file-error-appender
 
@@ -144,7 +112,6 @@ Configuration:
         additivity: "false"
         AppenderRef:
           - ref: workflow-appender
-          - ref: loki-appender
           - ref: console-appender
           - ref: file-prod-appender
           - ref: file-error-appender
@@ -172,7 +139,6 @@ Configuration:
         AppenderRef:
           - ref: console-appender
           - ref: file-prod-appender
-          - ref: loki-appender
 
       # 트랜잭션 로그 - 프로덕션에서는 WARN 레벨
       - name: org.springframework.transaction
