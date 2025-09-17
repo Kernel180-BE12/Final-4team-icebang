@@ -1,8 +1,9 @@
 import time
-from app.utils.crawler_utils import DetailCrawler
+from app.service.crawlers.detail_crawler import DetailCrawler
 from app.errors.CustomException import InvalidItemDataException
 from app.model.schemas import RequestSadaguCrawl
 from loguru import logger
+from app.utils.response import Response
 
 
 class CrawlService:
@@ -18,7 +19,7 @@ class CrawlService:
 
         try:
             logger.info(
-                f"상품 상세 크롤링 서비스 시작: job_id={request.job_id}, schedule_id={request.schedule_id}, product_url={request.product_url}"
+                f"상품 상세 크롤링 서비스 시작: product_url={request.product_url}"
             )
 
             # 상세 정보 크롤링 실행
@@ -36,25 +37,19 @@ class CrawlService:
             )
 
             # 응답 데이터 구성
-            response_data = {
-                "job_id": request.job_id,
-                "schedule_id": request.schedule_id,
-                "schedule_his_id": request.schedule_his_id,
+            data = {
                 "tag": request.tag,
                 "product_url": str(request.product_url),
                 "product_detail": product_detail,
-                "status": "success",
                 "crawled_at": time.strftime("%Y-%m-%d %H:%M:%S"),
             }
 
-            logger.info(
-                f"상품 상세 크롤링 서비스 완료: job_id={request.job_id}, status=success"
-            )
-            return response_data
+            logger.info(f"상품 상세 크롤링 서비스 완료: status=success")
+            return Response.ok(data)
 
         except Exception as e:
             logger.error(
-                f"크롤링 서비스 오류: job_id={request.job_id}, product_url={request.product_url}, error='{e}'"
+                f"크롤링 서비스 오류: product_url={request.product_url}, error='{e}'"
             )
             raise InvalidItemDataException()
         finally:

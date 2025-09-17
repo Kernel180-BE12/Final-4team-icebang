@@ -11,7 +11,8 @@ public enum SecurityEndpoints {
       "/js/**",
       "/images/**",
       "/v0/organizations/**",
-      "/v0/auth/register"),
+      "/v0/auth/register",
+      "/v0/check-execution-log-insert"),
 
   // 데이터 관리 관련 엔드포인트
   DATA_ADMIN("/admin/**", "/api/admin/**", "/management/**", "/actuator/**"),
@@ -26,7 +27,7 @@ public enum SecurityEndpoints {
   OPS("/api/scheduler/**", "/api/monitoring/**"),
 
   // 일반 사용자 엔드포인트
-  USER("/user/**", "/profile/**", "/v0/auth/check-session");
+  USER("/user/**", "/profile/**", "/v0/auth/check-session", "/v0/workflows/**");
 
   private final String[] patterns;
 

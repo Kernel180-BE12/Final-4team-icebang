@@ -1,126 +1,195 @@
 Configuration:
-  name: develop
+  status: INFO
+  name: production
 
   properties:
     property:
+      - name: "app-name"
+        value: "user-service"
       - name: "log-path"
         value: "./logs"
       - name: "charset-UTF-8"
         value: "UTF-8"
-      # 통일된 콘솔 패턴 - 모든 로그에 RequestId 포함
+      # 프로덕션 환경용 콘솔 패턴 - 구조화된 로그
       - name: "console-layout-pattern"
-        value: "%highlight{[%-5level]} [%X{traceId}] %d{MM-dd HH:mm:ss} [%t]  %n %msg%n%n"
-      # 파일용 상세 패턴 - RequestId 포함
+        value: "%highlight{[%-5level]} [%X{traceId}] [%X{spanId}] %d{HH:mm:ss}{UTC} [%t]   %logger{20} - %msg% "
+      # 파일용 패턴 - Promtail이 파싱하기 쉽게 구조화 (UTC 시간 사용)
       - name: "file-layout-pattern"
-        value: "[%X{traceId}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
-      # 로그 파일 경로들
-      - name: "info-log"
-        value: ${log-path}/user-service/info.log
+        value: "[%X{traceId}] [%X{spanId}] %d{yyyy-MM-dd HH:mm:ss.SSS}{UTC} [%t] %-5level %logger{36} - %msg%n"
+      # 프로덕션 환경용 로그 파일들
+      - name: "prod-log"
+        value: ${log-path}/production/app.log
       - name: "error-log"
-        value: ${log-path}/user-service/error.log
-      - name: "auth-log"
-        value: ${log-path}/user-service/auth.log
-      - name: "json-log"
-        value: ${log-path}/user-service/json-info.log
+        value: ${log-path}/production/error.log
 
-  # [Appenders] 로그 기록방식 정의
   Appenders:
-    # 통일된 콘솔 출력
+    # 콘솔 출력 - 프로덕션에서는 최소한의 정보만
     Console:
       name: console-appender
       target: SYSTEM_OUT
       PatternLayout:
         pattern: ${console-layout-pattern}
 
-    # 롤링 파일 로그
-    RollingFile:
-      name: rolling-file-appender
-      fileName: ${log-path}/rolling-file.log
-      filePattern: "logs/archive/rolling-file.log.%d{yyyy-MM-dd-hh-mm}_%i.gz"
-      PatternLayout:
-        charset: ${charset-UTF-8}
-        pattern: ${file-layout-pattern}
-      Policies:
-        SizeBasedTriggeringPolicy:
-          size: "200KB"
-        TimeBasedTriggeringPolicy:
-          interval: "1"
-      DefaultRollOverStrategy:
-        max: "30"
-        fileIndex: "max"
+    # Loki Appender - 프로덕션 모니터링용
+    Loki:
+      name: loki-appender
+      url: ${LOKI_URL}                 # Grafana Cloud Loki URL
+      basicAuthUsername: ${LOKI_USERNAME}   # Grafana Cloud 사용자 이름
+      basicAuthPassword: ${LOKI_PASSWORD}   # Grafana Cloud API Key
+      JsonLayout:
+        compact: true
+        eventEol: true
+        includeStacktrace: true
+        KeyValuePair:
+          - key: "app"
+            value: "${app-name}"
+          - key: "env"
+            value: "production"
+      Label:
+        - name: "app"
+          value: "${app-name}"
+        - name: "env"
+          value: "production"
+        - name: "traceId"
+          value: "${ctx:traceId}"
+        - name: "spanId"
+          value: "${ctx:spanId}"
+        - name: "executionType"
+          value: "${ctx:executionType:-application}"
+        - name: "sourceId"
+          value: "${ctx:sourceId}"
+        - name: "runId"
+          value: "${ctx:runId}"
 
-    # 파일 로그들
+    JDBC:
+      name: workflow-appender
+      tableName: "execution_log"
+      bufferSize: 0
+      ignoreExceptions: false
+
+      DriverManager:
+        connectionString: "jdbc:mariadb://${env:DB_HOST}:${env:DB_PORT}/${env:DB_NAME}"
+        driverClassName: "org.mariadb.jdbc.Driver"
+        userName: "${env:DB_USER}"
+        password: "${env:DB_PASS}"
+
+      ColumnMapping:
+        - name: "execution_type"
+          pattern: "%X{executionType}"
+        - name: "source_id"
+          pattern: "%X{sourceId}"
+        - name: "log_level"
+          pattern: "%level"
+        - name: "executed_at"
+          pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS}"
+        - name: "log_message"
+          pattern: "%message"
+        - name: "trace_id"
+          pattern: "%X{traceId}"
+        - name: "reserved1"
+          pattern: "%X{spanId}"
+
     File:
-      - name: file-info-appender
-        fileName: ${info-log}
+      - name: file-prod-appender
+        fileName: ${prod-log}
         PatternLayout:
           pattern: ${file-layout-pattern}
+        # 로그 파일 롤링 설정
+        Policies:
+          TimeBasedTriggeringPolicy:
+            interval: 1
+            modulate: true
+          SizeBasedTriggeringPolicy:
+            size: "100 MB"
+        DefaultRolloverStrategy:
+          max: 30
+        filePattern: ${log-path}/production/app.%d{yyyy-MM-dd}.%i.log
+
       - name: file-error-appender
         fileName: ${error-log}
         PatternLayout:
           pattern: ${file-layout-pattern}
-      - name: file-auth-appender
-        fileName: ${auth-log}
-        PatternLayout:
-          pattern: ${file-layout-pattern}
-      - name: file-json-info-appender
-        fileName: ${json-log}
-        PatternLayout:
-          pattern: ${file-layout-pattern}
+        ThresholdFilter:
+          level: ERROR
+        Policies:
+          TimeBasedTriggeringPolicy:
+            interval: 1
+            modulate: true
+          SizeBasedTriggeringPolicy:
+            size: "100 MB"
+        DefaultRolloverStrategy:
+          max: 30
+        filePattern: ${log-path}/production/error.%d{yyyy-MM-dd}.%i.log
 
-  # [Loggers] 로그 출력 범위를 정의
   Loggers:
-    # [Loggers - Root] 모든 로그를 기록하는 최상위 로그를 정의
+    # Root 로거 - 프로덕션에서는 WARN 레벨
     Root:
-      level: OFF
+      level: WARN
       AppenderRef:
         - ref: console-appender
-        - ref: rolling-file-appender
 
-    # [Loggers - Loggers] 특정 패키지나 클래스에 대한 로그를 정의
     Logger:
-      # 1. Spring Framework 로그
-      - name: org.springframework
-        additivity: "false"
-        level: DEBUG
-        AppenderRef:
-          - ref: console-appender
-          - ref: file-info-appender
-          - ref: file-error-appender
-
-      # 2. 애플리케이션 로그
+      # 애플리케이션 로그 - 프로덕션에서는 INFO 레벨
       - name: site.icebang
         additivity: "false"
-        level: TRACE
+        level: INFO
         AppenderRef:
           - ref: console-appender
-          - ref: file-info-appender
+          - ref: loki-appender
+          - ref: file-prod-appender
           - ref: file-error-appender
 
-      # 3. HikariCP 로그 비활성화
-      - name: com.zaxxer.hikari
-        level: OFF
+      - name: "WORKFLOW_HISTORY"
+        level: INFO
+        additivity: "false"
+        AppenderRef:
+          - ref: workflow-appender
+          - ref: loki-appender
+          - ref: console-appender
+          - ref: file-prod-appender
+          - ref: file-error-appender
 
-      # 4. Spring Security 로그 - 인증/인가 추적에 중요
+      # Spring Framework - 프로덕션에서는 WARN 레벨
+      - name: org.springframework
+        additivity: "false"
+        level: WARN
+        AppenderRef:
+          - ref: console-appender
+          - ref: file-prod-appender
+
+      # Spring Security - 프로덕션에서는 WARN 레벨
       - name: org.springframework.security
-        level: DEBUG
+        level: WARN
         additivity: "false"
         AppenderRef:
           - ref: console-appender
-          - ref: file-auth-appender
+          - ref: file-prod-appender
 
-      # 5. 웹 요청 로그 - 요청 처리 과정 추적
+      # 웹 요청 로그 - 프로덕션에서는 INFO 레벨
       - name: org.springframework.web
-        level: DEBUG
+        level: INFO
         additivity: "false"
         AppenderRef:
           - ref: console-appender
-          - ref: file-info-appender
+          - ref: file-prod-appender
+          - ref: loki-appender
 
-      # 6. 트랜잭션 로그 - DB 작업 추적
+      # 트랜잭션 로그 - 프로덕션에서는 WARN 레벨
       - name: org.springframework.transaction
-        level: DEBUG
+        level: WARN
         additivity: "false"
         AppenderRef:
           - ref: console-appender
-          - ref: file-info-appender
+          - ref: file-prod-appender
+
+      # HikariCP 로그 비활성화
+      - name: com.zaxxer.hikari
+        level: "OFF"
+
+      # SQL 로그 비활성화 - 프로덕션에서는 성능상 비활성화
+      - name: org.hibernate.SQL
+        level: "OFF"
+
+      # 파라미터 바인딩 로그 비활성화
+      - name: org.hibernate.type.descriptor.sql.BasicBinder
+        level: "OFF"

@@ -1,133 +1,156 @@
 Configuration:
+  status: DEBUG
   name: develop
 
   properties:
     property:
+      - name: "app-name"
+        value: "user-service"
       - name: "log-path"
-        value: "./logs"
+        value: "./docker/local/logs"
       - name: "charset-UTF-8"
         value: "UTF-8"
-      # 통일된 콘솔 패턴 - 모든 로그에 RequestId 포함
+      # DEBUG 환경용 콘솔 패턴 - 더 간단하고 가독성 좋게
       - name: "console-layout-pattern"
-        value: "%highlight{[%-5level]} [%X{traceId}] %d{MM-dd HH:mm:ss} [%t]  %n %msg%n%n"
-      # 파일용 상세 패턴 - RequestId 포함
+        value: "%highlight{[%-5level]} [%X{traceId}] [%X{spanId}] %d{HH:mm:ss} [%t] %n   %logger{20} - %msg%n%n "
+      # 파일용 패턴 - Promtail이 파싱하기 쉽게 구조화 (UTC 시간 사용)
       - name: "file-layout-pattern"
-        value: "[%X{traceId}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
-      # 로그 파일 경로들
-      - name: "info-log"
-        value: ${log-path}/user-service/info.log
+        value: "[%X{traceId}] [%X{spanId}] %d{yyyy-MM-dd HH:mm:ss.SSS}{UTC} [%t] %-5level %logger{36} - %msg%n"
+      # 개발 환경용 로그 파일들 - 절대경로나 상대경로 설정
+      - name: "dev-log"
+        value: ${log-path}/develop/app.log
       - name: "error-log"
-        value: ${log-path}/user-service/error.log
-      - name: "auth-log"
-        value: ${log-path}/user-service/auth.log
-      - name: "json-log"
-        value: ${log-path}/user-service/json-info.log
+        value: ${log-path}/develop/error.log
 
-  # [Appenders] 로그 기록방식 정의
   Appenders:
-    # 통일된 콘솔 출력
+    # 콘솔 출력 - 개발 시 주요 출력
     Console:
       name: console-appender
       target: SYSTEM_OUT
       PatternLayout:
         pattern: ${console-layout-pattern}
 
-    # 롤링 파일 로그
-    RollingFile:
-      name: rolling-file-appender
-      fileName: ${log-path}/rolling-file.log
-      filePattern: "logs/archive/rolling-file.log.%d{yyyy-MM-dd-hh-mm}_%i.gz"
-      PatternLayout:
-        charset: ${charset-UTF-8}
-        pattern: ${file-layout-pattern}
-      Policies:
-        SizeBasedTriggeringPolicy:
-          size: "200KB"
-        TimeBasedTriggeringPolicy:
-          interval: "1"
-      DefaultRollOverStrategy:
-        max: "30"
-        fileIndex: "max"
+    # JDBC Appender - 워크플로우 로그용
+    JDBC:
+      name: workflow-appender
+      tableName: "execution_log"
+      bufferSize: 0
+      ignoreExceptions: false
 
-    # 파일 로그들
+      DriverManager:
+        connectionString: "jdbc:mariadb://localhost:3306/pre_process"
+        driverClassName: "org.mariadb.jdbc.Driver"
+        userName: "mariadb"
+        password: "qwer1234"
+
+      ColumnMapping:
+        - name: "execution_type"
+          pattern: "%X{executionType}"
+        - name: "source_id"
+          pattern: "%X{sourceId}"
+        - name: "log_level"
+          pattern: "%level"
+        - name: "executed_at"
+          pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS}"
+        - name: "log_message"
+          pattern: "%message"
+        - name: "trace_id"
+          pattern: "%X{traceId}"
+        - name: "reserved1"
+          pattern: "%X{spanId}"
+
+    # 파일 Appenders - Promtail이 이 파일들을 읽음
     File:
-      - name: file-info-appender
-        fileName: ${info-log}
+      - name: file-dev-appender
+        fileName: ${dev-log}
         PatternLayout:
           pattern: ${file-layout-pattern}
+        # 로그 로테이션 설정 (선택사항)
+        # Policies:
+        #   SizeBasedTriggeringPolicy:
+        #     size: 10MB
+        # DefaultRolloverStrategy:
+        #   max: 10
+
       - name: file-error-appender
         fileName: ${error-log}
         PatternLayout:
           pattern: ${file-layout-pattern}
-      - name: file-auth-appender
-        fileName: ${auth-log}
-        PatternLayout:
-          pattern: ${file-layout-pattern}
-      - name: file-json-info-appender
-        fileName: ${json-log}
-        PatternLayout:
-          pattern: ${file-layout-pattern}
+        ThresholdFilter:
+          level: ERROR
 
-  # [Loggers] 로그 출력 범위를 정의
   Loggers:
-    # [Loggers - Root] 모든 로그를 기록하는 최상위 로그를 정의
+    # Root 로거
     Root:
-      level: OFF
+      level: INFO
       AppenderRef:
         - ref: console-appender
-        - ref: rolling-file-appender
 
-    # [Loggers - Loggers] 특정 패키지나 클래스에 대한 로그를 정의
     Logger:
-      # 1. Spring Framework 로그
-      - name: org.springframework
+      # 애플리케이션 로그 - 파일로만 저장 (Promtail이 읽어감)
+      - name: site.icebang
         additivity: "false"
         level: DEBUG
         AppenderRef:
           - ref: console-appender
-          - ref: file-info-appender
+          - ref: file-dev-appender
           - ref: file-error-appender
 
-      # 2. 애플리케이션 로그
-      - name: site.icebang
+      - name: "WORKFLOW_HISTORY"
+        level: DEBUG
         additivity: "false"
-        level: TRACE
+        AppenderRef:
+          - ref: workflow-appender
+          - ref: console-appender
+          - ref: file-dev-appender
+          - ref: file-error-appender
+
+      # Spring Framework
+      - name: org.springframework
+        additivity: "false"
+        level: INFO
         AppenderRef:
           - ref: console-appender
-          - ref: file-info-appender
-          - ref: file-error-appender
+          - ref: file-dev-appender
 
-      # 3. HikariCP 로그 비활성화
-      - name: com.zaxxer.hikari
-        level: OFF
-
-      # 4. Spring Security 로그 - 인증/인가 추적에 중요
+      # Spring Security
       - name: org.springframework.security
         level: DEBUG
         additivity: "false"
         AppenderRef:
           - ref: console-appender
-          - ref: file-auth-appender
+          - ref: file-dev-appender
 
-      # 5. 웹 요청 로그 - 요청 처리 과정 추적
+      # 웹 요청 로그
       - name: org.springframework.web
         level: DEBUG
         additivity: "false"
         AppenderRef:
           - ref: console-appender
-          - ref: file-info-appender
+          - ref: file-dev-appender
 
-      # 6. 트랜잭션 로그 - DB 작업 추적
+      # 트랜잭션 로그
       - name: org.springframework.transaction
         level: DEBUG
         additivity: "false"
         AppenderRef:
           - ref: console-appender
-          - ref: file-info-appender
+          - ref: file-dev-appender
 
-      - name: site.icebang.domain.auth.mapper
+      # HikariCP 로그 비활성화
+      - name: com.zaxxer.hikari
+        level: "OFF"
+
+      # SQL 로그
+      - name: org.hibernate.SQL
         level: DEBUG
         additivity: "false"
         AppenderRef:
           - ref: console-appender
-          - ref: file-info-appender
+
+      # 파라미터 바인딩 로그
+      - name: org.hibernate.type.descriptor.sql.BasicBinder
+        level: TRACE
+        additivity: "false"
+        AppenderRef:
+          - ref: console-appender

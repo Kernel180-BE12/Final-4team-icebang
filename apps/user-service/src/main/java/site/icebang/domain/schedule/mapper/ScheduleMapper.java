@@ -8,5 +8,5 @@ import site.icebang.domain.schedule.model.Schedule;
 
 @Mapper
 public interface ScheduleMapper {
-  List<Schedule> findAllByIsActive(boolean isActive);
+  List<Schedule> findAllActive();
 }

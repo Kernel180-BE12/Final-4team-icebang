@@ -61,4 +61,18 @@ public class AuthController {
   public ApiResponse<AuthCredential> getPermissions(@AuthenticationPrincipal AuthCredential user) {
     return ApiResponse.success(user);
   }
+
+  @PostMapping("/logout")
+  public ApiResponse<Void> logout(HttpServletRequest request) {
+    // SecurityContext 정리
+    SecurityContextHolder.clearContext();
+
+    // 세션 무효화
+    HttpSession session = request.getSession(false);
+    if (session != null) {
+      session.invalidate();
+    }
+
+    return ApiResponse.success(null);
+  }
 }

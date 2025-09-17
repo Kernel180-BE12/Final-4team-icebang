@@ -6,14 +6,6 @@ from ...model.schemas import RequestNaverSearch, ResponseNaverSearch
 router = APIRouter()
 
 
-@router.get("/", summary="키워드 API 상태 확인")
-async def root():
-    """
-    키워드 API가 정상 동작하는지 확인
-    """
-    return {"message": "keyword API"}
-
-
 @router.post(
     "/search", response_model=ResponseNaverSearch, summary="네이버 키워드 검색"
 )
@@ -23,9 +15,6 @@ async def search(request: RequestNaverSearch):
 
     요청 예시:
     {
-        "job_id": 1,
-        "schedule_id": 1,
-        "schedule_his_id": 1,
         "tag": "naver",
         "category": "50000000",
         "start_date": "2025-09-01",
@@ -34,15 +23,3 @@ async def search(request: RequestNaverSearch):
     """
     response_data = await keyword_search(request)
     return response_data
-
-
-@router.post(
-    "/ssadagu/validate",
-    response_model=ResponseNaverSearch,
-    summary="사다구몰 키워드 검증",
-)
-async def ssadagu_validate(request: RequestNaverSearch):
-    """
-    사다구몰 키워드 검증 테스트용 엔드포인트
-    """
-    return ResponseNaverSearch()

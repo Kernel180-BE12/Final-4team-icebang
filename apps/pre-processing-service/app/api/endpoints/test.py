@@ -21,11 +21,6 @@ from ...db.db_connecter import engine  # ✅ 우리가 만든 DB 유틸 임포�
 router = APIRouter()
 
 
-@router.get("/")
-async def root():
-    return {"message": "테스트 API"}
-
-
 @router.get("/hello/{name}", tags=["hello"])
 # @log_api_call
 async def say_hello(name: str):
@@ -67,11 +62,6 @@ def with_meta(data: Mapping[str, Any], meta: Mapping[str, Any]) -> Dict[str, Any
 
 @router.get("/tester", response_model=None)
 async def processing_tester():
-    meta = {
-        "job_id": 1,
-        "schedule_id": 1,
-        "schedule_his_id": 1,  # ✅ 타이포 수정
-    }
     request_dict = {
         "tag": "naver",
         "category": "50000000",
@@ -79,7 +69,7 @@ async def processing_tester():
         "end_date": "2025-09-02",
     }
     # 네이버 키워드 검색
-    naver_request = RequestNaverSearch(**with_meta(meta, request_dict))
+    naver_request = RequestNaverSearch(**with_meta(request_dict))
     response_data = await keyword_search(naver_request)
     keyword = response_data.get("keyword")
     loguru.logger.info(keyword)
@@ -89,21 +79,21 @@ async def processing_tester():
     }
 
     # 싸다구 상품 검색
-    sadagu_request = RequestSadaguSearch(**with_meta(meta, keyword))
+    sadagu_request = RequestSadaguSearch(**with_meta(keyword))
     search_service = SearchService()
     keyword_result = await search_service.search_products(sadagu_request)
     loguru.logger.info(keyword_result)
 
     # 싸다구 상품 매치
     keyword["search_results"] = keyword_result.get("search_results")
-    keyword_match_request = RequestSadaguMatch(**with_meta(meta, keyword))
+    keyword_match_request = RequestSadaguMatch(**with_meta(keyword))
     match_service = MatchService()
     keyword_match_response = match_service.match_products(keyword_match_request)
     loguru.logger.info(keyword_match_response)
 
     # 싸다구 상품 유사도 분석
     keyword["matched_products"] = keyword_match_response.get("matched_products")
-    keyword_similarity_request = RequestSadaguSimilarity(**with_meta(meta, keyword))
+    keyword_similarity_request = RequestSadaguSimilarity(**with_meta(keyword))
     # similarity_service = SimilarityService()
     # keyword_similarity_response = similarity_service.select_product_by_similarity(
     #     keyword_similarity_request

@@ -1,17 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="site.icebang.domain.schedule.mapper.ScheduleMapper">
+    <resultMap id="ScheduleResultMap" type="site.icebang.domain.schedule.model.Schedule">
+    </resultMap>
 
-    <select id="findAllByIsActive" resultType="site.icebang.domain.schedule.model.Schedule"> SELECT
-                                                                                                         id AS scheduleId,
-                                                                                                         workflow_id AS workflowId,
-                                                                                                         cron_expression AS cronExpression,
-                                                                                                         is_active AS isActive
-                                                                                             FROM
-                                                                                                         schedule
-                                                                                             WHERE
-                                                                                                         is_active = #{isActive}
+    <select id="findAllActive" resultMap="ScheduleResultMap">
+        SELECT * FROM schedule WHERE is_active = true
     </select>
-
 </mapper>
