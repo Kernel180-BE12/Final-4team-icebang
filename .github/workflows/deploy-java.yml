@@ -74,7 +74,6 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "docker/production/promtail-config.yml"
           target: "~/app"
-          overwrite: true
 
 
       - name: Deploy on EC2
