@@ -8,6 +8,8 @@ from ...service.blog.blogger_blog_post_adapter import (
     BloggerBlogPostAdapter,
 )  # 수정된 import
 from app.utils.response import Response
+from app.service.blog.blog_create_service import BlogContentService
+from app.service.blog.blog_publish_service import BlogPublishService
 
 router = APIRouter()
 
@@ -21,7 +23,10 @@ async def rag_create(request: RequestBlogCreate):
     """
     RAG 기반 블로그 콘텐츠 생성
     """
-    return {"message": "blog API"}
+    blog_service = BlogContentService()
+    response_data = blog_service.generate_blog_content(request)
+
+    return Response.ok(response_data)
 
 
 @router.post(
@@ -35,47 +40,7 @@ async def publish(request: RequestBlogPublish):
     네이버 블로그와 티스토리 블로그를 지원하며,
     현재는 생성된 콘텐츠가 아닌 임의의 제목, 내용, 태그를 배포합니다.
     """
-    if request.tag == "naver":
-        naver_service = NaverBlogPostService()
-        response_data = naver_service.post_content(
-            title=request.post_title,
-            content=request.post_content,
-            tags=request.post_tags,
-        )
+    publish_service = BlogPublishService()
+    response_data = publish_service.publish_content(request)
 
-        if not response_data:
-            raise CustomException(
-                "네이버 블로그 포스팅에 실패했습니다.", status_code=500
-            )
-
-        return Response.ok(response_data)
-
-    elif request.tag == "tistory":
-        tistory_service = TistoryBlogPostService()
-        response_data = tistory_service.post_content(
-            title=request.post_title,
-            content=request.post_content,
-            tags=request.post_tags,
-        )
-
-        if not response_data:
-            raise CustomException(
-                "티스토리 블로그 포스팅에 실패했습니다.", status_code=500
-            )
-
-        return Response.ok(response_data)
-
-    elif request.tag == "blogger":
-        blogger_service = BloggerBlogPostAdapter()  # 수정: Adapter 사용
-        response_data = blogger_service.post_content(
-            title=request.post_title,
-            content=request.post_content,
-            tags=request.post_tags,
-        )
-
-        if not response_data:
-            raise CustomException(
-                "블로거 블로그 포스팅에 실패했습니다.", status_code=500
-            )
-
-        return Response.ok(response_data)
+    return Response.ok(response_data)
