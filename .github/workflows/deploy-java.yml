@@ -28,7 +28,7 @@ jobs:
           echo "DB_USER=${{ secrets.DB_USER }}" >> .env.prod
           echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env.prod
           echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env.prod
-          echo "LOKI_URL=${{ secrets.LOKI_URL }}" >> .env.prod
+          echo "LOKI_HOST=${{ secrets.LOKI_HOST }}" >> .env.prod
           echo "LOKI_USERNAME=${{ secrets.LOKI_USERNAME }}" >> .env.prod
           echo "LOKI_PASSWORD=${{ secrets.LOKI_PASSWORD }}" >> .env.prod
           echo "ENV_NAME=${{ secrets.ENV_NAME }}" >> .env.prod
