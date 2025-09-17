@@ -53,7 +53,7 @@ class ExecutionLog:
         labels = {
             "app": app_name,
             "env": "develop",
-            "traceId": self.trace_id or "NO_TRACE_ID",
+            "traceId": self.trace_id or "",
             "spanId": self.span_id,  # 필요시 추가
             "executionType": self.execution_type,
             "sourceId": str(self.source_id),

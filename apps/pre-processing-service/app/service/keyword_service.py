@@ -2,7 +2,7 @@ import json
 import random
 from app.utils.response import Response
 import httpx
-
+from loguru import logger
 from ..errors.CustomException import InvalidItemDataException
 from ..model.schemas import RequestNaverSearch
 from datetime import date, timedelta
@@ -13,7 +13,7 @@ async def keyword_search(request: RequestNaverSearch) -> dict:
     네이버 검색 요청을 처리하는 비즈니스 로직입니다.
     입력받은 데이터를 기반으로 응답 데이터를 생성하여 딕셔너리로 반환합니다.
     """
-
+    logger.info(f"검색 플랫폼: {request.tag}")
     # 키워드 검색
     if request.tag == "naver":
         trending_keywords = await search_naver_rank()
@@ -25,8 +25,10 @@ async def keyword_search(request: RequestNaverSearch) -> dict:
     if not trending_keywords:
         raise InvalidItemDataException()
 
+    keyword = random.choice(list(trending_keywords.values()))
+    logger.info(f"선택된 키워드: {keyword}, 검색된 키워드 수: {len(trending_keywords)}")
     data = {
-        "keyword": random.choice(list(trending_keywords.values())),
+        "keyword": keyword,
         "total_keyword": trending_keywords,
     }
     return Response.ok(data)
@@ -55,11 +57,13 @@ async def search_naver_rank() -> dict[int, str]:
         "50000009",
     ]
     category = random.choice(categorys)
+    logger.info(f"선택된 카테고리:{category}")
     today = date.today()
     yesterday = today - timedelta(days=1)
 
     # 3. 원하는 포맷(YYYY-MM-DD)으로 변환하기
     end_date = today.strftime("%Y-%m-%d")
+    logger.info(f"실행 날짜: {end_date}")
     start_date = yesterday.strftime("%Y-%m-%d")
 
     keywords_dic = {}
@@ -86,7 +90,7 @@ async def search_naver_rank() -> dict[int, str]:
                 httpx.RequestError,
                 json.JSONDecodeError,
             ) as e:
-                print(f"네이버 데이터랩에서 데이터를 가져오는 데 실패했습니다: {e}")
+                logger.error(f"네이버 데이터랩에서 데이터를 가져오는 데 실패했습니다: {e}")
                 raise InvalidItemDataException
         return keywords_dic
 
@@ -112,5 +116,5 @@ async def search_naver_store() -> dict[int, str]:
             return keyword_dict
 
         except (httpx.HTTPStatusError, httpx.RequestError, json.JSONDecodeError) as e:
-            print(f"네이버 스토어에서 데이터를 가져오는 데 실패했습니다: {e}")
+            logger.error(f"네이버 스토어에서 데이터를 가져오는 데 실패했습니다: {e}")
             raise InvalidItemDataException from e

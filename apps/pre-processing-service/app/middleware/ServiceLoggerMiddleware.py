@@ -13,7 +13,7 @@ import asyncio
 from app.middleware.rds_logger import RDSLogger
 from app.middleware.loki_logger import LokiLogger
 
-trace_id_context: ContextVar[str] = ContextVar("trace_id", default="NO_TRACE_ID")
+trace_id_context: ContextVar[str] = ContextVar("trace_id", default="")
 
 
 class ServiceLoggerMiddleware(BaseHTTPMiddleware):
@@ -42,7 +42,9 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
 
         # 로거 인스턴스 초기화
         self.rds_logger = RDSLogger() if enable_rds else None
-        self.loki_logger = LokiLogger() if enable_loki else None
+        # Loki 직접 로깅 비활성화 - PromTail을 통해 파일로 로깅
+        # self.loki_logger = LokiLogger() if enable_loki else None
+        self.loki_logger = None
 
     def _default_mappings(self) -> Dict[str, Dict]:
         """기본 서비스 매핑 설정"""
@@ -159,7 +161,7 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # 2. 시작 로깅
-        trace_id = request.headers.get("X-Request-ID", "NO_TRACE_ID")
+        trace_id = request.headers.get("X-Request-ID", "")
         trace_id_context.set(trace_id)
         start_time = time.time()
 
