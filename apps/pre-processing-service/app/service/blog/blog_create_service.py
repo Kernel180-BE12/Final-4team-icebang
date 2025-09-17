@@ -101,8 +101,12 @@ class BlogContentService:
                         context_parts.append(f"  {i}. {option}")
 
             # 구매 링크
-            if request.product_info.get("url") or request.product_info.get("product_url"):
-                url = request.product_info.get("url") or request.product_info.get("product_url")
+            if request.product_info.get("url") or request.product_info.get(
+                "product_url"
+            ):
+                url = request.product_info.get("url") or request.product_info.get(
+                    "product_url"
+                )
                 context_parts.append(f"- 구매 링크: {url}")
 
         return "\n".join(context_parts) if context_parts else "키워드 기반 콘텐츠 생성"
@@ -112,7 +116,11 @@ class BlogContentService:
 
         # 기본 키워드가 없으면 상품 제목에서 추출
         main_keyword = request.keyword
-        if not main_keyword and request.product_info and request.product_info.get("title"):
+        if (
+            not main_keyword
+            and request.product_info
+            and request.product_info.get("title")
+        ):
             main_keyword = request.product_info["title"]
 
         prompt = f"""
@@ -164,7 +172,9 @@ class BlogContentService:
             self.logger.error(f"OpenAI API 호출 실패: {e}")
             raise
 
-    def _parse_generated_content(self, content: str, request: RequestBlogCreate) -> Dict[str, Any]:
+    def _parse_generated_content(
+        self, content: str, request: RequestBlogCreate
+    ) -> Dict[str, Any]:
         """생성된 콘텐츠를 파싱하여 구조화"""
 
         # 제목 추출 (첫 번째 h1이나 강조된 줄)
@@ -187,18 +197,16 @@ class BlogContentService:
         # 키워드가 있으면 제목에 없을 경우 기본 제목 생성
         if request.keyword and request.keyword not in title:
             if request.product_info and request.product_info.get("title"):
-                title = f"{request.product_info['title']} - {request.keyword} 완벽 가이드"
+                title = (
+                    f"{request.product_info['title']} - {request.keyword} 완벽 가이드"
+                )
             else:
                 title = f"{request.keyword} - 완벽 가이드"
 
         # 태그 생성
         tags = self._generate_tags(request)
 
-        return {
-            "title": title,
-            "content": content,
-            "tags": tags
-        }
+        return {"title": title, "content": content, "tags": tags}
 
     def _generate_tags(self, request: RequestBlogCreate) -> List[str]:
         """요청 정보 기반 태그 생성"""
@@ -293,8 +301,9 @@ class BlogContentService:
         return {
             "title": title,
             "content": content,
-            "tags": self._generate_tags(request)
+            "tags": self._generate_tags(request),
         }
+
 
 # if __name__ == '__main__':
 #     # 테스트용 요청 데이터

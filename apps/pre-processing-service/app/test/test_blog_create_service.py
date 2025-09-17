@@ -8,8 +8,8 @@ from app.model.schemas import RequestBlogCreate
 class TestBlogContentGeneration(unittest.TestCase):
     """블로그 콘텐츠 생성 핵심 로직 테스트"""
 
-    @patch.dict('os.environ', {'OPENAI_API_KEY': 'test-key'})
-    @patch('app.service.blog.blog_create_service.OpenAI')
+    @patch.dict("os.environ", {"OPENAI_API_KEY": "test-key"})
+    @patch("app.service.blog.blog_create_service.OpenAI")
     def setUp(self, mock_openai_class):
         """테스트 설정 - OpenAI Mock 적용"""
         # Mock OpenAI 클라이언트 설정
@@ -35,10 +35,7 @@ class TestBlogContentGeneration(unittest.TestCase):
         # 테스트 요청
         request = RequestBlogCreate(
             keyword="아이폰 케이스",
-            product_info={
-                "title": "아이폰 15 투명 케이스",
-                "price": 25000
-            }
+            product_info={"title": "아이폰 15 투명 케이스", "price": 25000},
         )
 
         # 실행
@@ -49,7 +46,9 @@ class TestBlogContentGeneration(unittest.TestCase):
         self.assertIn("content", result)
         self.assertIn("tags", result)
         # 실제 파싱 로직에 따른 제목 검증 (키워드가 제목에 포함되지 않아 기본 제목 생성됨)
-        self.assertEqual(result["title"], "아이폰 15 투명 케이스 - 아이폰 케이스 완벽 가이드")
+        self.assertEqual(
+            result["title"], "아이폰 15 투명 케이스 - 아이폰 케이스 완벽 가이드"
+        )
         self.assertIn("<h1>", result["content"])
         self.assertIn("아이폰 케이스", result["tags"])
 
