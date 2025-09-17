@@ -47,9 +47,11 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
     def _default_mappings(self) -> Dict[str, Dict]:
         """기본 서비스 매핑 설정"""
         return {
+            # 네이버 키워드 검색
             "/keywords/search": {
                 "service_type": "NAVER_CRAWLING",
                 "track_params": [
+                    "tag",
                     "keyword",
                     "category",
                     "startDate",
@@ -57,27 +59,94 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
                     "job_id",
                     "schedule_id",
                 ],
-                "response_trackers": ["keyword", "total_keywords", "results_count"],
+                "response_trackers": ["keyword", "total_keyword", "success", "status"],
             },
+            # 블로그 RAG 콘텐츠 생성
+            "/blogs/rag/create": {
+                "service_type": "BLOG_RAG_CREATE",
+                "track_params": [
+                    "keyword",
+                    "product_info",
+                    "content_type",
+                    "target_length",
+                    "job_id",
+                    "schedule_id",
+                    "schedule_his_id",
+                ],
+                "response_trackers": ["title", "content_length", "tags_count", "success", "status"],
+            },
+            # 블로그 배포
             "/blogs/publish": {
                 "service_type": "BLOG_PUBLISH",
                 "track_params": [
                     "tag",
-                    "title",
-                    "content",
-                    "tags",
+                    "blog_id",
+                    "post_title",
+                    "post_content",
+                    "post_tags",
                     "job_id",
                     "schedule_id",
                     "schedule_his_id",
                 ],
                 "response_trackers": [
+                    "tag",
+                    "post_title",
+                    "post_url",
+                    "published_at",
+                    "publish_success",
+                    "metadata",
+                    "success",
+                    "status",
+                ],
+            },
+            # 상품 검색
+            "/products/search": {
+                "service_type": "PRODUCT_SEARCH",
+                "track_params": [
+                    "keyword",
                     "job_id",
                     "schedule_id",
                     "schedule_his_id",
-                    "status",
-                    "metadata",
                 ],
+                "response_trackers": ["keyword", "search_results_count", "success", "status"],
             },
+            # 상품 매칭
+            "/products/match": {
+                "service_type": "PRODUCT_MATCH",
+                "track_params": [
+                    "keyword",
+                    "search_results",
+                    "job_id",
+                    "schedule_id",
+                    "schedule_his_id",
+                ],
+                "response_trackers": ["keyword", "matched_products_count", "success", "status"],
+            },
+            # 상품 유사도 분석
+            "/products/similarity": {
+                "service_type": "PRODUCT_SIMILARITY",
+                "track_params": [
+                    "keyword",
+                    "matched_products",
+                    "search_results",
+                    "job_id",
+                    "schedule_id",
+                    "schedule_his_id",
+                ],
+                "response_trackers": ["keyword", "selected_product", "reason", "success", "status"],
+            },
+            # 상품 크롤링
+            "/products/crawl": {
+                "service_type": "PRODUCT_CRAWL",
+                "track_params": [
+                    "tag",
+                    "product_url",
+                    "job_id",
+                    "schedule_id",
+                    "schedule_his_id",
+                ],
+                "response_trackers": ["tag", "product_url", "product_detail", "crawled_at", "success", "status"],
+            }
         }
 
     async def dispatch(self, request: Request, call_next):
