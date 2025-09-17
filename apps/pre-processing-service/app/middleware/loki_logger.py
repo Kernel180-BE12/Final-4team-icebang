@@ -6,14 +6,15 @@ from datetime import datetime
 from loguru import logger
 
 from app.model.execution_log import ExecutionLog
+from app.core.config import settings
 
 
 class LokiLogger:
     """Loki에 로그를 전송하는 클래스"""
 
-    def __init__(self, loki_host: str = "localhost", loki_port: int = 3100, app_name: str = "pre-processing-service"):
-        self.loki_url = f"http://{loki_host}:{loki_port}/loki/api/v1/push"
-        self.app_name = app_name
+    def __init__(self):
+        self.loki_url = f"{settings.loki_host}:{settings.loki_port}/loki/api/v1/push"
+        self.app_name = settings.app_name
         self.session = None
 
     async def _get_session(self) -> aiohttp.ClientSession:
@@ -99,7 +100,7 @@ class LokiLogger:
                 timeout=aiohttp.ClientTimeout(total=5)
             ) as response:
                 if response.status == 204:
-                    logger.debug(f"Loki 로그 전송 성공: {execution_type} - {log_message[:50]}...")
+                    # logger.debug(f"Loki 로그 전송 성공: {execution_type} - {log_message[:50]}...")
                     return True
                 else:
                     response_text = await response.text()

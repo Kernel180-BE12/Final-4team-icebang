@@ -13,6 +13,7 @@ class ExecutionLog:
     log_level: str  # INFO, ERROR, WARNING, DEBUG
     executed_at: datetime
     log_message: str
+    span_id: str =""#테스트값
     trace_id: Optional[str] = None
     run_id: Optional[int] = None
     status: Optional[str] = None  # SUCCESS, ERROR, RUNNING, PENDING
@@ -38,7 +39,7 @@ class ExecutionLog:
             'status': self.status,
             'duration_ms': self.duration_ms,
             'error_code': self.error_code,
-            'reserved1': self.reserved1,
+            'reserved1': self.span_id,
             'reserved2': self.reserved2,
             'reserved3': self.reserved3,
             'reserved4': json.dumps(self.reserved4) if self.reserved4 else None,
@@ -53,7 +54,7 @@ class ExecutionLog:
             "app": app_name,
             "env": "develop",
             "traceId": self.trace_id or "NO_TRACE_ID",
-            "spanId": "",  # 필요시 추가
+            "spanId": self.span_id,  # 필요시 추가
             "executionType": self.execution_type,
             "sourceId": str(self.source_id),
             "runId": str(self.run_id) if self.run_id else ""

@@ -75,7 +75,7 @@ class RDSLogger:
             with self.db_manager.get_cursor() as cursor:
                 cursor.execute(insert_query, values)
 
-            logger.debug(f"RDS 로그 저장 성공: {execution_type} - {log_message[:50]}...")
+            # logger.debug(f"RDS 로그 저장 성공: {execution_type} - {log_message[:50]}...")
             return True
 
         except Exception as e:
