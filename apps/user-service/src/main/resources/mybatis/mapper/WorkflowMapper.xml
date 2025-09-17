@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="site.icebang.domain.workflow.mapper.WorkflowMapper">
+
+    <select id="findById" resultType="site.icebang.domain.workflow.model.Workflow">
+        SELECT
+            id,
+            name,
+            description,
+            is_enabled AS isEnabled,
+            created_at AS createdAt,
+            created_by AS createdBy,
+            updated_at AS updatedAt,
+            updated_by AS updatedBy,
+            default_config AS defaultConfig
+        FROM
+            workflow
+        WHERE
+            id = #{id}
+    </select>
+
+    <select id="selectWorkflowList" resultType="site.icebang.domain.workflow.dto.WorkflowCardDto">
+        SELECT
+            id,
+            name,
+            description,
+            is_enabled AS isEnabled
+        FROM
+            workflow
+        ORDER BY id DESC
+            LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="selectWorkflowCount" resultType="int">
+        SELECT COUNT(id)
+        FROM workflow
+    </select>
+
+</mapper>
