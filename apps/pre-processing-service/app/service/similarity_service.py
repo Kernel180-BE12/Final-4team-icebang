@@ -2,6 +2,7 @@ from app.utils.similarity_analyzer import SimilarityAnalyzerONNX
 from app.errors.CustomException import InvalidItemDataException
 from ..model.schemas import RequestSadaguSimilarity
 from loguru import logger
+from app.utils.response import Response
 
 
 class SimilarityService:
@@ -26,12 +27,13 @@ class SimilarityService:
                 logger.warning(
                     f"매칭된 상품과 검색 결과가 모두 없음: keyword='{keyword}'"
                 )
-                return {
+
+                data = {
                     "keyword": keyword,
                     "selected_product": None,
                     "reason": "매칭된 상품과 검색 결과가 모두 없음",
-                    "status": "success",
                 }
+                return Response.ok(data, "매칭된 상품과 검색 결과가 모두 없습니다.")
 
             logger.info("매칭된 상품 없음 → 전체 검색 결과에서 유사도 분석")
             candidates = fallback_products
@@ -63,12 +65,14 @@ class SimilarityService:
                         logger.warning(
                             f"단일 상품 유사도 미달: similarity={similarity:.4f} < threshold={similarity_threshold}"
                         )
-                        return {
+                        data = {
                             "keyword": keyword,
                             "selected_product": None,
                             "reason": f"단일 상품 유사도({similarity:.4f}) < 기준({similarity_threshold})",
-                            "status": "success",
                         }
+                        return Response.ok(
+                            data, "단일 상품 유사도 미달 되어 상품이 존재하지않습니다."
+                        )
 
                 selected_product["similarity_info"] = {
                     "similarity_score": float(similarity),
@@ -79,13 +83,12 @@ class SimilarityService:
                 logger.success(
                     f"단일 상품 선택 완료: title='{selected_product['title'][:30]}', similarity={similarity:.4f}"
                 )
-
-                return {
+                data = {
                     "keyword": keyword,
                     "selected_product": selected_product,
                     "reason": f"단일 상품 - 유사도: {similarity:.4f} ({analysis_mode})",
-                    "status": "success",
                 }
+                return Response.ok(data)
 
             # 여러 개가 있으면 유사도 비교
             logger.info("여러 상품 중 최고 유사도로 선택...")
@@ -114,12 +117,12 @@ class SimilarityService:
                 logger.warning(
                     f"최고 유사도 미달: similarity={best_result['similarity']:.4f} < threshold={similarity_threshold}"
                 )
-                return {
+                data = {
                     "keyword": keyword,
                     "selected_product": None,
                     "reason": f"최고 유사도({best_result['similarity']:.4f}) < 기준({similarity_threshold})",
-                    "status": "success",
                 }
+                return Response.ok(data, "최고 유사도가 기준보다 미달 되었습니다.")
 
             # 유사도 정보 추가
             selected_product["similarity_info"] = {
@@ -147,13 +150,12 @@ class SimilarityService:
             logger.success(
                 f"상품 선택 완료: title='{selected_product['title'][:30]}', {reason}"
             )
-
-            return {
+            data = {
                 "keyword": keyword,
                 "selected_product": selected_product,
                 "reason": reason,
-                "status": "success",
             }
+            return Response.ok(data)
 
         except Exception as e:
             logger.error(f"유사도 분석 서비스 오류: keyword='{keyword}', error='{e}'")

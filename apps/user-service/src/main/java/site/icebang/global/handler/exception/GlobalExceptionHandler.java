@@ -24,8 +24,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   public ApiResponse<String> handleGeneric(Exception ex) {
-    return ApiResponse.error(
-        "Internal error: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    return ApiResponse.error("Internal error: ", HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
   @ExceptionHandler(NoResourceFoundException.class)
