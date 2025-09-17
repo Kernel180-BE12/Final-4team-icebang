@@ -44,6 +44,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "docker/production/docker-compose.yml"
           target: "~/app"
+          overwrite: true
 
       - name: Copy .env.prod file to EC2
         uses: appleboy/scp-action@v0.1.7
@@ -62,7 +63,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "docker/production/Caddyfile"
-          target: "~/app/docker/production/"
+          target: "~/app"
           overwrite: true
 
       - name: Copy promtail-config to EC2
@@ -72,7 +73,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "docker/production/promtail-config.yml"
-          target: "~/app/docker/production/"
+          target: "~/app"
           overwrite: true
 
 
