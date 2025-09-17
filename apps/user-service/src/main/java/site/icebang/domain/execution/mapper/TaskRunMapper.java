@@ -1,8 +1,8 @@
-package site.icebang.domain.workflow.mapper.execution;
+package site.icebang.domain.execution.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import site.icebang.domain.workflow.model.execution.TaskRun;
+import site.icebang.domain.execution.model.TaskRun;
 
 @Mapper
 public interface TaskRunMapper {

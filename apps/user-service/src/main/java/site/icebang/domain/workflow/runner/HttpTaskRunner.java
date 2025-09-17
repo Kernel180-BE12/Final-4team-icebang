@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import site.icebang.domain.workflow.model.Task;
-import site.icebang.domain.workflow.model.execution.TaskRun;
+import site.icebang.domain.execution.model.TaskRun;
 
 @Slf4j
 @Component("httpTaskRunner")

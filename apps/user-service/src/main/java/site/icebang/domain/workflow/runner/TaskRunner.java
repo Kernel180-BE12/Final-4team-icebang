@@ -1,7 +1,7 @@
 package site.icebang.domain.workflow.runner;
 
 import site.icebang.domain.workflow.model.Task;
-import site.icebang.domain.workflow.model.execution.TaskRun;
+import site.icebang.domain.execution.model.TaskRun;
 
 public interface TaskRunner {
   record TaskExecutionResult(String status, String message) {

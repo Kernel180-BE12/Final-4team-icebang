@@ -1,4 +1,4 @@
-package site.icebang.domain.workflow.model.execution;
+package site.icebang.domain.execution.model;
 
 import java.time.LocalDateTime;
 

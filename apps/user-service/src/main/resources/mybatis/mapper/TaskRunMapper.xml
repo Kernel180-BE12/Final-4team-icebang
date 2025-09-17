@@ -1,4 +1,4 @@
-<mapper namespace="site.icebang.domain.workflow.mapper.execution.TaskRunMapper">
+<mapper namespace="site.icebang.domain.execution.mapper.TaskRunMapper">
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO task_run (job_run_id, task_id, status, started_at, created_at)
         VALUES (#{jobRunId}, #{taskId}, #{status}, #{startedAt}, #{createdAt})
