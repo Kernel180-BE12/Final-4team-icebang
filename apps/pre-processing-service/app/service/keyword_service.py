@@ -1,11 +1,11 @@
 import json
 import random
-
+from app.utils.response import Response
 import httpx
-from starlette import status
 
 from ..errors.CustomException import InvalidItemDataException
 from ..model.schemas import RequestNaverSearch
+from datetime import date, timedelta
 
 
 async def keyword_search(request: RequestNaverSearch) -> dict:
@@ -16,9 +16,7 @@ async def keyword_search(request: RequestNaverSearch) -> dict:
 
     # 키워드 검색
     if request.tag == "naver":
-        trending_keywords = await search_naver_rank(
-            **request.model_dump(include={"category", "start_date", "end_date"})
-        )
+        trending_keywords = await search_naver_rank()
     elif request.tag == "naver_store":
         trending_keywords = await search_naver_store()
     else:
@@ -27,14 +25,14 @@ async def keyword_search(request: RequestNaverSearch) -> dict:
     if not trending_keywords:
         raise InvalidItemDataException()
 
-    response_data = request.model_dump()
-    response_data["keyword"] = random.choice(list(trending_keywords.values()))
-    response_data["total_keyword"] = trending_keywords
-    response_data["status"] = "success"
-    return response_data
+    data = {
+        "keyword": random.choice(list(trending_keywords.values())),
+        "total_keyword": trending_keywords,
+    }
+    return Response.ok(data)
 
 
-async def search_naver_rank(category, start_date, end_date) -> dict[int, str]:
+async def search_naver_rank() -> dict[int, str]:
     """
     네이버 데이터 랩 키워드 검색 모듈
     """
@@ -44,6 +42,26 @@ async def search_naver_rank(category, start_date, end_date) -> dict[int, str]:
         "Referer": "https://datalab.naver.com/shoppingInsight/sCategory.naver",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
     }
+    categorys = [
+        "50000000",
+        "50000001",
+        "50000002",
+        "50000003",
+        "50000004",
+        "50000005",
+        "50000006",
+        "50000007",
+        "50000008",
+        "50000009",
+    ]
+    category = random.choice(categorys)
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+
+    # 3. 원하는 포맷(YYYY-MM-DD)으로 변환하기
+    end_date = today.strftime("%Y-%m-%d")
+    start_date = yesterday.strftime("%Y-%m-%d")
+
     keywords_dic = {}
     async with httpx.AsyncClient() as client:
         for page in range(1, 3):
@@ -80,7 +98,6 @@ async def search_naver_store() -> dict[int, str]:
     """
     url = "https://snxbest.naver.com/api/v1/snxbest/keyword/rank?ageType=ALL&categoryId=A&sortType=KEYWORD_POPULAR&periodType=DAILY"
     headers = {}
-
     async with httpx.AsyncClient() as client:
         try:
             # API에 GET 요청을 보냅니다.

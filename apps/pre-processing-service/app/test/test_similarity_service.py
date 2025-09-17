@@ -38,13 +38,14 @@ def test_similarity_with_matched_products():
 
     assert response.status_code == 200
     data = response.json()
-    assert data["keyword"] == body["keyword"]
-    assert data["status"] == "success"
+    assert data["success"] == True
+    assert data["status"] == "OK"
+    assert data["data"]["keyword"] == body["keyword"]
 
-    if data["selected_product"]:
-        assert "similarity_info" in data["selected_product"]
-        assert "similarity_score" in data["selected_product"]["similarity_info"]
-        assert data["reason"] is not None
+    if data["data"]["selected_product"]:
+        assert "similarity_info" in data["data"]["selected_product"]
+        assert "similarity_score" in data["data"]["selected_product"]["similarity_info"]
+        assert data["data"]["reason"] is not None
 
 
 def test_similarity_fallback_to_search_results():
@@ -71,13 +72,14 @@ def test_similarity_fallback_to_search_results():
 
     assert response.status_code == 200
     data = response.json()
-    assert data["status"] == "success"
+    assert data["success"] == True
+    assert data["status"] == "OK"
 
     # 폴백 모드에서는 임계값을 통과한 경우에만 상품이 선택됨
-    if data["selected_product"]:
-        assert "similarity_info" in data["selected_product"]
+    if data["data"]["selected_product"]:
+        assert "similarity_info" in data["data"]["selected_product"]
         assert (
-            data["selected_product"]["similarity_info"]["analysis_mode"]
+            data["data"]["selected_product"]["similarity_info"]["analysis_mode"]
             == "fallback_similarity_only"
         )
 
@@ -102,9 +104,11 @@ def test_similarity_single_candidate():
 
     assert response.status_code == 200
     data = response.json()
-    assert data["selected_product"] is not None
+    assert data["success"] == True
+    assert data["status"] == "OK"
+    assert data["data"]["selected_product"] is not None
     assert (
-        data["selected_product"]["similarity_info"]["analysis_type"]
+        data["data"]["selected_product"]["similarity_info"]["analysis_type"]
         == "single_candidate"
     )
 
@@ -122,5 +126,7 @@ def test_similarity_no_candidates():
 
     assert response.status_code == 200
     data = response.json()
-    assert data["selected_product"] is None
-    assert "검색 결과가 모두 없음" in data["reason"]
+    assert data["success"] == True
+    assert data["status"] == "OK"
+    assert data["data"]["selected_product"] is None
+    assert "검색 결과가 모두 없음" in data["data"]["reason"]
