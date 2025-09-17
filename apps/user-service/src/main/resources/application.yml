@@ -8,20 +8,6 @@ spring:
       cache:
         maxSize: 1
 
-  # Spring Quartz 스케줄러 설정
-  quartz:
-    job-store-type: jdbc
-    auto-startup: true
-    jdbc:
-      initialize-schema: never # Quartz 테이블 스크립트는 직접 실행해야 함
-    properties:
-      org.quartz.scheduler.instanceId: AUTO
-      org.quartz.jobStore.class: org.quartz.impl.jdbcjobstore.JobStoreTX
-      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
-      org.quartz.jobStore.tablePrefix: QRTZ_ # Quartz 테이블 접두사
-      org.quartz.threadPool.class: org.quartz.simpl.SimpleThreadPool
-      org.quartz.threadPool.threadCount: 10 # 스케줄러가 사용할 스레드 개수
-
 mybatis:
   # Mapper XML 파일 위치
   mapper-locations: classpath:mapper/**/*.xml

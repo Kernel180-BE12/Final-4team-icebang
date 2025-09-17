@@ -36,6 +36,20 @@ spring:
         - classpath:sql/03-insert-workflow.sql
       encoding: UTF-8
 
+#  # Spring Quartz 스케줄러 설정
+#  quartz:
+#    job-store-type: jdbc
+#    auto-startup: true
+#    jdbc:
+#      initialize-schema: embedded # 운영 환경을 기준으로 기본값 설정
+#    properties:
+#      org.quartz.scheduler.instanceId: AUTO
+#      org.quartz.jobStore.class: org.quartz.impl.jdbcjobstore.JobStoreTX
+#      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+#      org.quartz.jobStore.tablePrefix: QRTZ_ # Quartz 테이블 접두사
+#      org.quartz.threadPool.class: org.quartz.simpl.SimpleThreadPool
+#      org.quartz.threadPool.threadCount: 5 # 개발 환경 스레드 수
+
 mybatis:
   mapper-locations: classpath:mybatis/mapper/**/*.xml
   type-aliases-package: site.icebang.dto
