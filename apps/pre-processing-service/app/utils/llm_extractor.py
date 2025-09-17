@@ -6,7 +6,7 @@ load_dotenv()
 
 class LLMExtractor:
 
-    def __init__(self, model = "gpt-4o"):
+    def __init__(self, model="gpt-4o"):
         """
         LLMExtractor 초기화
         :param model: 사용할 LLM 모델 이름
