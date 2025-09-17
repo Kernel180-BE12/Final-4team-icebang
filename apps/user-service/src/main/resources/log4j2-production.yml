@@ -7,7 +7,7 @@ Configuration:
       - name: "app-name"
         value: "user-service"
       - name: "log-path"
-        value: "./logs"
+        value: "/logs"
       - name: "charset-UTF-8"
         value: "UTF-8"
       # 프로덕션 환경용 콘솔 패턴 - 구조화된 로그
