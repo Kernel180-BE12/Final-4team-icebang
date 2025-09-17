@@ -8,6 +8,7 @@ from ...service.blog.blogger_blog_post_adapter import (
     BloggerBlogPostAdapter,
 )  # 수정된 import
 from app.utils.response import Response
+from app.service.blog.blog_create_service import BlogContentService
 
 router = APIRouter()
 
@@ -21,8 +22,10 @@ async def rag_create(request: RequestBlogCreate):
     """
     RAG 기반 블로그 콘텐츠 생성
     """
-    return {"message": "blog API"}
+    blog_service = BlogContentService()
+    response_data = blog_service.generate_blog_content(request)
 
+    return Response.ok(response_data)
 
 @router.post(
     "/publish",
