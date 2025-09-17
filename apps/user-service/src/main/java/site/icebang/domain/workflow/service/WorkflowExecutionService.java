@@ -85,7 +85,8 @@ public class WorkflowExecutionService {
       taskRunMapper.insert(taskRun);
       log.info("Task 실행 시작: TaskId={}, TaskRunId={}", task.getId(), taskRun.getId());
 
-      String runnerBeanName = task.getType().toLowerCase() + "TaskRunner";
+      String taskType = task.getType();
+      String runnerBeanName = mapTaskTypeToRunner(taskType);
       TaskRunner runner = taskRunners.get(runnerBeanName);
 
       if (runner == null) {
@@ -107,5 +108,21 @@ public class WorkflowExecutionService {
     }
 
     return true; // 모든 Task가 성공적으로 완료됨
+  }
+
+  /**
+   * Task 타입을 적절한 TaskRunner Bean 이름으로 매핑합니다.
+   *
+   * @param taskType DB에 저장된 Task의 타입 (예: "API_CALL", "WEB_SCRAPING")
+   * @return TaskRunner Bean의 이름 (예: "httpTaskRunner")
+   */
+  private String mapTaskTypeToRunner(String taskType) {
+    return switch (taskType.toUpperCase()) {
+      case "HTTP", "API_CALL", "WEB_SCRAPING", "AI_GENERATION",
+           "TEMPLATE_PROCESSING", "CONTENT_REVIEW", "PUBLISHING",
+           "DATA_PROCESSING", "DATA_EXTRACTION", "DATA_ANALYSIS"
+              -> "httpTaskRunner";
+      default -> taskType.toLowerCase() + "TaskRunner";
+    };
   }
 }

@@ -17,8 +17,6 @@
         <result property="name" column="name"/>
         <result property="type" column="type"/>
         <result property="parameters" column="parameters" javaType="com.fasterxml.jackson.databind.JsonNode" jdbcType="VARCHAR" typeHandler="site.icebang.global.config.mybatis.typehandler.JsonNodeTypeHandler"/>
-        <result property="createdAt" column="created_at"/>
-        <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
     <select id="findJobsByWorkflowId" resultMap="JobResultMap">
@@ -29,7 +27,7 @@
     </select>
 
     <select id="findTasksByJobId" resultMap="TaskResultMap">
-        SELECT t.* FROM task t
+        SELECT t.id, t.name, t.type, t.parameters FROM task t
         JOIN job_task jt ON t.id = jt.task_id
         WHERE jt.job_id = #{jobId}
         ORDER BY jt.execution_order ASC
