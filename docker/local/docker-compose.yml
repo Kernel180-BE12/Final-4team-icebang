@@ -55,9 +55,9 @@ services:
     ports:
       - "9080:9080"
     volumes:
-      - ./promtail-config.yml:/etc/promtail/config.yml:ro
-#      - ../../logs:/logs:ro  # 프로젝트 루트의 logs 디렉토리
-      - ./logs:/logs:ro
+      - ./promtail-config.yml:/etc/promtail/config.yml:ro       # config 파일
+      - ./logs:/logs:cached
+      - promtail_positions:/var/lib/promtail                     # positions 파일용 writable volume
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       - loki
@@ -89,3 +89,4 @@ volumes:
   mariadb_data:
   loki_data:
   grafana_data:
+  promtail_positions: {}   # Promtail positions 파일용 named volume
