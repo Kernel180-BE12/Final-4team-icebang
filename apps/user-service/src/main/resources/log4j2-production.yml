@@ -12,7 +12,7 @@ Configuration:
         value: "UTF-8"
       # 프로덕션 환경용 콘솔 패턴 - 구조화된 로그
       - name: "console-layout-pattern"
-        value: "%highlight{[%-5level]} [%X{traceId}] [%X{spanId}] %d{HH:mm:ss}{UTC} [%t]   %logger{20} - %msg% "
+        value: "%highlight{[%-5level]} [%X{traceId}] [%X{spanId}] %d{HH:mm:ss}{UTC} [%t] %logger{20} - %msg%n"
       # 파일용 패턴 - Promtail이 파싱하기 쉽게 구조화 (UTC 시간 사용)
       - name: "file-layout-pattern"
         value: "[%X{traceId}] [%X{spanId}] %d{yyyy-MM-dd HH:mm:ss.SSS}{UTC} [%t] %-5level %logger{36} - %msg%n"
@@ -58,9 +58,11 @@ Configuration:
         - name: "reserved1"
           pattern: "%X{spanId}"
 
-    File:
+    # RollingFile로 변경 (File 대신)
+    RollingFile:
       - name: file-prod-appender
         fileName: ${prod-log}
+        filePattern: ${log-path}/production/app.%d{yyyy-MM-dd}.%i.log
         PatternLayout:
           pattern: ${file-layout-pattern}
         # 로그 파일 롤링 설정
@@ -72,10 +74,10 @@ Configuration:
             size: "100 MB"
         DefaultRolloverStrategy:
           max: 30
-        filePattern: ${log-path}/production/app.%d{yyyy-MM-dd}.%i.log
 
       - name: file-error-appender
         fileName: ${error-log}
+        filePattern: ${log-path}/production/error.%d{yyyy-MM-dd}.%i.log
         PatternLayout:
           pattern: ${file-layout-pattern}
         ThresholdFilter:
@@ -88,7 +90,6 @@ Configuration:
             size: "100 MB"
         DefaultRolloverStrategy:
           max: 30
-        filePattern: ${log-path}/production/error.%d{yyyy-MM-dd}.%i.log
 
   Loggers:
     # Root 로거 - 프로덕션에서는 WARN 레벨
