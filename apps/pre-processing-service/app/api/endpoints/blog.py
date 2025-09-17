@@ -28,6 +28,7 @@ async def rag_create(request: RequestBlogCreate):
 
     return Response.ok(response_data)
 
+
 @router.post(
     "/publish",
     response_model=ResponseBlogPublish,

@@ -27,7 +27,7 @@ class BlogServiceFactory:
             raise CustomException(
                 f"지원하지 않는 플랫폼입니다: {platform}. "
                 f"지원 플랫폼: {list(cls._services.keys())}",
-                status_code=400
+                status_code=400,
             )
 
         return service_class()

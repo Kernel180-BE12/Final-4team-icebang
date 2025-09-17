@@ -27,8 +27,7 @@ class BlogPublishService:
 
             if not response_data:
                 raise CustomException(
-                    f"{request.tag} 블로그 포스팅에 실패했습니다.",
-                    status_code=500
+                    f"{request.tag} 블로그 포스팅에 실패했습니다.", status_code=500
                 )
 
             return response_data
@@ -39,6 +38,5 @@ class BlogPublishService:
         except Exception as e:
             # 예상치 못한 예외 처리
             raise CustomException(
-                f"블로그 포스팅 중 오류가 발생했습니다: {str(e)}",
-                status_code=500
+                f"블로그 포스팅 중 오류가 발생했습니다: {str(e)}", status_code=500
             )
