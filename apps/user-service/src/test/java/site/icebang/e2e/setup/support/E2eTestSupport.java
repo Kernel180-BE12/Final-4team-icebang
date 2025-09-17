@@ -5,7 +5,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,7 +15,6 @@ import site.icebang.e2e.setup.config.E2eTestConfiguration;
 @Import(E2eTestConfiguration.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @E2eTest
-@Sql(value = "classpath:sql/00-truncate.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 public abstract class E2eTestSupport {
   @Autowired protected TestRestTemplate restTemplate;
 

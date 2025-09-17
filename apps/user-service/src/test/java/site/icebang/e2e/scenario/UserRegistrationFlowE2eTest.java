@@ -15,7 +15,7 @@ import org.springframework.test.context.jdbc.Sql;
 import site.icebang.e2e.setup.support.E2eTestSupport;
 
 @Sql(
-    value = "classpath:sql/01-insert-internal-users.sql",
+    value = {"classpath:sql/00-truncate.sql", "classpath:sql/01-insert-internal-users.sql"},
     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @DisplayName("사용자 등록 플로우 E2E 테스트")
 class UserRegistrationFlowE2eTest extends E2eTestSupport {
