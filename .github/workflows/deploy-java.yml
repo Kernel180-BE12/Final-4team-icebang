@@ -28,6 +28,9 @@ jobs:
           echo "DB_USER=${{ secrets.DB_USER }}" >> .env.prod
           echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env.prod
           echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env.prod
+          echo "ENV_NAME=${{ secrets.LOKI_URL }}" >> .env.prod
+          echo "ENV_NAME=${{ secrets.LOKI_USERNAME }}" >> .env.prod
+          echo "ENV_NAME=${{ secrets.LOKI_PASSWORD }}" >> .env.prod
           echo "ENV_NAME=${{ secrets.ENV_NAME }}" >> .env.prod
 
       - name: Set repo lowercase
@@ -61,6 +64,17 @@ jobs:
           source: "docker/production/Caddyfile"
           target: "~/app/docker/production/"
           overwrite: true
+
+      - name: Copy promtail-config to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "docker/production/promtail-config.yml"
+          target: "~/app/docker/production/"
+          overwrite: true
+
 
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
