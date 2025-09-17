@@ -27,7 +27,7 @@ public enum SecurityEndpoints {
   OPS("/api/scheduler/**", "/api/monitoring/**"),
 
   // 일반 사용자 엔드포인트
-  USER("/user/**", "/profile/**", "/v0/auth/check-session");
+  USER("/user/**", "/profile/**", "/v0/auth/check-session", "/v0/workflows/**");
 
   private final String[] patterns;
 

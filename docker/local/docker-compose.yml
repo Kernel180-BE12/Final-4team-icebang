@@ -47,6 +47,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - icebang-network
 
   promtail:
     image: grafana/promtail:2.9.0
@@ -84,9 +86,15 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    networks:
+      - icebang-network
 
 volumes:
   mariadb_data:
   loki_data:
   grafana_data:
   promtail_positions: {}   # Promtail positions 파일용 named volume
+
+networks:
+  icebang-network:
+    driver: bridge
