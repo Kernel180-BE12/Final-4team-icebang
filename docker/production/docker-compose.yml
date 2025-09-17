@@ -19,6 +19,8 @@ services:
     image: ghcr.io/kernel180-be12/final-4team-icebang/user-service:latest
     container_name: user-service
     restart: on-failure:3
+    depends_on:
+      - promtail
     ports:
       - "8080:8080"
     networks:
@@ -38,8 +40,6 @@ services:
       - ./promtail-config.yml:/etc/promtail/config.yml:ro
       - logs_volume:/logs      # Spring 로그 읽기
     command: -config.file=/etc/promtail/config.yml
-    depends_on:
-      - user-service
     env_file:
       - .env.prod
 
