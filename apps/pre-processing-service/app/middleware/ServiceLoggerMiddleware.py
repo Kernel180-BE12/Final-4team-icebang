@@ -8,6 +8,10 @@ from typing import Dict, Optional, List, Any
 
 import json
 import time
+import asyncio
+
+from app.middleware.rds_logger import RDSLogger
+from app.middleware.loki_logger import LokiLogger
 
 trace_id_context: ContextVar[str] = ContextVar("trace_id", default="NO_TRACE_ID")
 
@@ -18,9 +22,11 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
     URL 패턴을 기반으로 자동으로 서비스 타입 식별 및 로깅
     """
 
-    def __init__(self, app, service_mappings: Dict[str, Dict] = None):
+    def __init__(self, app, service_mappings: Dict[str, Dict] = None, enable_rds: bool = True, enable_loki: bool = True):
         """
         :param service_mappings: URL 패턴별 서비스 설정
+        :param enable_rds: RDS 로깅 활성화 여부
+        :param enable_loki: Loki 로깅 활성화 여부
         예: {
             "/keywords/search": {
                 "service_type": "NAVER_CRAWLING",
@@ -31,6 +37,12 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
         """
         super().__init__(app)
         self.service_mappings = service_mappings or self._default_mappings()
+        self.enable_rds = enable_rds
+        self.enable_loki = enable_loki
+
+        # 로거 인스턴스 초기화
+        self.rds_logger = RDSLogger() if enable_rds else None
+        self.loki_logger = LokiLogger() if enable_loki else None
 
     def _default_mappings(self) -> Dict[str, Dict]:
         """기본 서비스 매핑 설정"""
@@ -78,7 +90,8 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # 2. 시작 로깅
-        trace_id = trace_id_context.get("NO_TRACE_ID")
+        trace_id = request.headers.get("X-Request-ID", "NO_TRACE_ID")
+        trace_id_context.set(trace_id)
         start_time = time.time()
 
         # 파라미터 추출 및 시작 로그
@@ -91,11 +104,23 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
         service_type = service_config["service_type"]
         logger.info(f"[{service_type}_START] trace_id={trace_id}{param_str}")
 
+        # source_id 추출 (job_id, schedule_id 등에서)
+        source_id = self._extract_source_id(params)
+        run_id = params.get("run_id")
+
+        # RDS 및 Loki에 시작 로그 전송
+        start_message = f"[{service_type}_START]{param_str}"
+        await self._log_to_external_systems(
+            "start", service_type, source_id, trace_id, start_message, run_id, params
+        )
+
         # 3. 요청 처리
         try:
             response = await call_next(request)
 
             # 4. 성공 로깅
+            duration_ms = int((time.time() - start_time) * 1000)
+
             if 200 <= response.status_code < 300:
                 await self._log_success_response(
                     service_type,
@@ -105,16 +130,38 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
                     response,
                     service_config["response_trackers"],
                 )
+
+                # 외부 로깅 시스템에 성공 로그 전송
+                success_message = f"[{service_type}_SUCCESS]{param_str} status_code={response.status_code}"
+                await self._log_to_external_systems(
+                    "success", service_type, source_id, trace_id, success_message,
+                    run_id, params, duration_ms=duration_ms
+                )
             else:
                 await self._log_error_response(
                     service_type, trace_id, start_time, param_str, response
+                )
+
+                # 외부 로깅 시스템에 에러 로그 전송
+                error_message = f"[{service_type}_ERROR]{param_str} status_code={response.status_code}"
+                await self._log_to_external_systems(
+                    "error", service_type, source_id, trace_id, error_message,
+                    run_id, params, duration_ms=duration_ms, error_code=f"HTTP_{response.status_code}"
                 )
 
             return response
 
         except Exception as e:
             # 5. 예외 로깅
+            duration_ms = int((time.time() - start_time) * 1000)
             await self._log_exception(service_type, trace_id, start_time, param_str, e)
+
+            # 외부 로깅 시스템에 예외 로그 전송
+            exception_message = f"[{service_type}_EXCEPTION]{param_str} exception={str(e)}"
+            await self._log_to_external_systems(
+                "error", service_type, source_id, trace_id, exception_message,
+                run_id, params, duration_ms=duration_ms, error_code="EXCEPTION"
+            )
             raise
 
     def _get_service_config(self, url_path: str) -> Optional[Dict]:
@@ -248,3 +295,68 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
             f"execution_time={duration:.4f}s{param_str} "
             f"exception={str(exception)}"
         )
+
+    def _extract_source_id(self, params: Dict[str, Any]) -> int:
+        """파라미터에서 source_id 추출 (job_id, schedule_id 등 우선순위)"""
+        for key in ["job_id", "schedule_id", "task_id", "workflow_id"]:
+            if key in params and params[key]:
+                try:
+                    return int(params[key])
+                except (ValueError, TypeError):
+                    continue
+        return 0  # 기본값
+
+    async def _log_to_external_systems(
+        self,
+        log_type: str,  # start, success, error
+        service_type: str,
+        source_id: int,
+        trace_id: str,
+        message: str,
+        run_id: Optional[int] = None,
+        params: Optional[Dict[str, Any]] = None,
+        duration_ms: Optional[int] = None,
+        error_code: Optional[str] = None
+    ):
+        """RDS와 Loki에 로그 전송"""
+        tasks = []
+
+        # 로깅할 추가 데이터 준비
+        additional_data = params.copy() if params else {}
+
+        if self.rds_logger:
+            if log_type == "start":
+                task = self.rds_logger.log_start(
+                    service_type, source_id, trace_id, message, run_id, additional_data
+                )
+            elif log_type == "success":
+                task = self.rds_logger.log_success(
+                    service_type, source_id, trace_id, message, duration_ms, run_id, additional_data
+                )
+            elif log_type == "error":
+                task = self.rds_logger.log_error(
+                    service_type, source_id, trace_id, message, error_code, duration_ms, run_id, additional_data
+                )
+            tasks.append(task)
+
+        if self.loki_logger:
+            if log_type == "start":
+                task = self.loki_logger.log_start(
+                    service_type, source_id, trace_id, message, run_id, additional_data
+                )
+            elif log_type == "success":
+                task = self.loki_logger.log_success(
+                    service_type, source_id, trace_id, message, duration_ms, run_id, additional_data
+                )
+            elif log_type == "error":
+                task = self.loki_logger.log_error(
+                    service_type, source_id, trace_id, message, error_code, duration_ms, run_id, additional_data
+                )
+            tasks.append(task)
+
+        # 비동기로 병렬 실행 (로깅 실패가 메인 로직에 영향을 주지 않도록)
+        if tasks:
+            try:
+                await asyncio.gather(*tasks, return_exceptions=True)
+            except Exception as e:
+                logger.debug(f"외부 로깅 시스템 전송 중 일부 실패: {e}")
