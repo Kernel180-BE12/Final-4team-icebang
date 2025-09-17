@@ -72,7 +72,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "docker/production/promtail-config.yml"
-          target: "~/app/docker/production/"
+          target: "~/app/docker/production/promtail-config.yml"
           overwrite: true
 
 
