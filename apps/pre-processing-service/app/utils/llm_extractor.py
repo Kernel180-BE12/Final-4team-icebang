@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class LLMExtractor:
 
     def __init__(self, model="gpt-4o"):
