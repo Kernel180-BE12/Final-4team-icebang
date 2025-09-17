@@ -6,10 +6,7 @@ positions:
   filename: /tmp/positions.yaml
 
 clients:
-  - url: ${LOKI_URL}                # Grafana Cloud Loki URL
-    basicAuth:
-      username: ${LOKI_USERNAME}    # Grafana Cloud 사용자 이름
-      password: ${LOKI_PASSWORD}    # Grafana Cloud API Key
+  - url: https://${LOKI_USERNAME}:${LOKI_PASSWORD}@${LOKI_HOST}/loki/api/v1/push
 
 scrape_configs:
   - job_name: user-service-logs
