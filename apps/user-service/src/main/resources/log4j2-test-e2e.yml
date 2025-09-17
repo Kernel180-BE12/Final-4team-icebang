@@ -34,7 +34,7 @@ Configuration:
     Loki:
       name: loki-appender
       host: localhost
-      port: ${sys:loki.port}
+      port: "${loki-port}"
       JsonLayout:
         compact: true
         eventEol: true
@@ -60,28 +60,33 @@ Configuration:
         - name: "runId"
           value: "${ctx:runId}"
 
-#      ExecutionDB:
-#        name: ExecutionDB
-#        class: org.apache.logging.log4j.core.appender.db.jdbc.JdbcAppender
-#        tableName: execution_log
-#        columnMappings:
-#          - name: log_level
-#            pattern: "%level"
-#          - name: log_message
-#            pattern: "%message"
-#          - name: trace_id
-#            pattern: "%X{traceId}"
-#          - name: execution_type
-#            pattern: "%X{executionType}"
-#          - name: source_id
-#            pattern: "%X{sourceId}"
-#          - name: run_id
-#            pattern: "%X{runId}"
-#          - name: executed_at
-#            pattern: "%d{yyyy-MM-dd HH:mm:ss}"
-#        connectionSource:
-#          class: org.apache.logging.log4j.core.appender.db.jdbc.DataSourceConnectionSource
-#          dataSource: "#dataSource
+    JDBC:
+      name: workflow-appender
+      tableName: "execution_log"
+      bufferSize: 0
+      ignoreExceptions: false
+
+      DriverManager:
+        connectionString: ${DriverManager.connectionString}
+        driverClassName: ${DriverManager.driverClassName}
+        userName: ${DriverManager.userName}
+        password: ${DriverManager.password}
+
+      ColumnMapping:
+        - name: "execution_type"
+          pattern: "%X{executionType}"
+        - name: "source_id"
+          pattern: "%X{sourceId}"
+        - name: "log_level"
+          pattern: "%level"
+        - name: "executed_at"
+          pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS}"  # 패턴으로 시간 직접 지정
+        - name: "log_message"
+          pattern: "%message"
+        - name: "trace_id"
+          pattern: "%X{traceId}"
+        - name: "reserved1"
+          pattern: "%X{spanId}"
 
     # 개발용 일반 로그 파일
     File:
@@ -111,6 +116,16 @@ Configuration:
         AppenderRef:
           - ref: console-appender
           - ref: loki-appender
+          - ref: file-dev-appender
+          - ref: file-error-appender
+
+      - name: "WORKFLOW_HISTORY"
+        level: DEBUG
+        additivity: "false"
+        AppenderRef:
+          - ref: workflow-appender
+          - ref: loki-appender
+          - ref: console-appender
           - ref: file-dev-appender
           - ref: file-error-appender
 
@@ -151,7 +166,7 @@ Configuration:
 
       # HikariCP 로그 비활성화
       - name: com.zaxxer.hikari
-        level: OFF
+        level: "OFF"
 
       # SQL 로그 - 개발 시 쿼리 확인용 (필요시 활성화)
       - name: org.hibernate.SQL

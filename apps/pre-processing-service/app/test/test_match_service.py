@@ -32,13 +32,14 @@ def test_match_success():
 
     assert response.status_code == 200
     data = response.json()
-    assert data["keyword"] == body["keyword"]
-    assert data["status"] == "success"
-    assert isinstance(data["matched_products"], list)
+    assert data["success"] == True
+    assert data["status"] == "OK"
+    assert data["data"]["keyword"] == body["keyword"]
+    assert isinstance(data["data"]["matched_products"], list)
 
     # 반지가 포함된 상품들이 매칭되어야 함
-    if data["matched_products"]:
-        for product in data["matched_products"]:
+    if data["data"]["matched_products"]:
+        for product in data["data"]["matched_products"]:
             assert "match_info" in product
             assert "match_type" in product["match_info"]
             assert "match_score" in product["match_info"]
@@ -56,7 +57,9 @@ def test_match_no_results():
 
     assert response.status_code == 200
     data = response.json()
-    assert data["matched_products"] == []
+    assert data["success"] == True
+    assert data["status"] == "OK"
+    assert data["data"]["matched_products"] == []
 
 
 def test_match_no_matches():
@@ -83,5 +86,6 @@ def test_match_no_matches():
     assert response.status_code == 200
     data = response.json()
     # 매칭되지 않아도 성공으로 처리
-    assert data["status"] == "success"
-    assert isinstance(data["matched_products"], list)
+    assert data["success"] == True
+    assert data["status"] == "OK"
+    assert isinstance(data["data"]["matched_products"], list)

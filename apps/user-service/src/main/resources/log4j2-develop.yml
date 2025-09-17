@@ -29,7 +29,7 @@ Configuration:
       target: SYSTEM_OUT
       PatternLayout:
         pattern: ${console-layout-pattern}
-        disableAnsi: false
+#        disableAnsi: false
 
     # Loki Appender - 개발환경 모니터링용
     Loki:
@@ -60,31 +60,35 @@ Configuration:
           value: "${ctx:sourceId}"
         - name: "runId"
           value: "${ctx:runId}"
+    JDBC:
+      name: workflow-appender
+      tableName: "execution_log"
+      bufferSize: 0
+      ignoreExceptions: false
 
-#      ExecutionDB:
-#        name: ExecutionDB
-#        class: org.apache.logging.log4j.core.appender.db.jdbc.JdbcAppender
-#        tableName: execution_log
-#        columnMappings:
-#          - name: log_level
-#            pattern: "%level"
-#          - name: log_message
-#            pattern: "%message"
-#          - name: trace_id
-#            pattern: "%X{traceId}"
-#          - name: execution_type
-#            pattern: "%X{executionType}"
-#          - name: source_id
-#            pattern: "%X{sourceId}"
-#          - name: run_id
-#            pattern: "%X{runId}"
-#          - name: executed_at
-#            pattern: "%d{yyyy-MM-dd HH:mm:ss}"
-#        connectionSource:
-#          class: org.apache.logging.log4j.core.appender.db.jdbc.DataSourceConnectionSource
-#          dataSource: "#dataSource
+      DriverManager:
+        connectionString: "jdbc:mariadb://localhost:3306/pre_process"
+        driverClassName: "org.mariadb.jdbc.Driver"
+        userName: "mariadb"
+        password: "qwer1234"
 
-    # 개발용 일반 로그 파일
+      ColumnMapping:
+        - name: "execution_type"
+          pattern: "%X{executionType}"
+        - name: "source_id"
+          pattern: "%X{sourceId}"
+        - name: "log_level"
+          pattern: "%level"
+        - name: "executed_at"
+          pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS}"  # 패턴으로 시간 직접 지정
+        - name: "log_message"
+          pattern: "%message"
+        - name: "trace_id"
+          pattern: "%X{traceId}"
+        - name: "reserved1"
+          pattern: "%X{spanId}"
+#        - name: "config_snapshot"
+#          pattern: "%X{configSnapshot}"
     File:
       - name: file-dev-appender
         fileName: ${dev-log}
@@ -107,7 +111,7 @@ Configuration:
     Logger:
       # 애플리케이션 로그 - 개발 시 모든 레벨 + Loki 전송
       - name: site.icebang
-        additivity: false
+        additivity: "false"
         level: DEBUG
         AppenderRef:
           - ref: console-appender
@@ -115,9 +119,19 @@ Configuration:
           - ref: file-dev-appender
           - ref: file-error-appender
 
+      - name: "WORKFLOW_HISTORY"
+        level: DEBUG
+        additivity: "false"
+        AppenderRef:
+          - ref: workflow-appender
+          - ref: loki-appender
+          - ref: console-appender
+          - ref: file-dev-appender
+          - ref: file-error-appender
+
       # Spring Framework - 개발 시 필요한 정보만
       - name: org.springframework
-        additivity: false
+        additivity: "false"
         level: INFO
         AppenderRef:
           - ref: console-appender
@@ -126,7 +140,7 @@ Configuration:
       # Spring Security - 인증 디버깅용
       - name: org.springframework.security
         level: DEBUG
-        additivity: false
+        additivity: "false"
         AppenderRef:
           - ref: console-appender
           - ref: file-dev-appender
@@ -135,7 +149,7 @@ Configuration:
       # 웹 요청 로그 - API 개발 시 유용
       - name: org.springframework.web
         level: DEBUG
-        additivity: false
+        additivity: "false"
         AppenderRef:
           - ref: console-appender
           - ref: file-dev-appender
@@ -144,7 +158,7 @@ Configuration:
       # 트랜잭션 로그 - DB 작업 디버깅
       - name: org.springframework.transaction
         level: DEBUG
-        additivity: false
+        additivity: "false"
         AppenderRef:
           - ref: console-appender
           - ref: file-dev-appender
@@ -152,18 +166,18 @@ Configuration:
 
       # HikariCP 로그 비활성화
       - name: com.zaxxer.hikari
-        level: OFF
+        level: "OFF"
 
       # SQL 로그 - 개발 시 쿼리 확인용 (필요시 활성화)
       - name: org.hibernate.SQL
         level: DEBUG
-        additivity: false
+        additivity: "false"
         AppenderRef:
           - ref: console-appender
 
       # 파라미터 바인딩 로그 (필요시 활성화)
       - name: org.hibernate.type.descriptor.sql.BasicBinder
         level: TRACE
-        additivity: false
+        additivity: "false"
         AppenderRef:
           - ref: console-appender
