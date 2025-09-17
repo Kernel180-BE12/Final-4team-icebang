@@ -7,13 +7,11 @@ from typing import Dict, List, Optional, Any
 from openai import OpenAI
 from dotenv import load_dotenv
 
-from app.schemas import RequestBlogCreate
+from app.model.schemas import RequestBlogCreate
 from app.errors.BlogPostingException import *
 
 # 환경변수 로드
 load_dotenv(".env.dev")
-
-client = OpenAI()
 
 
 class BlogContentService:
@@ -25,7 +23,8 @@ class BlogContentService:
         if not self.openai_api_key:
             raise ValueError("OPENAI_API_KEY가 .env.dev 파일에 설정되지 않았습니다.")
 
-        client.api_key = self.openai_api_key
+        # 인스턴스 레벨에서 클라이언트 생성
+        self.client = OpenAI(api_key=self.openai_api_key)
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
 
@@ -146,7 +145,7 @@ class BlogContentService:
     def _generate_with_openai(self, prompt: str) -> str:
         """OpenAI API를 통한 콘텐츠 생성"""
         try:
-            response = client.chat.completions.create(
+            response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
                     {
@@ -296,3 +295,42 @@ class BlogContentService:
             "content": content,
             "tags": self._generate_tags(request)
         }
+
+# if __name__ == '__main__':
+#     # 테스트용 요청 데이터
+#     test_request = RequestBlogCreate(
+#         keyword="아이폰 케이스",
+#         product_info={
+#             "title": "아이폰 15 프로 투명 케이스",
+#             "price": 29900,
+#             "rating": 4.8,
+#             "description": "9H 강화 보호 기능을 제공하는 투명 케이스",
+#             "material_info": {
+#                 "소재": "TPU + PC",
+#                 "두께": "1.2mm",
+#                 "색상": "투명",
+#                 "호환성": "아이폰 15 Pro"
+#             },
+#             "options": [
+#                 {"name": "투명"},
+#                 {"name": "반투명"},
+#                 {"name": "블랙"}
+#             ],
+#             "url": "https://example.com/iphone-case"
+#         }
+#     )
+#
+#     # 서비스 실행
+#     service = BlogContentService()
+#     print("=== 블로그 콘텐츠 생성 테스트 ===")
+#     print(f"키워드: {test_request.keyword}")
+#     print(f"상품: {test_request.product_info['title']}")
+#     print("\n--- 생성 시작 ---")
+#
+#     result = service.generate_blog_content(test_request)
+#
+#     print(f"\n=== 생성 결과 ===")
+#     print(f"제목: {result['title']}")
+#     print(f"\n태그: {', '.join(result['tags'])}")
+#     print(f"\n내용:\n{result['content']}")
+#     print(f"\n글자수: {len(result['content'])}자")
