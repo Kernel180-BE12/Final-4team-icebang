@@ -1,0 +1,52 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: ${LOKI_URL}                # Grafana Cloud Loki URL
+    basicAuth:
+      username: ${LOKI_USERNAME}    # Grafana Cloud 사용자 이름
+      password: ${LOKI_PASSWORD}    # Grafana Cloud API Key
+
+scrape_configs:
+  - job_name: user-service-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: user-service
+          app: user-service
+          env: production
+          __path__: /logs/production/app.log
+    pipeline_stages:
+      - regex:
+          expression: '^\[(?P<traceId>[^\]]*)\] \[(?P<spanId>[^\]]*)\] (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) \[(?P<thread>[^\]]+)\] (?P<level>\w+)\s+(?P<logger>\S+) - (?P<message>.*)$'
+      - labels:
+          traceId:
+          level:
+          thread:
+          logger:
+          spanId:
+
+  - job_name: user-service-errors
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: user-service-errors
+          app: user-service
+          env: production
+          log_type: error
+          __path__: /logs/production/error.log
+    pipeline_stages:
+      - regex:
+          expression: '^\[(?P<traceId>[^\]]*)\] \[(?P<spanId>[^\]]*)\] (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) \[(?P<thread>[^\]]+)\] (?P<level>\w+)\s+(?P<logger>\S+) - (?P<message>.*)$'
+      - labels:
+          traceId:
+          level:
+          thread:
+          logger:
+          spanId:
