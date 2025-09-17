@@ -1,14 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+from app.utils.response import Response
 
 client = TestClient(app)
-
-
-def test_read_root():
-    response = client.get("/keywords/")
-    assert response.status_code == 200
-    assert response.json() == {"message": "keyword API"}
 
 
 @pytest.mark.parametrize(
@@ -32,6 +27,7 @@ def test_search(tag, category, start_date, end_date):
     assert response.status_code == 200
 
     response_data = response.json()
-    assert response_data["status"] == "success"
-    assert "keyword" in response_data
-    assert isinstance(response_data["total_keyword"], dict)
+    assert response_data["success"] == True
+    assert response_data["status"] == "OK"
+    assert "keyword" in response_data["data"]
+    assert isinstance(response_data["data"]["total_keyword"], dict)

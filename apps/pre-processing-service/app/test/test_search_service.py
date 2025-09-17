@@ -14,9 +14,10 @@ def test_search_success():
 
     assert response.status_code == 200
     data = response.json()
-    assert data["keyword"] == body["keyword"]
-    assert data["status"] == "success"
-    assert isinstance(data["search_results"], list)
+    assert data["success"] == True
+    assert data["status"] == "OK"
+    assert data["data"]["keyword"] == body["keyword"]
+    assert isinstance(data["data"]["search_results"], list)
 
 
 def test_search_empty_keyword():
@@ -29,7 +30,9 @@ def test_search_empty_keyword():
     # 빈 키워드라도 에러가 아닌 빈 결과를 반환해야 함
     assert response.status_code == 200
     data = response.json()
-    assert data["search_results"] == []
+    assert data["success"] == True
+    assert data["status"] == "OK"
+    assert data["data"]["search_results"] == []
 
 
 def test_search_nonexistent_keyword():
@@ -44,5 +47,6 @@ def test_search_nonexistent_keyword():
     assert response.status_code == 200
     data = response.json()
     # 검색 결과가 없어도 성공으로 처리
-    assert data["status"] == "success"
-    assert isinstance(data["search_results"], list)
+    assert data["success"] == True
+    assert data["status"] == "OK"
+    assert isinstance(data["data"]["search_results"], list)

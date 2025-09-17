@@ -18,8 +18,10 @@ def test_crawl_success():
 
     assert response.status_code == 200
     data = response.json()
-    assert data["product_url"] == body["product_url"]
-    assert "product_detail" in data
+    assert data["success"] == True
+    assert data["status"] == "OK"
+    assert data["data"]["product_url"] == body["product_url"]
+    assert "product_detail" in data["data"]
 
 
 # def test_crawl_invalid_url():

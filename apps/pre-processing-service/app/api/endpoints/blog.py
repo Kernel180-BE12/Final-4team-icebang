@@ -7,6 +7,7 @@ from app.service.blog.naver_blog_post_service import NaverBlogPostService
 from ...service.blog.blogger_blog_post_adapter import (
     BloggerBlogPostAdapter,
 )  # 수정된 import
+from app.utils.response import Response
 
 router = APIRouter()
 
@@ -36,44 +37,45 @@ async def publish(request: RequestBlogPublish):
     """
     if request.tag == "naver":
         naver_service = NaverBlogPostService()
-        result = naver_service.post_content(
+        response_data = naver_service.post_content(
             title=request.post_title,
             content=request.post_content,
             tags=request.post_tags,
         )
 
-        if not result:
+        if not response_data:
             raise CustomException(
                 "네이버 블로그 포스팅에 실패했습니다.", status_code=500
             )
-        return ResponseBlogPublish(status="success", metadata=result)
+
+        return Response.ok(response_data)
 
     elif request.tag == "tistory":
         tistory_service = TistoryBlogPostService()
-        result = tistory_service.post_content(
+        response_data = tistory_service.post_content(
             title=request.post_title,
             content=request.post_content,
             tags=request.post_tags,
         )
 
-        if not result:
+        if not response_data:
             raise CustomException(
                 "티스토리 블로그 포스팅에 실패했습니다.", status_code=500
             )
 
-        return ResponseBlogPublish(status="success", metadata=result)
+        return Response.ok(response_data)
 
     elif request.tag == "blogger":
         blogger_service = BloggerBlogPostAdapter()  # 수정: Adapter 사용
-        result = blogger_service.post_content(
+        response_data = blogger_service.post_content(
             title=request.post_title,
             content=request.post_content,
             tags=request.post_tags,
         )
 
-        if not result:
+        if not response_data:
             raise CustomException(
                 "블로거 블로그 포스팅에 실패했습니다.", status_code=500
             )
 
-        return ResponseBlogPublish(status="success", metadata=result)
+        return Response.ok(response_data)
