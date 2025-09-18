@@ -7,6 +7,7 @@ from app.middleware.ServiceLoggerMiddleware import ServiceLoggerMiddleware
 
 # 파일 로깅 설정 초기화
 from app.core.logging_config import setup_file_logging
+
 setup_file_logging()
 
 # --- 애플리케이션 구성 요소 임포트 ---

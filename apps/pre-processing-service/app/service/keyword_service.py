@@ -90,7 +90,9 @@ async def search_naver_rank() -> dict[int, str]:
                 httpx.RequestError,
                 json.JSONDecodeError,
             ) as e:
-                logger.error(f"네이버 데이터랩에서 데이터를 가져오는 데 실패했습니다: {e}")
+                logger.error(
+                    f"네이버 데이터랩에서 데이터를 가져오는 데 실패했습니다: {e}"
+                )
                 raise InvalidItemDataException
         return keywords_dic
 

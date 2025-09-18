@@ -18,7 +18,6 @@ def setup_file_logging():
     # 기존 loguru 핸들러 제거 (기본 콘솔 출력 제거)
     logger.remove()
 
-
     # 환경변수로 로그 디렉토리 설정 (기본값: logs/develop)
     log_dir = "../../docker/local/logs/develop"
 
@@ -54,12 +53,12 @@ def setup_file_logging():
         level="DEBUG",
         rotation="100 MB",  # 100MB마다 로테이션
         retention="7 days",  # 7일간 보관
-        compression="zip",   # 압축
-        enqueue=True,       # 멀티프로세스 안전
-        serialize=False,    # JSON 직렬화 비활성화 (PromTail에서 파싱)
-        backtrace=True,     # 백트레이스 포함
-        diagnose=True,      # 진단 정보 포함
-        filter=exclude_logging_middleware_filter
+        compression="zip",  # 압축
+        enqueue=True,  # 멀티프로세스 안전
+        serialize=False,  # JSON 직렬화 비활성화 (PromTail에서 파싱)
+        backtrace=True,  # 백트레이스 포함
+        diagnose=True,  # 진단 정보 포함
+        filter=exclude_logging_middleware_filter,
     )
 
     # 에러 레벨 이상은 별도 파일에도 기록 - trace_id 포함, LoggingMiddleware 제외
@@ -74,7 +73,7 @@ def setup_file_logging():
         serialize=False,
         backtrace=True,
         diagnose=True,
-        filter=exclude_logging_middleware_filter
+        filter=exclude_logging_middleware_filter,
     )
 
     # 개발 환경에서는 콘솔 출력도 유지
@@ -84,7 +83,7 @@ def setup_file_logging():
             format="[{extra[trace_id]}] {time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} | {message}",
             level="DEBUG",
             colorize=False,  # colorize 비활성화하여 태그 충돌 방지
-            filter=add_trace_id_filter
+            filter=add_trace_id_filter,
         )
 
     logger.info("File logging setup completed for PromTail integration")

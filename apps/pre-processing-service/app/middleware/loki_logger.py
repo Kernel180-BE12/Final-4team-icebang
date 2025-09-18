@@ -39,7 +39,7 @@ class LokiLogger:
         status: Optional[str] = None,
         duration_ms: Optional[int] = None,
         error_code: Optional[str] = None,
-        additional_data: Optional[dict] = None
+        additional_data: Optional[dict] = None,
     ) -> bool:
         """
         Loki로 로그 전송
@@ -71,7 +71,7 @@ class LokiLogger:
                 status=status,
                 duration_ms=duration_ms,
                 error_code=error_code,
-                reserved4=additional_data
+                reserved4=additional_data,
             )
 
             loki_data = execution_log.to_loki_format(self.app_name)
@@ -84,9 +84,9 @@ class LokiLogger:
                         "values": [
                             [
                                 str(loki_data["log"]["timestamp"]),
-                                json.dumps(loki_data["log"], ensure_ascii=False)
+                                json.dumps(loki_data["log"], ensure_ascii=False),
                             ]
-                        ]
+                        ],
                     }
                 ]
             }
@@ -97,14 +97,16 @@ class LokiLogger:
                 self.loki_url,
                 json=payload,
                 headers={"Content-Type": "application/json"},
-                timeout=aiohttp.ClientTimeout(total=5)
+                timeout=aiohttp.ClientTimeout(total=5),
             ) as response:
                 if response.status == 204:
                     # logger.debug(f"Loki 로그 전송 성공: {execution_type} - {log_message[:50]}...")
                     return True
                 else:
                     response_text = await response.text()
-                    logger.error(f"Loki 로그 전송 실패: status={response.status}, response={response_text}")
+                    logger.error(
+                        f"Loki 로그 전송 실패: status={response.status}, response={response_text}"
+                    )
                     return False
 
         except asyncio.TimeoutError:
@@ -121,7 +123,7 @@ class LokiLogger:
         trace_id: str,
         log_message: str,
         run_id: Optional[int] = None,
-        additional_data: Optional[dict] = None
+        additional_data: Optional[dict] = None,
     ) -> bool:
         """시작 로그 전송"""
         return await self.send_log(
@@ -132,7 +134,7 @@ class LokiLogger:
             trace_id=trace_id,
             run_id=run_id,
             status="RUNNING",
-            additional_data=additional_data
+            additional_data=additional_data,
         )
 
     async def log_success(
@@ -143,7 +145,7 @@ class LokiLogger:
         log_message: str,
         duration_ms: int,
         run_id: Optional[int] = None,
-        additional_data: Optional[dict] = None
+        additional_data: Optional[dict] = None,
     ) -> bool:
         """성공 로그 전송"""
         return await self.send_log(
@@ -155,7 +157,7 @@ class LokiLogger:
             run_id=run_id,
             status="SUCCESS",
             duration_ms=duration_ms,
-            additional_data=additional_data
+            additional_data=additional_data,
         )
 
     async def log_error(
@@ -167,7 +169,7 @@ class LokiLogger:
         error_code: str,
         duration_ms: Optional[int] = None,
         run_id: Optional[int] = None,
-        additional_data: Optional[dict] = None
+        additional_data: Optional[dict] = None,
     ) -> bool:
         """에러 로그 전송"""
         return await self.send_log(
@@ -180,7 +182,7 @@ class LokiLogger:
             status="ERROR",
             duration_ms=duration_ms,
             error_code=error_code,
-            additional_data=additional_data
+            additional_data=additional_data,
         )
 
     def __del__(self):

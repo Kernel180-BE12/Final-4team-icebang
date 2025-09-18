@@ -22,7 +22,13 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
     URL 패턴을 기반으로 자동으로 서비스 타입 식별 및 로깅
     """
 
-    def __init__(self, app, service_mappings: Dict[str, Dict] = None, enable_rds: bool = True, enable_loki: bool = True):
+    def __init__(
+        self,
+        app,
+        service_mappings: Dict[str, Dict] = None,
+        enable_rds: bool = True,
+        enable_loki: bool = True,
+    ):
         """
         :param service_mappings: URL 패턴별 서비스 설정
         :param enable_rds: RDS 로깅 활성화 여부
@@ -75,7 +81,13 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
                     "schedule_id",
                     "schedule_his_id",
                 ],
-                "response_trackers": ["title", "content_length", "tags_count", "success", "status"],
+                "response_trackers": [
+                    "title",
+                    "content_length",
+                    "tags_count",
+                    "success",
+                    "status",
+                ],
             },
             # 블로그 배포
             "/blogs/publish": {
@@ -110,7 +122,12 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
                     "schedule_id",
                     "schedule_his_id",
                 ],
-                "response_trackers": ["keyword", "search_results_count", "success", "status"],
+                "response_trackers": [
+                    "keyword",
+                    "search_results_count",
+                    "success",
+                    "status",
+                ],
             },
             # 상품 매칭
             "/products/match": {
@@ -122,7 +139,12 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
                     "schedule_id",
                     "schedule_his_id",
                 ],
-                "response_trackers": ["keyword", "matched_products_count", "success", "status"],
+                "response_trackers": [
+                    "keyword",
+                    "matched_products_count",
+                    "success",
+                    "status",
+                ],
             },
             # 상품 유사도 분석
             "/products/similarity": {
@@ -135,7 +157,13 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
                     "schedule_id",
                     "schedule_his_id",
                 ],
-                "response_trackers": ["keyword", "selected_product", "reason", "success", "status"],
+                "response_trackers": [
+                    "keyword",
+                    "selected_product",
+                    "reason",
+                    "success",
+                    "status",
+                ],
             },
             # 상품 크롤링
             "/products/crawl": {
@@ -147,8 +175,15 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
                     "schedule_id",
                     "schedule_his_id",
                 ],
-                "response_trackers": ["tag", "product_url", "product_detail", "crawled_at", "success", "status"],
-            }
+                "response_trackers": [
+                    "tag",
+                    "product_url",
+                    "product_detail",
+                    "crawled_at",
+                    "success",
+                    "status",
+                ],
+            },
         }
 
     async def dispatch(self, request: Request, call_next):
@@ -205,8 +240,14 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
                 # 외부 로깅 시스템에 성공 로그 전송
                 success_message = f"[{service_type}_SUCCESS]{param_str} status_code={response.status_code}"
                 await self._log_to_external_systems(
-                    "success", service_type, source_id, trace_id, success_message,
-                    run_id, params, duration_ms=duration_ms
+                    "success",
+                    service_type,
+                    source_id,
+                    trace_id,
+                    success_message,
+                    run_id,
+                    params,
+                    duration_ms=duration_ms,
                 )
             else:
                 await self._log_error_response(
@@ -216,8 +257,15 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
                 # 외부 로깅 시스템에 에러 로그 전송
                 error_message = f"[{service_type}_ERROR]{param_str} status_code={response.status_code}"
                 await self._log_to_external_systems(
-                    "error", service_type, source_id, trace_id, error_message,
-                    run_id, params, duration_ms=duration_ms, error_code=f"HTTP_{response.status_code}"
+                    "error",
+                    service_type,
+                    source_id,
+                    trace_id,
+                    error_message,
+                    run_id,
+                    params,
+                    duration_ms=duration_ms,
+                    error_code=f"HTTP_{response.status_code}",
                 )
 
             return response
@@ -228,10 +276,19 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
             await self._log_exception(service_type, trace_id, start_time, param_str, e)
 
             # 외부 로깅 시스템에 예외 로그 전송
-            exception_message = f"[{service_type}_EXCEPTION]{param_str} exception={str(e)}"
+            exception_message = (
+                f"[{service_type}_EXCEPTION]{param_str} exception={str(e)}"
+            )
             await self._log_to_external_systems(
-                "error", service_type, source_id, trace_id, exception_message,
-                run_id, params, duration_ms=duration_ms, error_code="EXCEPTION"
+                "error",
+                service_type,
+                source_id,
+                trace_id,
+                exception_message,
+                run_id,
+                params,
+                duration_ms=duration_ms,
+                error_code="EXCEPTION",
             )
             raise
 
@@ -387,7 +444,7 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
         run_id: Optional[int] = None,
         params: Optional[Dict[str, Any]] = None,
         duration_ms: Optional[int] = None,
-        error_code: Optional[str] = None
+        error_code: Optional[str] = None,
     ):
         """RDS와 Loki에 로그 전송"""
         tasks = []
@@ -402,11 +459,24 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
                 )
             elif log_type == "success":
                 task = self.rds_logger.log_success(
-                    service_type, source_id, trace_id, message, duration_ms, run_id, additional_data
+                    service_type,
+                    source_id,
+                    trace_id,
+                    message,
+                    duration_ms,
+                    run_id,
+                    additional_data,
                 )
             elif log_type == "error":
                 task = self.rds_logger.log_error(
-                    service_type, source_id, trace_id, message, error_code, duration_ms, run_id, additional_data
+                    service_type,
+                    source_id,
+                    trace_id,
+                    message,
+                    error_code,
+                    duration_ms,
+                    run_id,
+                    additional_data,
                 )
             tasks.append(task)
 
@@ -417,11 +487,24 @@ class ServiceLoggerMiddleware(BaseHTTPMiddleware):
                 )
             elif log_type == "success":
                 task = self.loki_logger.log_success(
-                    service_type, source_id, trace_id, message, duration_ms, run_id, additional_data
+                    service_type,
+                    source_id,
+                    trace_id,
+                    message,
+                    duration_ms,
+                    run_id,
+                    additional_data,
                 )
             elif log_type == "error":
                 task = self.loki_logger.log_error(
-                    service_type, source_id, trace_id, message, error_code, duration_ms, run_id, additional_data
+                    service_type,
+                    source_id,
+                    trace_id,
+                    message,
+                    error_code,
+                    duration_ms,
+                    run_id,
+                    additional_data,
                 )
             tasks.append(task)
 

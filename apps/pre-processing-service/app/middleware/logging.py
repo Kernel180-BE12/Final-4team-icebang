@@ -8,6 +8,7 @@ try:
     from app.middleware.ServiceLoggerMiddleware import trace_id_context
 except ImportError:
     from contextvars import ContextVar
+
     trace_id_context: ContextVar[str] = ContextVar("trace_id", default="")
 
 

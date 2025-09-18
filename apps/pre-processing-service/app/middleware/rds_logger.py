@@ -24,7 +24,7 @@ class RDSLogger:
         status: Optional[str] = None,
         duration_ms: Optional[int] = None,
         error_code: Optional[str] = None,
-        additional_data: Optional[dict] = None
+        additional_data: Optional[dict] = None,
     ) -> bool:
         """
         execution_log 테이블에 로그 저장
@@ -56,7 +56,7 @@ class RDSLogger:
                 status=status,
                 duration_ms=duration_ms,
                 error_code=error_code,
-                reserved4=additional_data
+                reserved4=additional_data,
             )
 
             log_data = execution_log.to_dict()
@@ -64,8 +64,8 @@ class RDSLogger:
             # 컬럼명과 값 분리
             columns = list(log_data.keys())
             values = list(log_data.values())
-            placeholders = ', '.join(['%s'] * len(values))
-            columns_str = ', '.join(columns)
+            placeholders = ", ".join(["%s"] * len(values))
+            columns_str = ", ".join(columns)
 
             insert_query = f"""
             INSERT INTO execution_log ({columns_str})
@@ -90,7 +90,7 @@ class RDSLogger:
         trace_id: str,
         log_message: str,
         run_id: Optional[int] = None,
-        additional_data: Optional[dict] = None
+        additional_data: Optional[dict] = None,
     ) -> bool:
         """시작 로그 저장"""
         return await self.log_execution(
@@ -101,7 +101,7 @@ class RDSLogger:
             trace_id=trace_id,
             run_id=run_id,
             status="RUNNING",
-            additional_data=additional_data
+            additional_data=additional_data,
         )
 
     async def log_success(
@@ -112,7 +112,7 @@ class RDSLogger:
         log_message: str,
         duration_ms: int,
         run_id: Optional[int] = None,
-        additional_data: Optional[dict] = None
+        additional_data: Optional[dict] = None,
     ) -> bool:
         """성공 로그 저장"""
         return await self.log_execution(
@@ -124,7 +124,7 @@ class RDSLogger:
             run_id=run_id,
             status="SUCCESS",
             duration_ms=duration_ms,
-            additional_data=additional_data
+            additional_data=additional_data,
         )
 
     async def log_error(
@@ -136,7 +136,7 @@ class RDSLogger:
         error_code: str,
         duration_ms: Optional[int] = None,
         run_id: Optional[int] = None,
-        additional_data: Optional[dict] = None
+        additional_data: Optional[dict] = None,
     ) -> bool:
         """에러 로그 저장"""
         return await self.log_execution(
@@ -149,5 +149,5 @@ class RDSLogger:
             status="ERROR",
             duration_ms=duration_ms,
             error_code=error_code,
-            additional_data=additional_data
+            additional_data=additional_data,
         )
