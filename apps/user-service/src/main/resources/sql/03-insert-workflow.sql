@@ -19,29 +19,29 @@ INSERT INTO `job` (`id`, `name`, `description`) VALUES
 INSERT INTO `task` (`id`, `name`, `type`, `parameters`) VALUES
                                                             -- Job 1의 Task들
                                                             (1, '키워드 검색 태스크', 'HTTP', JSON_OBJECT(
-                                                                    'url', 'http://pre-processing-service:8000/keywords/search',
+                                                                    'url', 'http://127.0.0.1:8000/keywords/search',
                                                                     'method', 'POST',
-                                                                    'body', JSON_OBJECT('tag', 'fashion') -- 초기 입력값은 정적으로 정의
+                                                                    'body', JSON_OBJECT('tag', 'naver') -- 초기 입력값은 정적으로 정의
                                                                                       )),
                                                             (2, '상품 검색 태스크', 'HTTP', JSON_OBJECT(
-                                                                    'url', 'http://pre-processing-service:8000/products/search',
+                                                                    'url', 'http://127.0.0.1:8000/products/search',
                                                                     'method', 'POST',
                                                                     'input_mapping', JSON_OBJECT('keyword', '키워드 검색 태스크.keyword') -- "키워드 검색 태스크"의 결과에서 "keyword" 필드를 가져와 매핑
                                                                                      )),
                                                             (3, '상품 매칭 태스크', 'HTTP', JSON_OBJECT(
-                                                                    'url', 'http://pre-processing-service:8000/products/match',
+                                                                    'url', 'http://127.0.0.1:8000/products/match',
                                                                     'method', 'POST',
                                                                     'input_mapping', JSON_OBJECT(
                                                                             'keyword', '키워드 검색 태스크.keyword',
                                                                             'search_results', '상품 검색 태스크.search_results'
                                                                                      )
                                                                                      )),
-                                                            (4, '상품 유사도 분석 태스크', 'HTTP', JSON_OBJECT('url', 'http://pre-processing-service:8000/products/similarity', 'method', 'POST')),
-                                                            (5, '상품 정보 크롤링 태스크', 'HTTP', JSON_OBJECT('url', 'http://pre-processing-service:8000/products/crawl', 'method', 'POST')),
+                                                            (4, '상품 유사도 분석 태스크', 'HTTP', JSON_OBJECT('url', 'http://127.0.0.1:8000/products/similarity', 'method', 'POST')),
+                                                            (5, '상품 정보 크롤링 태스크', 'HTTP', JSON_OBJECT('url', 'http://127.0.0.1:8000/products/crawl', 'method', 'POST')),
 
                                                             -- Job 2의 Task들
-                                                            (6, '블로그 RAG 생성 태스크', 'HTTP', JSON_OBJECT('url', 'http://pre-processing-service:8000/blogs/rag/create', 'method', 'POST')),
-                                                            (7, '블로그 발행 태스크', 'HTTP', JSON_OBJECT('url', 'http://pre-processing-service:8000/blogs/publish', 'method', 'POST'));
+                                                            (6, '블로그 RAG 생성 태스크', 'HTTP', JSON_OBJECT('url', 'http://127.0.0.1:8000/blogs/rag/create', 'method', 'POST')),
+                                                            (7, '블로그 발행 태스크', 'HTTP', JSON_OBJECT('url', 'http://127.0.0.1:8000/blogs/publish', 'method', 'POST'));
 
 -- 워크플로우-Job 연결
 INSERT INTO `workflow_job` (`workflow_id`, `job_id`, `execution_order`) VALUES
