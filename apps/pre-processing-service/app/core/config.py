@@ -76,14 +76,9 @@ class BaseSettingsConfig(BaseSettings):
     db_pass: str
     db_name: str
     env_name: str
-    app_name: str
 
     # MeCab 사전 경로 (자동 감지)
     mecab_path: Optional[str] = None
-
-    # Loki 설정
-    loki_host: str = "localhost"
-    loki_port: int = 3100
 
     # 테스트/추가용 필드
     openai_api_key: Optional[str] = None  # << 이 부분 추가
