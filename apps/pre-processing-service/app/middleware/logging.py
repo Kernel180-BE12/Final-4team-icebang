@@ -3,10 +3,23 @@ from fastapi import Request
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 
+# trace_id context 변수 import
+try:
+    from app.middleware.ServiceLoggerMiddleware import trace_id_context
+except ImportError:
+    from contextvars import ContextVar
+
+    trace_id_context: ContextVar[str] = ContextVar("trace_id", default="")
+
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         start_time = time.time()
+
+        # trace_id 설정 (X-Request-ID 헤더에서)
+        current_trace_id = request.headers.get("X-Request-ID", "")
+        if current_trace_id:
+            trace_id_context.set(current_trace_id)
 
         # 1. 요청 시작 로그
         logger.info(
