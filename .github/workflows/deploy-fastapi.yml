@@ -62,16 +62,6 @@ jobs:
           target: "~/app"
           overwrite: true
 
-      - name: Copy ONNX to FastAPI EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.FASTAPI_SERVER_HOST }}
-          username: ubuntu
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "apps/pre-processing-service/klue_bert.onnx"
-          target: "~/app/models/klue_bert.onnx"
-          overwrite: false
-
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:

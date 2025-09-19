@@ -18,7 +18,7 @@ def setup_file_logging():
     # 기존 loguru 핸들러 제거 (기본 콘솔 출력 제거)
     logger.remove()
 
-    log_dir = "/logs"
+    log_dir = "../../docker/local/logs/develop"
 
     # 로그 디렉토리가 없으면 생성
 
