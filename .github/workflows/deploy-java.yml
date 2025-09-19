@@ -30,6 +30,7 @@ jobs:
           echo "LOKI_USERNAME=${{ secrets.LOKI_USERNAME }}" >> .env.prod
           echo "LOKI_PASSWORD=${{ secrets.LOKI_PASSWORD }}" >> .env.prod
           echo "ENV_NAME=${{ secrets.ENV_NAME }}" >> .env.prod
+          echo "FASTAPI_HOST=${{ secrets.FASTAPI_SERVER_HOST }}" >> .env.prod
 
       - name: Set repo lowercase
         run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
