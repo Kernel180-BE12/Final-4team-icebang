@@ -6,7 +6,7 @@ services:
     container_name: pre-processing-service
     restart: on-failure:3
     ports:
-      - "8000:8000"
+      - "80:8000"
     volumes:
       - ./models:/app/models
       - logs_volume:/logs
