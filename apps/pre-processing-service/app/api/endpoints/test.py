@@ -1,4 +1,6 @@
 # app/api/endpoints/embedding.py
+from time import sleep
+
 import loguru
 from fastapi import APIRouter
 from sqlalchemy import text
@@ -8,14 +10,17 @@ from ...errors.CustomException import *
 from fastapi import APIRouter
 from typing import Mapping, Any, Dict
 from ...model.schemas import *
+from ...service.blog.blog_create_service import BlogContentService
 from ...service.blog.naver_blog_post_service import NaverBlogPostService
 from ...service.blog.tistory_blog_post_service import TistoryBlogPostService
+from ...service.crawl_service import CrawlService
 from ...service.keyword_service import keyword_search
 from ...service.match_service import MatchService
 from ...service.search_service import SearchService
 
 # from ...service.similarity_service import SimilarityService
 from ...db.db_connecter import engine  # ✅ 우리가 만든 DB 유틸 임포트
+from ...service.similarity_service import SimilarityService
 
 # 이 파일만의 독립적인 라우터를 생성합니다.
 router = APIRouter()
@@ -62,54 +67,60 @@ def with_meta(data: Mapping[str, Any], meta: Mapping[str, Any]) -> Dict[str, Any
 
 @router.get("/tester", response_model=None)
 async def processing_tester():
-    request_dict = {
-        "tag": "naver",
-        "category": "50000000",
-        "start_date": "2025-09-01",
-        "end_date": "2025-09-02",
-    }
     # 네이버 키워드 검색
-    naver_request = RequestNaverSearch(**with_meta(request_dict))
+    naver_request = RequestNaverSearch(tag="naver")
     response_data = await keyword_search(naver_request)
-    keyword = response_data.get("keyword")
+    keyword = response_data["data"].get("keyword")
     loguru.logger.info(keyword)
 
-    keyword = {
-        "keyword": keyword,
-    }
-
     # 싸다구 상품 검색
-    sadagu_request = RequestSadaguSearch(**with_meta(keyword))
-    search_service = SearchService()
-    keyword_result = await search_service.search_products(sadagu_request)
+    sadagu_request = RequestSadaguSearch(keyword=keyword)
+    searchservice = SearchService()
+    keyword_result = await searchservice.search_products(sadagu_request)
     loguru.logger.info(keyword_result)
 
     # 싸다구 상품 매치
-    keyword["search_results"] = keyword_result.get("search_results")
-    keyword_match_request = RequestSadaguMatch(**with_meta(keyword))
+
+    data = keyword_result["data"]
+    keyword_match_request = RequestSadaguMatch(keyword=data.get("keyword"),search_results=data.get("search_results"))
     match_service = MatchService()
     keyword_match_response = match_service.match_products(keyword_match_request)
     loguru.logger.info(keyword_match_response)
 
     # 싸다구 상품 유사도 분석
-    keyword["matched_products"] = keyword_match_response.get("matched_products")
-    keyword_similarity_request = RequestSadaguSimilarity(**with_meta(keyword))
-    # similarity_service = SimilarityService()
-    # keyword_similarity_response = similarity_service.select_product_by_similarity(
-    #     keyword_similarity_request
-    # )
-    # loguru.logger.info(keyword_similarity_response)
-
+    data = keyword_match_response["data"]
+    keyword_similarity_request = RequestSadaguSimilarity(keyword=data.get("keyword"),matched_products=data.get("matched_products"))
+    similarity_service = SimilarityService()
+    keyword_similarity_response = similarity_service.select_product_by_similarity(
+        keyword_similarity_request
+    )
+    loguru.logger.info(keyword_similarity_response)
+    sleep(5)
     # 싸다구 상품 크롤링
+    a = RequestSadaguCrawl(product_url=keyword_similarity_response["data"]["selected_product"].get("url"))
+    crawl = CrawlService()
+    crawl_response = await crawl.crawl_product_detail(a)
+    loguru.logger.info(crawl_response)
 
+    sleep(5)
     # 블로그 생성
+    data = crawl_response
+    rag=  RequestBlogCreate(product_info=data.get("product_detail"),target_length=500)
+    blog_service = BlogContentService()
+    rag_data = blog_service.generate_blog_content(rag)
+    loguru.logger.info(rag_data)
 
+    sleep(15)
     # 블로그 배포
-    tistory_service = TistoryBlogPostService()
-    result = tistory_service.post_content(
-        title="안녕하살법",
-        content="안녕하살법 받아치기러기 코드 받아치기",
-        tags=["퉁퉁퉁사후르", "짜라짜라"],
+    data = rag_data
+    # tistory_service = TistoryBlogPostService()
+    naverblogPostService = NaverBlogPostService()
+    result = naverblogPostService.post_content(
+        # blog_id="wtecho331",
+        # blog_pw="wt505033@#",
+        title=data.get("title"),
+        content=data.get("content"),
+        tags=data.get("tags"),
     )
     loguru.logger.info(result)
 
