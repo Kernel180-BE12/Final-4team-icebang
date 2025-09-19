@@ -2,8 +2,6 @@ name: CI (Python/FastAPI)
 
 on:
   push:
-    branches:
-      - feature/onnx
     tags:
       - 'pre-processing-v*'
   pull_request:
@@ -60,17 +58,17 @@ jobs:
       - name: Run Formatter Check (Black)
         run: poetry run black --check .
 
-  test:
-     name: Run Tests
-     runs-on: ubuntu-latest
-     needs: lint
-     defaults:
-       run:
-         working-directory: apps/pre-processing-service
-     steps:
-       - name: Checkout repository
-         uses: actions/checkout@v4
-
+#  test:
+#     name: Run Tests
+#     runs-on: ubuntu-latest
+#     needs: lint
+#     defaults:
+#       run:
+#         working-directory: apps/pre-processing-service
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+#
 #       - name: Set up Python 3.11
 #         uses: actions/setup-python@v5
 #         with:
@@ -123,7 +121,7 @@ jobs:
     name: Build Docker Image and push
     runs-on: ubuntu-latest
     needs:
-      - test
+#      - test
       - set-image-tag
     if: startsWith(github.ref, 'refs/tags/pre-processing-v')
 

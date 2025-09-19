@@ -49,25 +49,10 @@ services:
     env_file:
       - .env.prod
 
-  pre-processing-service:
-    image: ghcr.io/kernel180-be12/final-4team-icebang/pre-processing-service:latest
-    container_name: pre-processing-service
-    restart: on-failure:3
-    ports:
-      - "8000:8000"
-    networks:
-      - app-network
-    env_file:
-      - .env.prod
-    volumes:
-      - onnx_models:/app/models  # ONNX 모델 저장용 볼륨
-
 volumes:
   caddy_data:
   caddy_config:
   logs_volume:
-    driver: local
-  onnx_models:
     driver: local
 
 networks:
