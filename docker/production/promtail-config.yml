@@ -17,7 +17,7 @@ scrape_configs:
           job: user-service
           app: user-service
           env: production
-          __path__: /logs/production/app.log
+          __path__: /logs/production/app.log  # **path** → __path__로 변경
     pipeline_stages:
       - regex:
           expression: '^\[(?P<traceId>[^\]]*)\] \[(?P<spanId>[^\]]*)\] (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) \[(?P<thread>[^\]]+)\] (?P<level>\w+)\s+(?P<logger>\S+) - (?P<message>.*)$'
@@ -37,7 +37,7 @@ scrape_configs:
           app: user-service
           env: production
           log_type: error
-          __path__: /logs/production/error.log
+          __path__: /logs/production/error.log  # **path** → __path__로 변경
     pipeline_stages:
       - regex:
           expression: '^\[(?P<traceId>[^\]]*)\] \[(?P<spanId>[^\]]*)\] (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) \[(?P<thread>[^\]]+)\] (?P<level>\w+)\s+(?P<logger>\S+) - (?P<message>.*)$'

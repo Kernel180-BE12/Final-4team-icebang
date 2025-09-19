@@ -7,12 +7,12 @@ Configuration:
       - name: "app-name"
         value: "user-service"
       - name: "log-path"
-        value: "./logs"
+        value: "/logs"
       - name: "charset-UTF-8"
         value: "UTF-8"
       # 프로덕션 환경용 콘솔 패턴 - 구조화된 로그
       - name: "console-layout-pattern"
-        value: "%highlight{[%-5level]} [%X{traceId}] [%X{spanId}] %d{HH:mm:ss}{UTC} [%t]   %logger{20} - %msg% "
+        value: "%highlight{[%-5level]} [%X{traceId}] [%X{spanId}] %d{HH:mm:ss}{UTC} [%t] %logger{20} - %msg%n"
       # 파일용 패턴 - Promtail이 파싱하기 쉽게 구조화 (UTC 시간 사용)
       - name: "file-layout-pattern"
         value: "[%X{traceId}] [%X{spanId}] %d{yyyy-MM-dd HH:mm:ss.SSS}{UTC} [%t] %-5level %logger{36} - %msg%n"
@@ -29,37 +29,6 @@ Configuration:
       target: SYSTEM_OUT
       PatternLayout:
         pattern: ${console-layout-pattern}
-
-    # Loki Appender - 프로덕션 모니터링용
-    Loki:
-      name: loki-appender
-      url: ${LOKI_URL}                 # Grafana Cloud Loki URL
-      basicAuthUsername: ${LOKI_USERNAME}   # Grafana Cloud 사용자 이름
-      basicAuthPassword: ${LOKI_PASSWORD}   # Grafana Cloud API Key
-      JsonLayout:
-        compact: true
-        eventEol: true
-        includeStacktrace: true
-        KeyValuePair:
-          - key: "app"
-            value: "${app-name}"
-          - key: "env"
-            value: "production"
-      Label:
-        - name: "app"
-          value: "${app-name}"
-        - name: "env"
-          value: "production"
-        - name: "traceId"
-          value: "${ctx:traceId}"
-        - name: "spanId"
-          value: "${ctx:spanId}"
-        - name: "executionType"
-          value: "${ctx:executionType:-application}"
-        - name: "sourceId"
-          value: "${ctx:sourceId}"
-        - name: "runId"
-          value: "${ctx:runId}"
 
     JDBC:
       name: workflow-appender
@@ -89,9 +58,11 @@ Configuration:
         - name: "reserved1"
           pattern: "%X{spanId}"
 
-    File:
+    # RollingFile로 변경 (File 대신)
+    RollingFile:
       - name: file-prod-appender
         fileName: ${prod-log}
+        filePattern: ${log-path}/production/app.%d{yyyy-MM-dd}.%i.log
         PatternLayout:
           pattern: ${file-layout-pattern}
         # 로그 파일 롤링 설정
@@ -103,10 +74,10 @@ Configuration:
             size: "100 MB"
         DefaultRolloverStrategy:
           max: 30
-        filePattern: ${log-path}/production/app.%d{yyyy-MM-dd}.%i.log
 
       - name: file-error-appender
         fileName: ${error-log}
+        filePattern: ${log-path}/production/error.%d{yyyy-MM-dd}.%i.log
         PatternLayout:
           pattern: ${file-layout-pattern}
         ThresholdFilter:
@@ -119,7 +90,6 @@ Configuration:
             size: "100 MB"
         DefaultRolloverStrategy:
           max: 30
-        filePattern: ${log-path}/production/error.%d{yyyy-MM-dd}.%i.log
 
   Loggers:
     # Root 로거 - 프로덕션에서는 WARN 레벨
@@ -135,7 +105,6 @@ Configuration:
         level: INFO
         AppenderRef:
           - ref: console-appender
-          - ref: loki-appender
           - ref: file-prod-appender
           - ref: file-error-appender
 
@@ -144,7 +113,6 @@ Configuration:
         additivity: "false"
         AppenderRef:
           - ref: workflow-appender
-          - ref: loki-appender
           - ref: console-appender
           - ref: file-prod-appender
           - ref: file-error-appender
@@ -172,7 +140,6 @@ Configuration:
         AppenderRef:
           - ref: console-appender
           - ref: file-prod-appender
-          - ref: loki-appender
 
       # 트랜잭션 로그 - 프로덕션에서는 WARN 레벨
       - name: org.springframework.transaction

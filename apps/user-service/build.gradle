@@ -61,6 +61,7 @@ dependencies {
 
 	implementation "io.micrometer:micrometer-tracing-bridge-brave"
 	implementation "io.micrometer:micrometer-tracing"
+	implementation 'io.micrometer:micrometer-registry-prometheus'
 	implementation "org.springframework.boot:spring-boot-starter-actuator"
 
 	// Lombok

@@ -1,21 +1,19 @@
-name: Deploy
-
+name: Deploy FastAPI
 on:
   push:
     branches:
       - fix/**
   workflow_run:
-    workflows: ["CI (Java)"]
+    workflows: ["CI (Python/FastAPI)"]
     types: [completed]
-
 
 jobs:
   deploy:
-    name: Deploy to AWS EC2
+    name: Deploy to AWS FastAPI EC2
     runs-on: ubuntu-latest
     if: |
       github.event.workflow_run.conclusion == 'success' &&
-      startsWith(github.event.workflow_run.head_branch, 'user-service-v')
+      startsWith(github.event.workflow_run.head_branch, 'pre-processing-v')
 
     steps:
       - uses: actions/checkout@v4
@@ -30,88 +28,70 @@ jobs:
           echo "LOKI_USERNAME=${{ secrets.LOKI_USERNAME }}" >> .env.prod
           echo "LOKI_PASSWORD=${{ secrets.LOKI_PASSWORD }}" >> .env.prod
           echo "ENV_NAME=${{ secrets.ENV_NAME }}" >> .env.prod
-          echo "FASTAPI_SERVER_HOST=${{ secrets.FASTAPI_SERVER_HOST }}" >> .env.prod
-          echo "GRAFANA_CLOUD_PROMETHEUS_URL=${{ secrets.GRAFANA_CLOUD_PROMETHEUS_URL }}" >> .env.prod
-          echo "GRAFANA_CLOUD_PROMETHEUS_USER=${{ secrets.GRAFANA_CLOUD_PROMETHEUS_USER }}" >> .env.prod
-          echo "GRAFANA_CLOUD_API_KEY=${{ secrets.GRAFANA_CLOUD_API_KEY }}" >> .env.prod
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env.prod
 
       - name: Set repo lowercase
         run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
 
-      - name: Copy docker compose files to EC2
+      - name: Copy docker compose files to FastAPI EC2
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SERVER_HOST }}
+          host: ${{ secrets.FASTAPI_SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "docker/production/docker-compose.yml"
+          source: "docker/production-fastapi/docker-compose.yml"
           target: "~/app"
-          overwrite: true
 
-      - name: Copy .env.prod file to EC2
+      - name: Copy .env.prod file to FastAPI EC2
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SERVER_HOST }}
+          host: ${{ secrets.FASTAPI_SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: ".env.prod"
-          target: "~/app/docker/production/"
+          target: "~/app/docker/production-fastapi/"
           overwrite: true
 
-      - name: Copy Caddyfile to EC2
+      - name: Copy promtail-config to FastAPI EC2
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SERVER_HOST }}
+          host: ${{ secrets.FASTAPI_SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "docker/production/Caddyfile"
+          source: "docker/production-fastapi/promtail-config.yml"
           target: "~/app"
           overwrite: true
 
-      - name: Copy promtail-config to EC2
+      - name: Copy ONNX to FastAPI EC2
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SERVER_HOST }}
+          host: ${{ secrets.FASTAPI_SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "docker/production/promtail-config.yml"
-          target: "~/app"
-
-      - name: Copy promtail-config to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ubuntu
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "docker/production/agent-config.yml"
-          target: "~/app"
-          overwrite: true
+          source: "apps/pre-processing-service/klue_bert.onnx"
+          target: "~/app/models/klue_bert.onnx"
+          overwrite: false
 
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SERVER_HOST }}
+          host: ${{secrets.FASTAPI_SERVER_HOST}}
           username: ubuntu
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          key: ${{secrets.SERVER_SSH_KEY}}
           script: |
-            cd ~/app/docker/production
+            cd ~/app/docker/production-fastapi
             
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-            # 최신 이미지 pull
+            echo "${{secrets.GITHUB_TOKEN}}" | docker login ghcr.io -u ${{github.actor}} --password-stdin
+            
             docker-compose pull
             
-            # 기존 컨테이너 종료 및 제거
             docker-compose down
             
-            # 새 컨테이너 배포
             docker-compose up -d
             
-            # 컨테이너 상태 확인
             sleep 5
             docker-compose ps
             
-            # 헬스 체크 (컨테이너가 healthy 상태가 될 때까지 대기)
             echo "Waiting for containers to become healthy..."
             for i in {1..30}; do
             unhealthy=$(docker ps --filter "health=unhealthy" --format "{{.Names}}")
@@ -123,8 +103,7 @@ jobs:
             echo "Waiting... ($i/30)"
             sleep 2
             done
-            
-            # 사용하지 않는 dangling 이미지 정리
+
             docker image prune -f
 
       - name: Send Discord notification - Success
@@ -137,7 +116,7 @@ jobs:
             **배포 성공**
             **Repository:** ${{ env.REPO_LC }}
             **Tag:** ${{ github.ref_name }}
-            **Server:** ${{ secrets.SERVER_HOST }}
+            **Server:** ${{ secrets.FASTAPI_SERVER_HOST }}
             **Status:** Success!
 
       - name: Send Discord notification - Failure
