@@ -20,15 +20,15 @@ INSERT INTO `job` (`id`, `name`, `description`) VALUES
 -- Task 생성 (ID: 1 ~ 7) - parameters.body의 value를 'Java 타입'으로 변경
 INSERT INTO `task` (`id`, `name`, `type`, `parameters`) VALUES
                                                             -- Job 1의 Task들
-                                                            (1, '키워드 검색 태스크', 'HTTP', JSON_OBJECT(
+                                                            (1, '키워드 검색 태스크', 'FastAPI', JSON_OBJECT(
                                                                     'endpoint', '/keywords/search', 'method', 'POST',
                                                                     'body', JSON_OBJECT('tag', 'String')
                                                                                       )),
-                                                            (2, '상품 검색 태스크', 'HTTP', JSON_OBJECT(
+                                                            (2, '상품 검색 태스크', 'FastAPI', JSON_OBJECT(
                                                                     'endpoint', '/products/search', 'method', 'POST',
                                                                     'body', JSON_OBJECT('keyword', 'String')
                                                                                      )),
-                                                            (3, '상품 매칭 태스크', 'HTTP', JSON_OBJECT(
+                                                            (3, '상품 매칭 태스크', 'FastAPI', JSON_OBJECT(
                                                                     'endpoint', '/products/match', 'method', 'POST',
                                                                     'body', JSON_OBJECT(
                                                                             'keyword', 'String',
@@ -36,10 +36,10 @@ INSERT INTO `task` (`id`, `name`, `type`, `parameters`) VALUES
                                                                             )
                                                                                      )),
                                                             -- Body가 필요 없는 Task들은 비워둠
-                                                            (4, '상품 유사도 분석 태스크', 'HTTP', JSON_OBJECT('endpoint', '/products/similarity', 'method', 'POST')),
-                                                            (5, '상품 정보 크롤링 태스크', 'HTTP', JSON_OBJECT('endpoint', '/products/crawl', 'method', 'POST')),
-                                                            (6, '블로그 RAG 생성 태스크', 'HTTP', JSON_OBJECT('endpoint', '/blogs/rag/create', 'method', 'POST')),
-                                                            (7, '블로그 발행 태스크', 'HTTP', JSON_OBJECT('endpoint', '/blogs/publish', 'method', 'POST'))
+                                                            (4, '상품 유사도 분석 태스크', 'FastAPI', JSON_OBJECT('endpoint', '/products/similarity', 'method', 'POST')),
+                                                            (5, '상품 정보 크롤링 태스크', 'FastAPI', JSON_OBJECT('endpoint', '/products/crawl', 'method', 'POST')),
+                                                            (6, '블로그 RAG 생성 태스크', 'FastAPI', JSON_OBJECT('endpoint', '/blogs/rag/create', 'method', 'POST')),
+                                                            (7, '블로그 발행 태스크', 'FastAPI', JSON_OBJECT('endpoint', '/blogs/publish', 'method', 'POST'))
     ON DUPLICATE KEY UPDATE name = VALUES(name), type = VALUES(type), parameters = VALUES(parameters), updated_at = NOW();
 
 
