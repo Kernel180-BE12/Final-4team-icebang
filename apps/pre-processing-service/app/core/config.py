@@ -82,7 +82,9 @@ class BaseSettingsConfig(BaseSettings):
     mecab_path: Optional[str] = None
 
     # Loki 설정
-    loki_host: str = "localhost"
+    loki_host: str
+    loki_username: str
+    loki_password: str
     loki_port: int = 3100
 
     # 테스트/추가용 필드
@@ -106,7 +108,7 @@ class BaseSettingsConfig(BaseSettings):
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
-    model_config = SettingsConfigDict(env_file=[".env"])
+    model_config = SettingsConfigDict(env_file=[".env"], extra="ignore")
 
 
 # 환경별 설정 클래스

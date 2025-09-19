@@ -29,6 +29,7 @@ jobs:
           echo "LOKI_PASSWORD=${{ secrets.LOKI_PASSWORD }}" >> .env.prod
           echo "ENV_NAME=${{ secrets.ENV_NAME }}" >> .env.prod
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env.prod
+          echo "MODE=prd" >> .env.prod
 
       - name: Set repo lowercase
         run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
