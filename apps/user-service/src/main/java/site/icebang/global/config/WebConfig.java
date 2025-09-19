@@ -17,8 +17,8 @@ public class WebConfig {
     SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
 
     // 2. 타임아웃 설정 (이 메서드들은 deprecated 아님)
-    requestFactory.setConnectTimeout(Duration.ofSeconds(5));
-    requestFactory.setReadTimeout(Duration.ofSeconds(5));
+    requestFactory.setConnectTimeout(Duration.ofSeconds(30000));
+    requestFactory.setReadTimeout(Duration.ofSeconds(30000));
 
     // 3. 빌더에 직접 생성한 requestFactory를 설정
     return builder.requestFactory(() -> requestFactory).build();
