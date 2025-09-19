@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -54,6 +55,17 @@ public class SecurityConfig {
   @Bean
   public SecureRandom secureRandom() {
     return new SecureRandom();
+  }
+
+  @Bean
+  @Order(1) // 높은 우선순위로 설정
+  public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
+    return http.securityMatcher("/actuator/**") // actuator 경로만 적용
+        .authorizeHttpRequests(
+            auth -> auth.anyRequest().permitAll() // 모든 actuator 요청 허용
+            )
+        .csrf(csrf -> csrf.disable())
+        .build();
   }
 
   @Bean
