@@ -30,6 +30,7 @@ jobs:
           echo "ENV_NAME=${{ secrets.ENV_NAME }}" >> .env.prod
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env.prod
           echo "MODE=prd" >> .env.prod
+          echo "APP_NAME=pre-processing" >> .env.prod
 
       - name: Set repo lowercase
         run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
