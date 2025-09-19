@@ -135,70 +135,77 @@ public class WorkflowExecutionService {
 
   /** 워크플로우 컨텍스트와 Task의 input_mapping 설정을 기반으로 API 요청에 사용할 동적인 Request Body를 생성합니다. */
   private ObjectNode prepareRequestBody(Task task, Map<String, JsonNode> context) {
-      ObjectNode requestBody = objectMapper.createObjectNode();
-      JsonNode params = task.getParameters();
-      if (params == null) return requestBody;
+    ObjectNode requestBody = objectMapper.createObjectNode();
+    JsonNode params = task.getParameters();
+    if (params == null) return requestBody;
 
-      JsonNode mappingRules = params.get("input_mapping");
-      JsonNode staticBody = params.get("body");
+    JsonNode mappingRules = params.get("input_mapping");
+    JsonNode staticBody = params.get("body");
 
-      // 정적 body가 있으면 우선적으로 복사
-      if (staticBody != null && staticBody.isObject()) {
-          requestBody.setAll((ObjectNode) staticBody);
-      }
+    // 정적 body가 있으면 우선적으로 복사
+    if (staticBody != null && staticBody.isObject()) {
+      requestBody.setAll((ObjectNode) staticBody);
+    }
 
-      // 📌 디버깅용: 현재 컨텍스트 출력
-      log.debug("=== 워크플로우 컨텍스트 확인 ===");
-      for (Map.Entry<String, JsonNode> entry : context.entrySet()) {
-          log.debug("Task: {}, Data: {}", entry.getKey(), entry.getValue().toString());
-      }
+    // 📌 디버깅용: 현재 컨텍스트 출력
+    log.debug("=== 워크플로우 컨텍스트 확인 ===");
+    for (Map.Entry<String, JsonNode> entry : context.entrySet()) {
+      log.debug("Task: {}, Data: {}", entry.getKey(), entry.getValue().toString());
+    }
 
-      // input_mapping 규칙에 따라 동적으로 값 덮어쓰기/추가
-      if (mappingRules != null && mappingRules.isObject()) {
-          mappingRules
-                  .fields()
-                  .forEachRemaining(
-                          entry -> {
-                              String targetField = entry.getKey(); // 예: "product_url"
-                              String sourcePath = entry.getValue().asText(); // 예: "상품 유사도 분석 태스크.data.selected_product.product_url"
+    // input_mapping 규칙에 따라 동적으로 값 덮어쓰기/추가
+    if (mappingRules != null && mappingRules.isObject()) {
+      mappingRules
+          .fields()
+          .forEachRemaining(
+              entry -> {
+                String targetField = entry.getKey(); // 예: "product_url"
+                String sourcePath =
+                    entry
+                        .getValue()
+                        .asText(); // 예: "상품 유사도 분석 태스크.data.selected_product.product_url"
 
-                              log.debug("=== input_mapping 처리 ===");
-                              log.debug("targetField: {}, sourcePath: {}", targetField, sourcePath);
+                log.debug("=== input_mapping 처리 ===");
+                log.debug("targetField: {}, sourcePath: {}", targetField, sourcePath);
 
-                              String[] parts = sourcePath.split("\\.", 2);
-                              if (parts.length == 2) {
-                                  String sourceTaskName = parts[0];
-                                  String sourceFieldPath = parts[1];
+                String[] parts = sourcePath.split("\\.", 2);
+                if (parts.length == 2) {
+                  String sourceTaskName = parts[0];
+                  String sourceFieldPath = parts[1];
 
-                                  log.debug("sourceTaskName: {}, sourceFieldPath: {}", sourceTaskName, sourceFieldPath);
+                  log.debug(
+                      "sourceTaskName: {}, sourceFieldPath: {}", sourceTaskName, sourceFieldPath);
 
-                                  JsonNode sourceData = context.get(sourceTaskName);
-                                  log.debug("sourceData found: {}", sourceData != null);
+                  JsonNode sourceData = context.get(sourceTaskName);
+                  log.debug("sourceData found: {}", sourceData != null);
 
-                                  if (sourceData != null) {
-                                      log.debug("sourceData content: {}", sourceData.toString());
+                  if (sourceData != null) {
+                    log.debug("sourceData content: {}", sourceData.toString());
 
-                                      String jsonPath = "/" + sourceFieldPath.replace('.', '/');
-                                      log.debug("jsonPath: {}", jsonPath);
+                    String jsonPath = "/" + sourceFieldPath.replace('.', '/');
+                    log.debug("jsonPath: {}", jsonPath);
 
-                                      JsonNode valueToSet = sourceData.at(jsonPath);
-                                      log.debug("valueToSet found: {}, isMissing: {}", valueToSet, valueToSet.isMissingNode());
+                    JsonNode valueToSet = sourceData.at(jsonPath);
+                    log.debug(
+                        "valueToSet found: {}, isMissing: {}",
+                        valueToSet,
+                        valueToSet.isMissingNode());
 
-                                      if (!valueToSet.isMissingNode()) {
-                                          log.debug("설정할 값: {}", valueToSet.toString());
-                                          requestBody.set(targetField, valueToSet);
-                                      } else {
-                                          log.warn("값을 찾을 수 없음: jsonPath={}", jsonPath);
-                                      }
-                                  } else {
-                                      log.warn("소스 태스크 데이터를 찾을 수 없음: {}", sourceTaskName);
-                                  }
-                              }
-                          });
-      }
+                    if (!valueToSet.isMissingNode()) {
+                      log.debug("설정할 값: {}", valueToSet.toString());
+                      requestBody.set(targetField, valueToSet);
+                    } else {
+                      log.warn("값을 찾을 수 없음: jsonPath={}", jsonPath);
+                    }
+                  } else {
+                    log.warn("소스 태스크 데이터를 찾을 수 없음: {}", sourceTaskName);
+                  }
+                }
+              });
+    }
 
-      log.debug("최종 requestBody: {}", requestBody.toString());
-      return requestBody;
+    log.debug("최종 requestBody: {}", requestBody.toString());
+    return requestBody;
   }
 
   /** TaskDto를 Task 모델로 변환합니다. 비즈니스 로직 실행에 필요한 필드만 복사합니다. */
