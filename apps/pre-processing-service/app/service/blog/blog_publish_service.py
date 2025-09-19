@@ -29,7 +29,7 @@ class BlogPublishService:
             response_data = {
                 "tag": request.tag,
                 "post_title": request.post_title,
-                "publish_success": True  # 포스팅 성공 가정
+                "publish_success": True,  # 포스팅 성공 가정
             }
 
             if not response_data:
