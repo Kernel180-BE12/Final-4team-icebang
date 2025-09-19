@@ -10,8 +10,7 @@
     <update id="update">
         UPDATE task_run
         SET status = #{status},
-        finished_at = #{finishedAt},
-        result_message = #{resultMessage}
+            finished_at = #{finishedAt}
         WHERE id = #{id}
     </update>
 </mapper>
