@@ -17,36 +17,36 @@ import site.icebang.domain.workflow.model.Task;
 @RequiredArgsConstructor
 public class ProductSimilarityBodyBuilder implements TaskBodyBuilder {
 
-    private final ObjectMapper objectMapper;
-    private static final String TASK_NAME = "상품 유사도 분석 태스크";
-    private static final String KEYWORD_SOURCE_TASK = "키워드 검색 태스크";
-    private static final String MATCH_SOURCE_TASK = "상품 매칭 태스크";
-    private static final String SEARCH_SOURCE_TASK = "상품 검색 태스크";
+  private final ObjectMapper objectMapper;
+  private static final String TASK_NAME = "상품 유사도 분석 태스크";
+  private static final String KEYWORD_SOURCE_TASK = "키워드 검색 태스크";
+  private static final String MATCH_SOURCE_TASK = "상품 매칭 태스크";
+  private static final String SEARCH_SOURCE_TASK = "상품 검색 태스크";
 
-    @Override
-    public boolean supports(String taskName) {
-        return TASK_NAME.equals(taskName);
-    }
+  @Override
+  public boolean supports(String taskName) {
+    return TASK_NAME.equals(taskName);
+  }
 
-    @Override
-    public ObjectNode build(Task task, Map<String, JsonNode> workflowContext) {
-        ObjectNode body = objectMapper.createObjectNode();
+  @Override
+  public ObjectNode build(Task task, Map<String, JsonNode> workflowContext) {
+    ObjectNode body = objectMapper.createObjectNode();
 
-        // 키워드 정보 가져오기
-        Optional.ofNullable(workflowContext.get(KEYWORD_SOURCE_TASK))
-                .map(node -> node.path("data").path("keyword"))
-                .ifPresent(keywordNode -> body.set("keyword", keywordNode));
+    // 키워드 정보 가져오기
+    Optional.ofNullable(workflowContext.get(KEYWORD_SOURCE_TASK))
+        .map(node -> node.path("data").path("keyword"))
+        .ifPresent(keywordNode -> body.set("keyword", keywordNode));
 
-        // 매칭된 상품 정보 가져오기
-        Optional.ofNullable(workflowContext.get(MATCH_SOURCE_TASK))
-                .map(node -> node.path("data").path("matched_products"))
-                .ifPresent(matchedNode -> body.set("matched_products", matchedNode));
+    // 매칭된 상품 정보 가져오기
+    Optional.ofNullable(workflowContext.get(MATCH_SOURCE_TASK))
+        .map(node -> node.path("data").path("matched_products"))
+        .ifPresent(matchedNode -> body.set("matched_products", matchedNode));
 
-        // 상품 검색 결과 정보 가져오기
-        Optional.ofNullable(workflowContext.get(SEARCH_SOURCE_TASK))
-                .map(node -> node.path("data").path("search_results"))
-                .ifPresent(resultsNode -> body.set("search_results", resultsNode));
+    // 상품 검색 결과 정보 가져오기
+    Optional.ofNullable(workflowContext.get(SEARCH_SOURCE_TASK))
+        .map(node -> node.path("data").path("search_results"))
+        .ifPresent(resultsNode -> body.set("search_results", resultsNode));
 
-        return body;
-    }
+    return body;
+  }
 }
