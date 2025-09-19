@@ -2,5 +2,6 @@
 logs
 *.log
 *.env*
+__pycache__
 
 *.onnx
