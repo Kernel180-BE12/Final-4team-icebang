@@ -17,6 +17,13 @@
         <result property="name" column="name"/>
         <result property="type" column="type"/>
         <result property="parameters" column="parameters" javaType="com.fasterxml.jackson.databind.JsonNode" jdbcType="VARCHAR" typeHandler="site.icebang.global.config.mybatis.typehandler.JsonNodeTypeHandler"/>
+    </resultMap>
+
+    <resultMap id="TaskDtoResultMap" type="site.icebang.domain.workflow.dto.TaskDto">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="type" column="type"/>
+        <result property="parameters" column="parameters" javaType="com.fasterxml.jackson.databind.JsonNode" jdbcType="VARCHAR" typeHandler="site.icebang.global.config.mybatis.typehandler.JsonNodeTypeHandler"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
@@ -28,7 +35,7 @@
         ORDER BY wj.execution_order ASC
     </select>
 
-    <select id="findTasksByJobId" resultMap="TaskResultMap">
+    <select id="findTasksByJobId" resultMap="TaskDtoResultMap">
         SELECT t.* FROM task t
         JOIN job_task jt ON t.id = jt.task_id
         WHERE jt.job_id = #{jobId}
