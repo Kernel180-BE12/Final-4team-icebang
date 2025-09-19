@@ -23,6 +23,7 @@ services:
       - promtail
     ports:
       - "8080:8080"
+      - "127.0.0.1:8081:8081"  # actuator만 localhost 접근
     networks:
       - app-network
     env_file:
@@ -32,13 +33,25 @@ services:
     volumes:
       - logs_volume:/logs
 
+  # Grafana Agent만으로 메트릭 수집 + 전송
+  grafana-agent:
+    image: grafana/agent:latest
+    container_name: grafana-agent
+    restart: unless-stopped
+    volumes:
+      - ./agent-config.yml:/etc/agent/agent.yml:ro
+    networks:
+      - app-network
+    env_file:
+      - .env.prod
+
   promtail:
     image: grafana/promtail:2.9.0
     container_name: promtail
     restart: unless-stopped
     volumes:
       - ./promtail-config.yml:/etc/promtail/config.yml:ro
-      - logs_volume:/logs      # Spring 로그 읽기
+      - logs_volume:/logs
     command:
       - -config.file=/etc/promtail/config.yml
       - -config.expand-env=true
