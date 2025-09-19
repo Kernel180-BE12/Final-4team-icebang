@@ -62,22 +62,7 @@ jobs:
           target: "~/app/docker/production/"
           overwrite: true
 
-      - name: Check ONNX model on FastAPI EC2
-        id: check-onnx
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.FASTAPI_SERVER_HOST }}
-          username: ubuntu
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            if [ -f "~/app/models/klue_bert.onnx" ]; then
-              echo "exists=true" >> $GITHUB_OUTPUT
-            else
-              echo "exists=false" >> $GITHUB_OUTPUT
-            fi
-
       - name: Copy ONNX to FastAPI EC2
-        if: steps.check-onnx.outputs.exists == 'false'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.FASTAPI_SERVER_HOST }}
@@ -94,7 +79,7 @@ jobs:
           username: ubuntu
           key: ${{secrets.SERVER_SSH_KEY}}
           script: |
-            cd ~/app/docker/production
+            cd ~/app/docker/production-fastapi
             
             echo "${{secrets.GITHUB_TOKEN}}" | docker login ghcr.io -u ${{github.actor}} --password-stdin
             
