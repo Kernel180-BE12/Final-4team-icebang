@@ -1,28 +1,32 @@
 package site.icebang.domain.workflow.runner.body;
 
+import java.util.Map;
+
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+
 import site.icebang.domain.workflow.model.Task;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
 public class KeywordSearchBodyBuilder implements TaskBodyBuilder {
 
-    private final ObjectMapper objectMapper;
-    private static final String TASK_NAME = "키워드 검색 태스크";
+  private final ObjectMapper objectMapper;
+  private static final String TASK_NAME = "키워드 검색 태스크";
 
-    @Override
-    public boolean supports(String taskName) {
-        return TASK_NAME.equals(taskName);
-    }
+  @Override
+  public boolean supports(String taskName) {
+    return TASK_NAME.equals(taskName);
+  }
 
-    @Override
-    public ObjectNode build(Task task, Map<String, JsonNode> workflowContext) {
-        // 이 Task는 항상 정적인 Body를 가집니다.
-        return objectMapper.createObjectNode().put("tag", "naver");
-    }
+  @Override
+  public ObjectNode build(Task task, Map<String, JsonNode> workflowContext) {
+    // 이 Task는 항상 정적인 Body를 가집니다.
+    return objectMapper.createObjectNode().put("tag", "naver");
+  }
 }
