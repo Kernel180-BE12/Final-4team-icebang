@@ -49,7 +49,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: ".env.prod"
-          target: "~/app/docker/production/"
+          target: "~/app/docker/production-fastapi/"
           overwrite: true
 
       - name: Copy promtail-config to FastAPI EC2
@@ -59,7 +59,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "docker/production-fastapi/promtail-config.yml"
-          target: "~/app/docker/production/"
+          target: "~/app"
           overwrite: true
 
       - name: Copy ONNX to FastAPI EC2
@@ -69,7 +69,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "apps/pre-processing-service/klue_bert.onnx"
-          target: "~/app/models/"
+          target: "~/app/models/klue_bert.onnx"
           overwrite: false
 
       - name: Deploy on EC2
