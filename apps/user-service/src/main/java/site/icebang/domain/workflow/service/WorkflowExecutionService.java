@@ -1,13 +1,21 @@
 package site.icebang.domain.workflow.service;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
 import site.icebang.domain.execution.mapper.JobRunMapper;
 import site.icebang.domain.execution.mapper.TaskRunMapper;
 import site.icebang.domain.execution.mapper.WorkflowRunMapper;
@@ -20,11 +28,6 @@ import site.icebang.domain.workflow.model.Job;
 import site.icebang.domain.workflow.model.Task;
 import site.icebang.domain.workflow.runner.TaskRunner;
 import site.icebang.domain.workflow.runner.body.TaskBodyBuilder;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -52,7 +55,8 @@ public class WorkflowExecutionService {
     for (Job job : jobs) {
       JobRun jobRun = JobRun.start(workflowRun.getId(), job.getId());
       jobRunMapper.insert(jobRun);
-      log.info("---------- Job 실행 시작: JobId={}, JobRunId={} ----------", job.getId(), jobRun.getId());
+      log.info(
+          "---------- Job 실행 시작: JobId={}, JobRunId={} ----------", job.getId(), jobRun.getId());
 
       boolean jobSucceeded = executeTasksForJob(jobRun, workflowContext);
 
@@ -97,7 +101,8 @@ public class WorkflowExecutionService {
         return false;
       }
 
-      ObjectNode requestBody = bodyBuilders.stream()
+      ObjectNode requestBody =
+          bodyBuilders.stream()
               .filter(builder -> builder.supports(task.getName()))
               .findFirst()
               .map(builder -> builder.build(task, workflowContext))
@@ -127,10 +132,7 @@ public class WorkflowExecutionService {
     return true;
   }
 
-  /**
-   * TaskDto를 Task 모델로 변환합니다.
-   * 📌 주의: Reflection을 사용한 방식은 성능이 느리고 불안정하므로 권장되지 않습니다.
-   */
+  /** TaskDto를 Task 모델로 변환합니다. 📌 주의: Reflection을 사용한 방식은 성능이 느리고 불안정하므로 권장되지 않습니다. */
   private Task convertToTask(TaskDto taskDto) {
     Task task = new Task();
     try {

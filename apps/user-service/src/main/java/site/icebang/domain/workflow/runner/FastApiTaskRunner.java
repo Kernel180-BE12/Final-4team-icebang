@@ -2,12 +2,15 @@ package site.icebang.domain.workflow.runner;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import lombok.RequiredArgsConstructor;
+
 import site.icebang.domain.execution.model.TaskRun;
 import site.icebang.domain.workflow.model.Task;
-import site.icebang.external.fastapi.adapter.FastApiAdapter; // 📌 새로운 어댑터 import
+import site.icebang.external.fastapi.adapter.FastApiAdapter;
 
 @Component("fastapiTaskRunner")
 @RequiredArgsConstructor
