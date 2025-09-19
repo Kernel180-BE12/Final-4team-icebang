@@ -16,7 +16,7 @@ def setup_file_logging():
     # 기존 loguru 핸들러 제거 (기본 콘솔 출력 제거)
     logger.remove()
 
-    log_dir = "/logs/production"
+    log_dir = "/logs"
 
     os.makedirs(log_dir, exist_ok=True)
 
