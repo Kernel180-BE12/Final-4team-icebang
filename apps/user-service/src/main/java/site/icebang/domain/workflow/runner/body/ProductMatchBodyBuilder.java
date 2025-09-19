@@ -33,12 +33,12 @@ public class ProductMatchBodyBuilder implements TaskBodyBuilder {
 
     // 키워드 정보 가져오기
     Optional.ofNullable(workflowContext.get(KEYWORD_SOURCE_TASK))
-        .map(node -> node.path("keyword"))
+        .map(node -> node.path("data").path("keyword"))
         .ifPresent(keywordNode -> body.set("keyword", keywordNode));
 
     // 상품 검색 결과 정보 가져오기
     Optional.ofNullable(workflowContext.get(SEARCH_SOURCE_TASK))
-        .map(node -> node.path("search_results"))
+        .map(node -> node.path("data").path("search_results"))
         .ifPresent(resultsNode -> body.set("search_results", resultsNode));
 
     return body;
