@@ -15,11 +15,12 @@ import site.icebang.domain.workflow.model.Task;
 
 @Component
 @RequiredArgsConstructor
-public class ProductMatchBodyBuilder implements TaskBodyBuilder {
+public class ProductSimilarityBodyBuilder implements TaskBodyBuilder {
 
   private final ObjectMapper objectMapper;
-  private static final String TASK_NAME = "상품 매칭 태스크";
+  private static final String TASK_NAME = "상품 유사도 분석 태스크";
   private static final String KEYWORD_SOURCE_TASK = "키워드 검색 태스크";
+  private static final String MATCH_SOURCE_TASK = "상품 매칭 태스크";
   private static final String SEARCH_SOURCE_TASK = "상품 검색 태스크";
 
   @Override
@@ -35,6 +36,11 @@ public class ProductMatchBodyBuilder implements TaskBodyBuilder {
     Optional.ofNullable(workflowContext.get(KEYWORD_SOURCE_TASK))
         .map(node -> node.path("data").path("keyword"))
         .ifPresent(keywordNode -> body.set("keyword", keywordNode));
+
+    // 매칭된 상품 정보 가져오기
+    Optional.ofNullable(workflowContext.get(MATCH_SOURCE_TASK))
+        .map(node -> node.path("data").path("matched_products"))
+        .ifPresent(matchedNode -> body.set("matched_products", matchedNode));
 
     // 상품 검색 결과 정보 가져오기
     Optional.ofNullable(workflowContext.get(SEARCH_SOURCE_TASK))

@@ -28,7 +28,8 @@ public class ProductSearchBodyBuilder implements TaskBodyBuilder {
   @Override
   public ObjectNode build(Task task, Map<String, JsonNode> workflowContext) {
     JsonNode sourceResult = workflowContext.get(SOURCE_TASK_NAME);
-    String keyword = sourceResult != null ? sourceResult.path("keyword").asText("") : "";
+    String keyword =
+        sourceResult != null ? sourceResult.path("data").path("keyword").asText("") : "";
     return objectMapper.createObjectNode().put("keyword", keyword);
   }
 }
