@@ -82,14 +82,18 @@ async def processing_tester():
     # 싸다구 상품 매치
 
     data = keyword_result["data"]
-    keyword_match_request = RequestSadaguMatch(keyword=data.get("keyword"),search_results=data.get("search_results"))
+    keyword_match_request = RequestSadaguMatch(
+        keyword=data.get("keyword"), search_results=data.get("search_results")
+    )
     match_service = MatchService()
     keyword_match_response = match_service.match_products(keyword_match_request)
     loguru.logger.info(keyword_match_response)
 
     # 싸다구 상품 유사도 분석
     data = keyword_match_response["data"]
-    keyword_similarity_request = RequestSadaguSimilarity(keyword=data.get("keyword"),matched_products=data.get("matched_products"))
+    keyword_similarity_request = RequestSadaguSimilarity(
+        keyword=data.get("keyword"), matched_products=data.get("matched_products")
+    )
     similarity_service = SimilarityService()
     keyword_similarity_response = similarity_service.select_product_by_similarity(
         keyword_similarity_request
@@ -97,7 +101,9 @@ async def processing_tester():
     loguru.logger.info(keyword_similarity_response)
     sleep(5)
     # 싸다구 상품 크롤링
-    a = RequestSadaguCrawl(product_url=keyword_similarity_response["data"]["selected_product"].get("url"))
+    a = RequestSadaguCrawl(
+        product_url=keyword_similarity_response["data"]["selected_product"].get("url")
+    )
     crawl = CrawlService()
     crawl_response = await crawl.crawl_product_detail(a)
     loguru.logger.info(crawl_response)
@@ -105,7 +111,7 @@ async def processing_tester():
     sleep(5)
     # 블로그 생성
     data = crawl_response
-    rag=  RequestBlogCreate(product_info=data.get("product_detail"),target_length=500)
+    rag = RequestBlogCreate(product_info=data.get("product_detail"), target_length=500)
     blog_service = BlogContentService()
     rag_data = blog_service.generate_blog_content(rag)
     loguru.logger.info(rag_data)
