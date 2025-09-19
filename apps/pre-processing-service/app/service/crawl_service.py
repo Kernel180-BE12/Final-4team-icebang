@@ -38,7 +38,6 @@ class CrawlService:
 
             # 응답 데이터 구성
             data = {
-                "tag": request.tag,
                 "product_url": str(request.product_url),
                 "product_detail": product_detail,
                 "crawled_at": time.strftime("%Y-%m-%d %H:%M:%S"),

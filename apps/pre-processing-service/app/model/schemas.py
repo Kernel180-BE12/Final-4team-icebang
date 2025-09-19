@@ -129,11 +129,6 @@ class ResponseSadaguSimilarity(ResponseBase[SadaguSimilarityData]):
 
 
 class RequestSadaguCrawl(RequestBase):
-    tag: str = Field(
-        ...,
-        title="크롤링 태그",
-        description="크롤링 유형을 구분하는 태그 (예: 'detail')",
-    )
     product_url: HttpUrl = Field(
         ..., title="상품 URL", description="크롤링할 상품 페이지의 URL"
     )
@@ -141,7 +136,6 @@ class RequestSadaguCrawl(RequestBase):
 
 # 응답 데이터 모델
 class SadaguCrawlData(BaseModel):
-    tag: str = Field(..., title="크롤링 태그", description="크롤링 유형 태그")
     product_url: str = Field(..., title="상품 URL", description="크롤링된 상품 URL")
     product_detail: Optional[Dict] = Field(
         None, title="상품 상세정보", description="크롤링된 상품의 상세 정보"
