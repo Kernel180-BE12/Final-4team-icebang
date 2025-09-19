@@ -1,4 +1,4 @@
-package site.icebang.domain.workflow.runner.body;
+package site.icebang.domain.workflow.runner.fastapi.body;
 
 import java.util.Map;
 

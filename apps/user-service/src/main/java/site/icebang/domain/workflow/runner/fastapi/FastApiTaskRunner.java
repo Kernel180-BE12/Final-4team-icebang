@@ -1,4 +1,4 @@
-package site.icebang.domain.workflow.runner;
+package site.icebang.domain.workflow.runner.fastapi;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 
 import site.icebang.domain.execution.model.TaskRun;
 import site.icebang.domain.workflow.model.Task;
+import site.icebang.domain.workflow.runner.TaskRunner;
 import site.icebang.external.fastapi.adapter.FastApiAdapter;
 
 @Component("fastapiTaskRunner")

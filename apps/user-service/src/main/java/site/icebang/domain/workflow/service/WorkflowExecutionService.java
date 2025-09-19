@@ -27,7 +27,7 @@ import site.icebang.domain.workflow.mapper.JobMapper;
 import site.icebang.domain.workflow.model.Job;
 import site.icebang.domain.workflow.model.Task;
 import site.icebang.domain.workflow.runner.TaskRunner;
-import site.icebang.domain.workflow.runner.body.TaskBodyBuilder;
+import site.icebang.domain.workflow.runner.fastapi.body.TaskBodyBuilder;
 
 @Slf4j
 @Service
