@@ -31,6 +31,9 @@ jobs:
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env.prod
           echo "MODE=prd" >> .env.prod
           echo "APP_NAME=pre-processing" >> .env.prod
+          echo "GRAFANA_CLOUD_PROMETHEUS_URL=${{ secrets.GRAFANA_CLOUD_PROMETHEUS_URL }}" >> .env.prod
+          echo "GRAFANA_CLOUD_PROMETHEUS_USER=${{ secrets.GRAFANA_CLOUD_PROMETHEUS_USER }}" >> .env.prod
+          echo "GRAFANA_CLOUD_API_KEY=${{ secrets.GRAFANA_CLOUD_API_KEY }}" >> .env.prod
 
       - name: Set repo lowercase
         run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
