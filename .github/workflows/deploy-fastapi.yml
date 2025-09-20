@@ -29,6 +29,8 @@ jobs:
           echo "LOKI_PASSWORD=${{ secrets.LOKI_PASSWORD }}" >> .env.prod
           echo "ENV_NAME=${{ secrets.ENV_NAME }}" >> .env.prod
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env.prod
+          echo "MODE=prd" >> .env.prod
+          echo "APP_NAME=pre-processing" >> .env.prod
 
       - name: Set repo lowercase
         run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
@@ -49,7 +51,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: ".env.prod"
-          target: "~/app/docker/production/"
+          target: "~/app/docker/production-fastapi/"
           overwrite: true
 
       - name: Copy promtail-config to FastAPI EC2
@@ -59,18 +61,8 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "docker/production-fastapi/promtail-config.yml"
-          target: "~/app/docker/production/"
+          target: "~/app"
           overwrite: true
-
-      - name: Copy ONNX to FastAPI EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.FASTAPI_SERVER_HOST }}
-          username: ubuntu
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "apps/pre-processing-service/klue_bert.onnx"
-          target: "~/app/models/"
-          overwrite: false
 
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3

@@ -27,12 +27,12 @@ management:
       export:
         enabled: true
   server:
-    address: 127.0.0.1  # localhost에서만 접근
+    address: 0.0.0.0
     port: 8081
   security:
     enabled: false
 # 외부 API 연동을 위한 설정 섹션
 api:
   fastapi:
-    url: ${FASTAPI_SERVER_HOST:-http://127.0.0.1:8000}
+    url: http://${FASTAPI_SERVER_HOST:127.0.0.1:8000}
     timeout: 10000  # API 요청 타임아웃 (밀리초 단위)

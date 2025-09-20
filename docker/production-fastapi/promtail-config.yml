@@ -20,7 +20,7 @@ scrape_configs:
           __path__: /logs/production/app.log
     pipeline_stages:
       - regex:
-          expression:
+          expression: '^\[(?P<traceId>[^\]]*)\] (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) \| (?P<level>\w+) \| (?P<logger>[^:]+:[^:]+:\d+) \| (?P<message>.*)$'
       - labels:
           traceId:
           level:
@@ -39,7 +39,7 @@ scrape_configs:
           __path__: /logs/production/error.log
     pipeline_stages:
       - regex:
-          expression:
+          expression: '^\[(?P<traceId>[^\]]*)\] (?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) \| (?P<level>\w+) \| (?P<logger>[^:]+:[^:]+:\d+) \| (?P<message>.*)$'
       - labels:
           traceId:
           level:
