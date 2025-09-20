@@ -13,12 +13,25 @@ from app.service.blog.base_blog_post_service import BaseBlogPostService
 class TistoryBlogPostService(BaseBlogPostService):
     """티스토리 블로그 포스팅 서비스"""
 
+    def __init__(self, blog_id: str, blog_password: str, blog_name:str ,use_webdriver=True):
+        """네이버 블로그 서비스 초기화
+
+        Args:
+            blog_id: 네이버 아이디
+            blog_password: 네이버 비밀번호
+            use_webdriver: 웹드라이버 사용 여부
+        """
+        self.blog_id = blog_id
+        self.blog_password = blog_password
+        self.blog_name = blog_name
+        super().__init__(use_webdriver)
+
     def _load_config(self) -> None:
         """티스토리 블로그 설정 로드"""
 
-        self.blog_name = os.getenv("TISTORY_BLOG_NAME", "hoons2641")
-        self.id = os.getenv("TISTORY_ID", "fair_05@nate.com")
-        self.password = os.getenv("TISTORY_PASSWORD", "kdyn264105*")
+        self.blog_name = self.blog_name
+        self.id = self.blog_id
+        self.password = self.blog_password
         self.login_url = "https://accounts.kakao.com/login/?continue=https%3A%2F%2Fkauth.kakao.com%2Foauth%2Fauthorize%3Fclient_id%3D3e6ddd834b023f24221217e370daed18%26state%3DaHR0cHM6Ly93d3cudGlzdG9yeS5jb20v%26redirect_uri%3Dhttps%253A%252F%252Fwww.tistory.com%252Fauth%252Fkakao%252Fredirect%26response_type%3Dcode%26auth_tran_id%3Dslj3F.mFC~2JNOiCOGi5HdGPKOA.Pce4l5tiS~3fZkInLGuEG3tMq~xZkxx4%26ka%3Dsdk%252F2.7.3%2520os%252Fjavascript%2520sdk_type%252Fjavascript%2520lang%252Fko-KR%2520device%252FMacIntel%2520origin%252Fhttps%25253A%25252F%25252Fwww.tistory.com%26is_popup%3Dfalse%26through_account%3Dtrue&talk_login=hidden#login"
         self.post_content_url = f"https://{self.blog_name}.tistory.com/manage/newpost"
 

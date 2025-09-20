@@ -1,4 +1,3 @@
-import os
 import time
 import pyperclip
 
@@ -15,14 +14,26 @@ from app.service.blog.base_blog_post_service import BaseBlogPostService
 class NaverBlogPostService(BaseBlogPostService):
     """네이버 블로그 포스팅 서비스 구현"""
 
+    def __init__(self, blog_id: str, blog_password: str, use_webdriver=True):
+        """네이버 블로그 서비스 초기화
+
+        Args:
+            blog_id: 네이버 아이디
+            blog_password: 네이버 비밀번호
+            use_webdriver: 웹드라이버 사용 여부
+        """
+        self.blog_id = blog_id
+        self.blog_password = blog_password
+        super().__init__(use_webdriver)
+
     def _load_config(self) -> None:
         """네이버 블로그 설정 로드"""
-
-        self.id = os.getenv("NAVER_ID", "all2641")
-        self.password = os.getenv("NAVER_PASSWORD", "cjh83520*")
+        self.id = self.blog_id
+        self.password = self.blog_password
         self.login_url = "https://nid.naver.com/nidlogin.login"
         self.post_content_url = f"https://blog.naver.com/PostWriteForm.naver?blogId={self.id}&Redirect=Write&redirect=Write&widgetTypeCall=true&noTrackingCode=true&directAccess=false"
-
+        # print(self.id)
+        # print(self.password)
     def _get_platform_name(self) -> str:
         return "NAVER_BLOG"
 

@@ -193,6 +193,7 @@ class RequestBlogPublish(RequestBase):
     tag: str = Field(..., title="블로그 태그", description="블로그 플랫폼 종류")
     blog_id: str = Field(..., description="블로그 아이디")
     blog_pw: str = Field(..., description="블로그 비밀번호")
+    blog_name: Optional[str] = Field(None, description="블로그 이름")
     post_title: str = Field(..., description="포스팅 제목")
     post_content: str = Field(..., description="포스팅 내용")
     post_tags: List[str] = Field(default_factory=list, description="포스팅 태그 목록")

@@ -100,10 +100,11 @@ class BaseBlogPostService(ABC):
 
         # 4. 결과 반환
         return {
-            "platform": self._get_platform_name(),
-            "title": title,
+            "tag": self._get_platform_name(),
+            "post_title": title,
             "content_length": len(content),
             "tags": tags or [],
+            "publish_success": True,
         }
 
     def __del__(self):
