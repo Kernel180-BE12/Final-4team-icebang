@@ -14,6 +14,8 @@ services:
       - promtail
     env_file:
       - .env.prod
+    networks:
+      - app-network
 
   promtail:
     image: grafana/promtail:2.9.0
@@ -31,7 +33,47 @@ services:
         hard: 65535
     env_file:
       - .env.prod
+    networks:
+      - app-network
+
+  grafana-agent:
+    image: grafana/agent:latest
+    container_name: grafana-agent
+    restart: unless-stopped
+    volumes:
+      - ./agent-config.yml:/etc/agent/agent.yml:ro
+    networks:
+      - app-network
+    env_file:
+      - .env.prod
+    command:
+      - --config.file=/etc/agent/agent.yml
+      - --config.expand-env=true
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9100:9100"  # localhost에서만 접근
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - app-network
+
+
 
 volumes:
   logs_volume:
     driver: local
+
+networks:
+  app-network:
+    driver: bridge

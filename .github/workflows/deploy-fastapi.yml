@@ -64,6 +64,16 @@ jobs:
           target: "~/app"
           overwrite: true
 
+      - name: Copy agent-config to FastAPI EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.FASTAPI_SERVER_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "docker/production-fastapi/agent-config.yml"
+          target: "~/app"
+          overwrite: true
+
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:

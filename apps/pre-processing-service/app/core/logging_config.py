@@ -14,17 +14,22 @@ except ImportError:
 def setup_file_logging():
     """
     PromTail을 통해 Loki로 전송하기 위한 파일 로깅 설정
+    환경변수 MODE에 따라 개발/운영 환경 분리
     """
     # 기존 loguru 핸들러 제거 (기본 콘솔 출력 제거)
     logger.remove()
 
-    log_dir = "../../docker/local/logs/develop"
+    mode = os.getenv("MODE", "dev").lower()
 
-    # 로그 디렉토리가 없으면 생성
-
-    # 로그 파일 경로 설정
-    log_file_path = log_dir + "/pre-processing-app.log"
-    error_log_file_path = log_dir + "/pre-processing-app-error.log"
+    if mode == "prd":
+        log_dir = "/logs/production"
+        log_file_path = f"{log_dir}/app.log"
+        error_log_file_path = f"{log_dir}/error.log"
+    else:
+        # 개발환경: 기존 로컬 경로
+        log_dir = "../../docker/local/logs/develop"
+        log_file_path = f"{log_dir}/pre-processing-app.log"
+        error_log_file_path = f"{log_dir}/pre-processing-app-error.log"
 
     # trace_id를 포함한 간단한 포맷 문자열 사용
     def add_trace_id_filter(record):
