@@ -1,4 +1,4 @@
-package site.icebang.domain.workflow.runner.body;
+package site.icebang.domain.workflow.runner.fastapi.body;
 
 import java.util.Map;
 import java.util.Optional;
@@ -15,13 +15,12 @@ import site.icebang.domain.workflow.model.Task;
 
 @Component
 @RequiredArgsConstructor
-public class ProductSimilarityBodyBuilder implements TaskBodyBuilder {
+public class BlogRagBodyBuilder implements TaskBodyBuilder {
 
   private final ObjectMapper objectMapper;
-  private static final String TASK_NAME = "상품 유사도 분석 태스크";
+  private static final String TASK_NAME = "블로그 RAG 생성 태스크";
   private static final String KEYWORD_SOURCE_TASK = "키워드 검색 태스크";
-  private static final String MATCH_SOURCE_TASK = "상품 매칭 태스크";
-  private static final String SEARCH_SOURCE_TASK = "상품 검색 태스크";
+  private static final String CRAWL_SOURCE_TASK = "상품 정보 크롤링 태스크";
 
   @Override
   public boolean supports(String taskName) {
@@ -37,15 +36,14 @@ public class ProductSimilarityBodyBuilder implements TaskBodyBuilder {
         .map(node -> node.path("data").path("keyword"))
         .ifPresent(keywordNode -> body.set("keyword", keywordNode));
 
-    // 매칭된 상품 정보 가져오기
-    Optional.ofNullable(workflowContext.get(MATCH_SOURCE_TASK))
-        .map(node -> node.path("data").path("matched_products"))
-        .ifPresent(matchedNode -> body.set("matched_products", matchedNode));
+    // 크롤링된 상품 정보 가져오기
+    Optional.ofNullable(workflowContext.get(CRAWL_SOURCE_TASK))
+        .map(node -> node.path("data").path("product_detail"))
+        .ifPresent(productNode -> body.set("product_info", productNode));
 
-    // 상품 검색 결과 정보 가져오기
-    Optional.ofNullable(workflowContext.get(SEARCH_SOURCE_TASK))
-        .map(node -> node.path("data").path("search_results"))
-        .ifPresent(resultsNode -> body.set("search_results", resultsNode));
+    // 기본 콘텐츠 설정
+    body.put("content_type", "review_blog");
+    body.put("target_length", 1000);
 
     return body;
   }

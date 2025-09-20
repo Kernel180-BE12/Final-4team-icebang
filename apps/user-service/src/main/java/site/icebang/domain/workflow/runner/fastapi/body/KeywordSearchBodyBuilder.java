@@ -1,4 +1,4 @@
-package site.icebang.domain.workflow.runner.body;
+package site.icebang.domain.workflow.runner.fastapi.body;
 
 import java.util.Map;
 
@@ -14,11 +14,10 @@ import site.icebang.domain.workflow.model.Task;
 
 @Component
 @RequiredArgsConstructor
-public class ProductSearchBodyBuilder implements TaskBodyBuilder {
+public class KeywordSearchBodyBuilder implements TaskBodyBuilder {
 
   private final ObjectMapper objectMapper;
-  private static final String TASK_NAME = "상품 검색 태스크";
-  private static final String SOURCE_TASK_NAME = "키워드 검색 태스크";
+  private static final String TASK_NAME = "키워드 검색 태스크";
 
   @Override
   public boolean supports(String taskName) {
@@ -27,9 +26,7 @@ public class ProductSearchBodyBuilder implements TaskBodyBuilder {
 
   @Override
   public ObjectNode build(Task task, Map<String, JsonNode> workflowContext) {
-    JsonNode sourceResult = workflowContext.get(SOURCE_TASK_NAME);
-    String keyword =
-        sourceResult != null ? sourceResult.path("data").path("keyword").asText("") : "";
-    return objectMapper.createObjectNode().put("keyword", keyword);
+    // 이 Task는 항상 정적인 Body를 가집니다.
+    return objectMapper.createObjectNode().put("tag", "naver");
   }
 }

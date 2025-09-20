@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.exceptions import RequestValidationError
 from app.middleware.ServiceLoggerMiddleware import ServiceLoggerMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # 파일 로깅 설정 초기화
 from app.core.logging_config import setup_file_logging
@@ -18,6 +19,11 @@ from app.errors.handlers import *
 
 # --- FastAPI 애플리케이션 인스턴스 생성 ---
 app = FastAPI(title="pre-processing-service", description="", version="1.0.0")
+
+# --- Prometheus 메트릭스 설정 ---
+instrumentator = Instrumentator()
+instrumentator.instrument(app)
+instrumentator.expose(app, endpoint="/actuator/prometheus")
 
 # --- 예외 핸들러 등록 ---
 # 등록 순서가 중요합니다: 구체적인 예외부터 등록하고 가장 일반적인 예외(Exception)를 마지막에 등록합니다.
