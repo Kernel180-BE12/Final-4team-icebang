@@ -38,22 +38,28 @@ class S3UploadService:
                     product_index = product_info.get("index", 0)
                     product_detail = product_info.get("product_detail")
 
-                    logger.info(f"상품 {product_index}/{len(crawled_products)} S3 업로드 시작")
+                    logger.info(
+                        f"상품 {product_index}/{len(crawled_products)} S3 업로드 시작"
+                    )
 
                     # 크롤링 실패한 상품은 스킵
                     if not product_detail or product_info.get("status") != "success":
-                        logger.warning(f"상품 {product_index}: 크롤링 실패로 인한 업로드 스킵")
-                        upload_results.append({
-                            "product_index": product_index,
-                            "product_title": "Unknown",
-                            "product_url": product_info.get("url", ""),
-                            "status": "skipped",
-                            "reason": "크롤링 실패",
-                            "success_count": 0,
-                            "fail_count": 0,
-                            "uploaded_images": [],
-                            "failed_images": []
-                        })
+                        logger.warning(
+                            f"상품 {product_index}: 크롤링 실패로 인한 업로드 스킵"
+                        )
+                        upload_results.append(
+                            {
+                                "product_index": product_index,
+                                "product_title": "Unknown",
+                                "product_url": product_info.get("url", ""),
+                                "status": "skipped",
+                                "reason": "크롤링 실패",
+                                "success_count": 0,
+                                "fail_count": 0,
+                                "uploaded_images": [],
+                                "failed_images": [],
+                            }
+                        )
                         continue
 
                     try:
@@ -74,17 +80,19 @@ class S3UploadService:
 
                     except Exception as e:
                         logger.error(f"상품 {product_index} S3 업로드 오류: {e}")
-                        upload_results.append({
-                            "product_index": product_index,
-                            "product_title": product_detail.get("title", "Unknown"),
-                            "product_url": product_detail.get("url", ""),
-                            "status": "error",
-                            "error": str(e),
-                            "success_count": 0,
-                            "fail_count": 0,
-                            "uploaded_images": [],
-                            "failed_images": []
-                        })
+                        upload_results.append(
+                            {
+                                "product_index": product_index,
+                                "product_title": product_detail.get("title", "Unknown"),
+                                "product_url": product_detail.get("url", ""),
+                                "status": "error",
+                                "error": str(e),
+                                "success_count": 0,
+                                "fail_count": 0,
+                                "uploaded_images": [],
+                                "failed_images": [],
+                            }
+                        )
 
                     # 상품간 간격 (서버 부하 방지)
                     if product_index < len(crawled_products):
@@ -104,8 +112,11 @@ class S3UploadService:
                     "skipped_products": len(crawled_products) - processed_products,
                     "total_success_images": total_success_images,
                     "total_fail_images": total_fail_images,
-                    "success_rate": f"{total_success_images}/{total_success_images + total_fail_images}" if (
-                                                                                                                        total_success_images + total_fail_images) > 0 else "0/0"
+                    "success_rate": (
+                        f"{total_success_images}/{total_success_images + total_fail_images}"
+                        if (total_success_images + total_fail_images) > 0
+                        else "0/0"
+                    ),
                 },
                 "base_folder": base_folder,
                 "uploaded_at": time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -124,10 +135,17 @@ class S3UploadService:
         """
         try:
             total_products = len(upload_results)
-            successful_products = len([r for r in upload_results if r.get("status") == "completed"])
-            failed_products = len([r for r in upload_results if r.get("status") in ["error", "skipped"]])
+            successful_products = len(
+                [r for r in upload_results if r.get("status") == "completed"]
+            )
+            failed_products = len(
+                [r for r in upload_results if r.get("status") in ["error", "skipped"]]
+            )
 
-            total_images = sum(r.get("success_count", 0) + r.get("fail_count", 0) for r in upload_results)
+            total_images = sum(
+                r.get("success_count", 0) + r.get("fail_count", 0)
+                for r in upload_results
+            )
             successful_images = sum(r.get("success_count", 0) for r in upload_results)
             failed_images = sum(r.get("fail_count", 0) for r in upload_results)
 
@@ -136,14 +154,18 @@ class S3UploadService:
                     "total": total_products,
                     "successful": successful_products,
                     "failed": failed_products,
-                    "success_rate": f"{successful_products}/{total_products}"
+                    "success_rate": f"{successful_products}/{total_products}",
                 },
                 "images": {
                     "total": total_images,
                     "successful": successful_images,
                     "failed": failed_images,
-                    "success_rate": f"{successful_images}/{total_images}" if total_images > 0 else "0/0"
-                }
+                    "success_rate": (
+                        f"{successful_images}/{total_images}"
+                        if total_images > 0
+                        else "0/0"
+                    ),
+                },
             }
 
             return status_summary

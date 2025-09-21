@@ -42,36 +42,44 @@ class CrawlService:
                         )
 
                         # 성공한 상품 추가
-                        crawled_products.append({
-                            "index": i,
-                            "url": product_url,
-                            "product_detail": product_detail,
-                            "status": "success",
-                            "crawled_at": time.strftime("%Y-%m-%d %H:%M:%S")
-                        })
+                        crawled_products.append(
+                            {
+                                "index": i,
+                                "url": product_url,
+                                "product_detail": product_detail,
+                                "status": "success",
+                                "crawled_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                            }
+                        )
                         success_count += 1
                     else:
                         logger.error(f"상품 {i} 크롤링 실패: 상세 정보 없음")
-                        crawled_products.append({
+                        crawled_products.append(
+                            {
+                                "index": i,
+                                "url": product_url,
+                                "product_detail": None,
+                                "status": "failed",
+                                "error": "상세 정보 없음",
+                                "crawled_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                            }
+                        )
+                        fail_count += 1
+
+                except Exception as e:
+                    logger.error(
+                        f"상품 {i} 크롤링 오류: url={product_url}, error='{e}'"
+                    )
+                    crawled_products.append(
+                        {
                             "index": i,
                             "url": product_url,
                             "product_detail": None,
                             "status": "failed",
-                            "error": "상세 정보 없음",
-                            "crawled_at": time.strftime("%Y-%m-%d %H:%M:%S")
-                        })
-                        fail_count += 1
-
-                except Exception as e:
-                    logger.error(f"상품 {i} 크롤링 오류: url={product_url}, error='{e}'")
-                    crawled_products.append({
-                        "index": i,
-                        "url": product_url,
-                        "product_detail": None,
-                        "status": "failed",
-                        "error": str(e),
-                        "crawled_at": time.strftime("%Y-%m-%d %H:%M:%S")
-                    })
+                            "error": str(e),
+                            "crawled_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                        }
+                    )
                     fail_count += 1
 
                 finally:
@@ -94,7 +102,9 @@ class CrawlService:
                 "crawled_at": time.strftime("%Y-%m-%d %H:%M:%S"),
             }
 
-            logger.info(f"상품 상세 크롤링 서비스 완료: success_rate={success_count}/{len(product_urls)}")
+            logger.info(
+                f"상품 상세 크롤링 서비스 완료: success_rate={success_count}/{len(product_urls)}"
+            )
             return Response.ok(data)
 
         except Exception as e:

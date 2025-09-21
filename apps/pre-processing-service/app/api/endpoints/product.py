@@ -101,9 +101,8 @@ async def crawl(body: RequestSadaguCrawl):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post(
-    "/s3-upload", response_model=ResponseS3Upload, summary="S3 이미지 업로드"
-)
+
+@router.post("/s3-upload", response_model=ResponseS3Upload, summary="S3 이미지 업로드")
 async def s3_upload(request: RequestS3Upload):
     """
     크롤링 완료 후 별도로 호출하여 이미지들을 S3 저장소에 업로드합니다.
@@ -113,7 +112,9 @@ async def s3_upload(request: RequestS3Upload):
         response_data = await s3_upload_service.upload_crawled_products_to_s3(request)
 
         if not response_data:
-            raise CustomException(500, "S3 이미지 업로드에 실패했습니다.", "S3_UPLOAD_FAILED")
+            raise CustomException(
+                500, "S3 이미지 업로드에 실패했습니다.", "S3_UPLOAD_FAILED"
+            )
 
         return response_data
     except InvalidItemDataException as e:

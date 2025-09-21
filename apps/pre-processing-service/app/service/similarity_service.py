@@ -9,7 +9,9 @@ class SimilarityService:
     def __init__(self):
         pass
 
-    def select_top_products_by_similarity(self, request: RequestSadaguSimilarity) -> dict:
+    def select_top_products_by_similarity(
+        self, request: RequestSadaguSimilarity
+    ) -> dict:
         """
         형태소 분석 후 Top 10 선택 (10개 이하면 유사도 분석 생략)
         """
@@ -48,7 +50,9 @@ class SimilarityService:
         try:
             # 형태소 분석 결과가 10개 이하면 유사도 분석 생략하고 바로 반환
             if skip_similarity and analysis_mode == "matched_products":
-                logger.info(f"형태소 분석 결과가 {len(candidates)}개로 {top_count}개 이하 - 유사도 분석 생략")
+                logger.info(
+                    f"형태소 분석 결과가 {len(candidates)}개로 {top_count}개 이하 - 유사도 분석 생략"
+                )
 
                 # 매칭 스코어 기준으로 정렬된 상태 유지 (이미 match_service에서 정렬됨)
                 top_products = []
@@ -57,7 +61,9 @@ class SimilarityService:
                     enhanced_product["rank"] = i + 1
                     enhanced_product["selection_info"] = {
                         "selection_type": "match_only",
-                        "match_score": product.get("match_info", {}).get("match_score", 0.0),
+                        "match_score": product.get("match_info", {}).get(
+                            "match_score", 0.0
+                        ),
                         "reason": "형태소 분석만으로 선택 (유사도 분석 생략)",
                         "total_candidates": len(candidates),
                     }
@@ -87,15 +93,21 @@ class SimilarityService:
 
             # 유사도 정보 추가 및 Top 10 선택
             enhanced_products = []
-            similarity_threshold = 0.3 if analysis_mode == "fallback_similarity_only" else 0.0
+            similarity_threshold = (
+                0.3 if analysis_mode == "fallback_similarity_only" else 0.0
+            )
 
             for i, result in enumerate(similarity_results):
                 product = candidates[result["index"]].copy()
 
                 # 폴백 모드에서는 임계값 검증
-                if analysis_mode == "fallback_similarity_only" and result["similarity"] < similarity_threshold:
+                if (
+                    analysis_mode == "fallback_similarity_only"
+                    and result["similarity"] < similarity_threshold
+                ):
                     logger.debug(
-                        f"상품 {i + 1} 유사도 미달로 제외: similarity={result['similarity']:.4f} < threshold={similarity_threshold}")
+                        f"상품 {i + 1} 유사도 미달로 제외: similarity={result['similarity']:.4f} < threshold={similarity_threshold}"
+                    )
                     continue
 
                 product["similarity_info"] = {
@@ -129,10 +141,16 @@ class SimilarityService:
 
             # 종합 점수 또는 유사도 기준으로 재정렬
             if analysis_mode == "matched_products":
-                enhanced_products.sort(key=lambda x: x.get("final_score", x["similarity_info"]["similarity_score"]),
-                                       reverse=True)
+                enhanced_products.sort(
+                    key=lambda x: x.get(
+                        "final_score", x["similarity_info"]["similarity_score"]
+                    ),
+                    reverse=True,
+                )
             else:
-                enhanced_products.sort(key=lambda x: x["similarity_info"]["similarity_score"], reverse=True)
+                enhanced_products.sort(
+                    key=lambda x: x["similarity_info"]["similarity_score"], reverse=True
+                )
 
             # Top 10 선택
             top_products = enhanced_products[:top_count]
@@ -149,10 +167,12 @@ class SimilarityService:
                 best_product = top_products[0]
                 if "final_score" in best_product:
                     logger.info(
-                        f"1위 상품: title='{best_product['title'][:30]}', final_score={best_product['final_score']:.4f}")
+                        f"1위 상품: title='{best_product['title'][:30]}', final_score={best_product['final_score']:.4f}"
+                    )
                 else:
                     logger.info(
-                        f"1위 상품: title='{best_product['title'][:30]}', similarity={best_product['similarity_info']['similarity_score']:.4f}")
+                        f"1위 상품: title='{best_product['title'][:30]}', similarity={best_product['similarity_info']['similarity_score']:.4f}"
+                    )
 
             data = {
                 "keyword": keyword,
