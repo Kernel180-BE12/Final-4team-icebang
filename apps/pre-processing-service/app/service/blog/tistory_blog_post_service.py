@@ -1,5 +1,8 @@
 import os
 import time
+import json
+import requests
+from datetime import datetime
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -103,7 +106,52 @@ class TistoryBlogPostService(BaseBlogPostService):
         except Exception as e:
             raise BlogLoginException("티스토리 블로그", f"예상치 못한 오류: {str(e)}")
 
-    def _write_content(self, title: str, content: str, tags: List[str] = None) -> None:
+    def _get_post_url_from_api(self, title: str) -> str:
+        """API를 통해 제목이 일치하는 가장 최근 포스트의 URL을 가져옴"""
+        try:
+            # 현재 세션의 쿠키를 가져와서 API 요청에 사용
+            cookies = self.web_driver.get_cookies()
+            session_cookies = {}
+            for cookie in cookies:
+                session_cookies[cookie['name']] = cookie['value']
+
+            # 포스트 목록 API 호출
+            api_url = f"https://{self.blog_name}.tistory.com/manage/posts.json"
+            params = {
+                'category': '-3',
+                'page': '1',
+                'searchKeyword': '',
+                'searchType': 'title',
+                'visibility': 'all'
+            }
+
+            response = requests.get(api_url, params=params, cookies=session_cookies)
+
+            if response.status_code == 200:
+                data = response.json()
+                items = data.get('items', [])
+
+                # 제목이 일치하는 포스트들 찾기
+                matching_posts = [item for item in items if item['title'] == title]
+
+                if matching_posts:
+                    # created 시간으로 정렬하여 가장 최근 포스트 찾기
+                    latest_post = max(matching_posts, key=lambda x: datetime.strptime(x['created'], '%Y-%m-%d %H:%M'))
+                    return latest_post['permalink']
+                else:
+                    # 매칭되는 포스트가 없으면 가장 최근 포스트 반환
+                    if items:
+                        latest_post = max(items, key=lambda x: datetime.strptime(x['created'], '%Y-%m-%d %H:%M'))
+                        return latest_post['permalink']
+
+            # API 호출 실패 시 블로그 메인 URL 반환
+            return f"https://{self.blog_name}.tistory.com"
+
+        except Exception:
+            # 오류 발생 시 블로그 메인 URL 반환
+            return f"https://{self.blog_name}.tistory.com"
+
+    def _write_content(self, title: str, content: str, tags: List[str] = None) -> str:
         """티스토리 블로그 포스팅 작성 구현"""
 
         try:
@@ -243,6 +291,11 @@ class TistoryBlogPostService(BaseBlogPostService):
                     raise BlogPostPublishException(
                         "티스토리 블로그", "발행 과정에서 오류가 발생했습니다"
                     )
+
+            # 발행 완료 확인 및 URL 가져오기
+            time.sleep(3)  # 발행 완료 대기
+            blog_url = self._get_post_url_from_api(title)
+            return blog_url
 
         except (BlogElementInteractionException, BlogPostPublishException):
             raise

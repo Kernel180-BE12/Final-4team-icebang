@@ -47,12 +47,13 @@ class BaseBlogPostService(ABC):
         pass
 
     @abstractmethod
-    def _write_content(self, title: str, content: str, tags: List[str] = None) -> None:
+    def _write_content(self, title: str, content: str, tags: List[str] = None) -> str:
         """
         플랫폼별 포스팅 작성 구현
         :param title: 포스트 제목
         :param content: 포스트 내용
         :param tags: 포스트 태그 리스트
+        :return: 발행된 블로그 포스트 URL
         """
         pass
 
@@ -96,7 +97,7 @@ class BaseBlogPostService(ABC):
         self._login()
 
         # 3. 포스트 작성 및 발행
-        self._write_content(title, content, tags)
+        post_url = self._write_content(title, content, tags)
 
         # 4. 결과 반환
         return {
@@ -105,6 +106,7 @@ class BaseBlogPostService(ABC):
             "content_length": len(content),
             "tags": tags or [],
             "publish_success": True,
+            "post_url": post_url,
         }
 
     def __del__(self):

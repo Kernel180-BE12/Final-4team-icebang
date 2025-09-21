@@ -24,6 +24,8 @@ class NaverBlogPostService(BaseBlogPostService):
         """
         self.blog_id = blog_id
         self.blog_password = blog_password
+        print(blog_id)
+        print(blog_password)
         super().__init__(use_webdriver)
 
     def _load_config(self) -> None:
@@ -104,7 +106,7 @@ class NaverBlogPostService(BaseBlogPostService):
         except Exception as e:
             raise BlogLoginException("네이버 블로그", f"예상치 못한 오류: {str(e)}")
 
-    def _write_content(self, title: str, content: str, tags: List[str] = None) -> None:
+    def _write_content(self, title: str, content: str, tags: List[str] = None) -> str:
         """네이버 블로그 포스팅 작성 구현"""
         from selenium.webdriver.common.by import By
         from selenium.webdriver.support import expected_conditions as EC
@@ -204,8 +206,10 @@ class NaverBlogPostService(BaseBlogPostService):
                     self.web_driver.execute_script("arguments[0].click();", final_btn)
             except TimeoutException:
                 raise BlogElementInteractionException("최종 발행 버튼", "버튼 클릭")
+            time.sleep(5)
 
-            # 발행 완료 확인
+            # 발행 완료 확인 및 URL 가져오기
+            blog_url = None
             try:
                 self.wait_driver.until(
                     EC.any_of(
@@ -215,8 +219,33 @@ class NaverBlogPostService(BaseBlogPostService):
                         EC.url_contains("entry.naver"),
                     )
                 )
+                # 현재 URL 가져오기
+                current_url = self.web_driver.current_url
+
+                # PostView URL인 경우 해당 URL을 반환
+                if "PostView.naver" in current_url or "entry.naver" in current_url:
+                    blog_url = current_url
+                # postList인 경우 가장 최근 포스트 URL 찾기
+                elif "postList" in current_url:
+                    try:
+                        # 가장 최근 포스트 링크 찾기
+                        recent_post = self.wait_driver.until(
+                            EC.element_to_be_clickable(
+                                (By.CSS_SELECTOR, ".post_area .post_item:first-child .title_area a")
+                            )
+                        )
+                        blog_url = recent_post.get_attribute("href")
+                    except TimeoutException:
+                        # 대안으로 현재 URL 사용
+                        blog_url = current_url
+                else:
+                    blog_url = current_url
+
             except TimeoutException:
-                pass
+                # 발행 완료를 확인할 수 없는 경우 현재 URL 사용
+                blog_url = self.web_driver.current_url
+            print(f"blog_url: {blog_url}")
+            return blog_url
 
         except (BlogElementInteractionException, BlogPostPublishException):
             raise
