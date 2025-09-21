@@ -87,6 +87,10 @@ class BaseSettingsConfig(BaseSettings):
     loki_password: str
     loki_port: int = 3100
 
+    grafana_cloud_prometheus_url: Optional[str] = None
+    grafana_cloud_prometheus_user: Optional[str] = None
+    grafana_cloud_api_key: Optional[str] = None
+
     # 테스트/추가용 필드
     openai_api_key: Optional[str] = None  # << 이 부분 추가
 
