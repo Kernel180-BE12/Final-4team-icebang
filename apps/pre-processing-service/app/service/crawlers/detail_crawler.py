@@ -64,7 +64,7 @@ class DetailCrawler(SearchCrawler):
             self.driver.get(product_url)
             self.wait.until(
                 lambda driver: driver.execute_script("return document.readyState")
-                               == "complete"
+                == "complete"
             )
             time.sleep(2)
             logger.debug("Selenium HTML 로딩 완료")
