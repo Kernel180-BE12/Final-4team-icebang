@@ -24,7 +24,7 @@ class CrawlService:
 
             # 상세 정보 크롤링 실행
             product_detail = await crawler.crawl_detail(
-                product_url=str(request.product_url), include_images=False
+                product_url=str(request.product_url)
             )
 
             if not product_detail:
