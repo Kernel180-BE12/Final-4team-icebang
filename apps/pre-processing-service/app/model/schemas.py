@@ -110,8 +110,8 @@ class SadaguSimilarityData(BaseModel):
     keyword: str = Field(
         ..., title="분석 키워드", description="유사도 분석에 사용된 키워드"
     )
-    selected_product: Optional[Dict] = Field(
-        None, title="선택된 상품", description="유사도 분석 결과 선택된 상품"
+    top_products: List[Dict] = Field(
+        default_factory=list, title="선택된 상품들", description="유사도 분석 결과 선택된 상위 상품 목록"
     )
     reason: Optional[str] = Field(
         None, title="선택 이유", description="상품 선택 근거 및 점수 정보"
@@ -129,16 +129,21 @@ class ResponseSadaguSimilarity(ResponseBase[SadaguSimilarityData]):
 
 
 class RequestSadaguCrawl(RequestBase):
-    product_url: HttpUrl = Field(
+    product_urls: List[HttpUrl] = Field(
         ..., title="상품 URL", description="크롤링할 상품 페이지의 URL"
     )
 
 
 # 응답 데이터 모델
 class SadaguCrawlData(BaseModel):
-    product_url: str = Field(..., title="상품 URL", description="크롤링된 상품 URL")
-    product_detail: Optional[Dict] = Field(
-        None, title="상품 상세정보", description="크롤링된 상품의 상세 정보"
+    crawled_products: List[Dict] = Field(
+        ..., title="크롤링된 상품들", description="크롤링된 상품들의 상세 정보 목록 (URL 포함)"
+    )
+    success_count: int = Field(
+        ..., title="성공 개수", description="성공적으로 크롤링된 상품 개수"
+    )
+    fail_count: int = Field(
+        ..., title="실패 개수", description="크롤링에 실패한 상품 개수"
     )
     crawled_at: Optional[str] = Field(
         None, title="크롤링 시간", description="크롤링 완료 시간"

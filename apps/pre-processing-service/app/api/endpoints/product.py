@@ -60,11 +60,11 @@ async def match(request: RequestSadaguMatch):
 )
 async def similarity(request: RequestSadaguSimilarity):
     """
-    매칭된 상품들 중 키워드와의 유사도를 계산하여 최적의 상품을 선택합니다.
+    매칭된 상품들 중 키워드와의 유사도를 계산하여 상위 10개 상품을 선택합니다.
     """
     try:
         similarity_service = SimilarityService()
-        response_data = similarity_service.select_product_by_similarity(request)
+        response_data = similarity_service.select_top_products_by_similarity(request)
 
         if not response_data:
             raise CustomException(
