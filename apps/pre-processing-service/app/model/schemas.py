@@ -156,6 +156,66 @@ class ResponseSadaguCrawl(ResponseBase[SadaguCrawlData]):
 
     pass
 
+# ============== 6단계: S3 이미지 업로드 ==============
+
+class RequestS3Upload(RequestBase):
+    crawled_products: List[Dict] = Field(
+        ..., title="크롤링된 상품 데이터", description="이전 단계에서 크롤링된 상품들의 데이터"
+    )
+    base_folder: Optional[str] = Field(
+        "product-images", title="기본 폴더", description="S3 내 기본 저장 폴더 경로"
+    )
+
+
+# S3 업로드된 이미지 정보
+class S3ImageInfo(BaseModel):
+    index: int = Field(..., title="이미지 순번", description="상품 내 이미지 순번")
+    original_url: str = Field(..., title="원본 URL", description="크롤링된 원본 이미지 URL")
+    s3_key: str = Field(..., title="S3 키", description="S3 저장소 내 파일 키")
+    s3_url: str = Field(..., title="S3 URL", description="S3에서 접근 가능한 URL")
+    file_size: int = Field(..., title="파일 크기", description="업로드된 파일 크기 (bytes)")
+    content_type: str = Field(..., title="콘텐츠 타입", description="파일의 MIME 타입")
+
+
+# 상품별 S3 업로드 결과
+class ProductS3UploadResult(BaseModel):
+    product_index: int = Field(..., title="상품 순번", description="크롤링 순번")
+    product_title: str = Field(..., title="상품 제목", description="상품명")
+    product_url: str = Field(..., title="상품 URL", description="상품 페이지 URL")
+    status: str = Field(..., title="업로드 상태", description="completed/skipped/error")
+    upload_folder: Optional[str] = Field(None, title="업로드 폴더", description="S3 내 상품별 폴더 경로")
+    folder_s3_url: Optional[str] = Field(None, title="폴더 S3 URL", description="S3 폴더 접근 URL")
+    uploaded_images: List[S3ImageInfo] = Field(default_factory=list, title="업로드 성공 이미지")
+    failed_images: List[Dict] = Field(default_factory=list, title="업로드 실패 이미지")
+    success_count: int = Field(..., title="성공 개수", description="업로드 성공한 이미지 수")
+    fail_count: int = Field(..., title="실패 개수", description="업로드 실패한 이미지 수")
+    reason: Optional[str] = Field(None, title="건너뜀 사유", description="업로드를 건너뛴 이유")
+    error: Optional[str] = Field(None, title="오류 메시지", description="업로드 중 발생한 오류")
+
+
+# S3 업로드 요약 정보
+class S3UploadSummary(BaseModel):
+    total_products: int = Field(..., title="총 상품 수", description="처리 대상 상품 총 개수")
+    processed_products: int = Field(..., title="처리된 상품 수", description="실제 처리된 상품 수")
+    skipped_products: int = Field(..., title="건너뛴 상품 수", description="크롤링 실패로 건너뛴 상품 수")
+    total_success_images: int = Field(..., title="성공 이미지 수", description="업로드 성공한 이미지 총 개수")
+    total_fail_images: int = Field(..., title="실패 이미지 수", description="업로드 실패한 이미지 총 개수")
+    success_rate: str = Field(..., title="성공률", description="이미지 업로드 성공률 (성공/전체)")
+
+
+# 응답 데이터 모델
+class S3UploadData(BaseModel):
+    upload_results: List[ProductS3UploadResult] = Field(..., title="업로드 결과", description="각 상품의 S3 업로드 결과")
+    summary: S3UploadSummary = Field(..., title="업로드 요약", description="전체 업로드 결과 요약")
+    base_folder: str = Field(..., title="기본 폴더", description="S3 업로드에 사용된 기본 폴더")
+    uploaded_at: str = Field(..., title="업로드 완료 시간", description="S3 업로드 완료 시간")
+
+
+# 최종 응답 모델
+class ResponseS3Upload(ResponseBase[S3UploadData]):
+    """S3 이미지 업로드 API 응답"""
+    pass
+
 
 # ============== 블로그 콘텐츠 생성 ==============
 
