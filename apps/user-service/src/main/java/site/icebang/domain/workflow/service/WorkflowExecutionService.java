@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,7 @@ import site.icebang.domain.execution.model.JobRun;
 import site.icebang.domain.execution.model.TaskRun;
 import site.icebang.domain.execution.model.WorkflowRun;
 import site.icebang.domain.workflow.dto.TaskDto;
+import site.icebang.domain.workflow.manager.ExecutionMdcManager;
 import site.icebang.domain.workflow.mapper.JobMapper;
 import site.icebang.domain.workflow.model.Job;
 import site.icebang.domain.workflow.model.Task;
@@ -34,7 +37,7 @@ import site.icebang.domain.workflow.runner.fastapi.body.TaskBodyBuilder;
 @Service
 @RequiredArgsConstructor
 public class WorkflowExecutionService {
-
+  private static final Logger workflowLogger = LoggerFactory.getLogger("WORKFLOW_HISTORY");
   private final JobMapper jobMapper;
   private final WorkflowRunMapper workflowRunMapper;
   private final JobRunMapper jobRunMapper;
@@ -42,56 +45,73 @@ public class WorkflowExecutionService {
   private final Map<String, TaskRunner> taskRunners;
   private final ObjectMapper objectMapper;
   private final List<TaskBodyBuilder> bodyBuilders;
+  private final ExecutionMdcManager mdcManager;
 
   @Transactional
   @Async("traceExecutor")
   public void executeWorkflow(Long workflowId) {
-    log.info("========== 워크플로우 실행 시작: WorkflowId={} ==========", workflowId);
-    WorkflowRun workflowRun = WorkflowRun.start(workflowId);
-    workflowRunMapper.insert(workflowRun);
+    mdcManager.setWorkflowContext(workflowId);
 
-    Map<String, JsonNode> workflowContext = new HashMap<>();
-    List<Job> jobs = jobMapper.findJobsByWorkflowId(workflowId);
-    log.info("총 {}개의 Job을 순차적으로 실행합니다.", jobs.size());
+    try {
+      workflowLogger.info("========== 워크플로우 실행 시작: WorkflowId={} ==========", workflowId);
 
-    for (Job job : jobs) {
-      JobRun jobRun = JobRun.start(workflowRun.getId(), job.getId());
-      jobRunMapper.insert(jobRun);
-      log.info(
-          "---------- Job 실행 시작: JobId={}, JobRunId={} ----------", job.getId(), jobRun.getId());
+      WorkflowRun workflowRun = WorkflowRun.start(workflowId);
+      workflowRunMapper.insert(workflowRun);
 
-      boolean jobSucceeded = executeTasksForJob(jobRun, workflowContext);
+      Map<String, JsonNode> workflowContext = new HashMap<>();
+      List<Job> jobs = jobMapper.findJobsByWorkflowId(workflowId);
+      workflowLogger.info("총 {}개의 Job을 순차적으로 실행합니다.", jobs.size());
 
-      jobRun.finish(jobSucceeded ? "SUCCESS" : "FAILED");
-      jobRunMapper.update(jobRun);
+      for (Job job : jobs) {
+        JobRun jobRun = JobRun.start(workflowRun.getId(), job.getId());
+        jobRunMapper.insert(jobRun);
 
-      if (!jobSucceeded) {
-        workflowRun.finish("FAILED");
-        workflowRunMapper.update(workflowRun);
-        log.error("Job 실패로 인해 워크플로우 실행을 중단합니다: WorkflowRunId={}", workflowRun.getId());
-        return;
+        // Job 컨텍스트로 전환
+        mdcManager.setJobContext(jobRun.getId());
+        workflowLogger.info(
+            "---------- Job 실행 시작: JobId={}, JobRunId={} ----------", job.getId(), jobRun.getId());
+
+        boolean jobSucceeded = executeTasksForJob(jobRun, workflowContext);
+
+        jobRun.finish(jobSucceeded ? "SUCCESS" : "FAILED");
+        jobRunMapper.update(jobRun);
+
+        if (!jobSucceeded) {
+          workflowRun.finish("FAILED");
+          workflowRunMapper.update(workflowRun);
+          workflowLogger.error("Job 실패로 인해 워크플로우 실행을 중단합니다: WorkflowRunId={}", workflowRun.getId());
+          return;
+        }
+
+        workflowLogger.info("---------- Job 실행 성공: JobRunId={} ----------", jobRun.getId());
+
+        // 다시 워크플로우 컨텍스트로 복원
+        mdcManager.setWorkflowContext(workflowId);
       }
-      log.info("---------- Job 실행 성공: JobRunId={} ----------", jobRun.getId());
-    }
 
-    workflowRun.finish("SUCCESS");
-    workflowRunMapper.update(workflowRun);
-    log.info("========== 워크플로우 실행 성공: WorkflowRunId={} ==========", workflowRun.getId());
+      workflowRun.finish("SUCCESS");
+      workflowRunMapper.update(workflowRun);
+      workflowLogger.info(
+          "========== 워크플로우 실행 성공: WorkflowRunId={} ==========", workflowRun.getId());
+
+    } finally {
+      mdcManager.clearExecutionContext();
+    }
   }
 
   private boolean executeTasksForJob(JobRun jobRun, Map<String, JsonNode> workflowContext) {
-    // 📌 Mapper로부터 TaskDto 리스트를 조회합니다.
     List<TaskDto> taskDtos = jobMapper.findTasksByJobId(jobRun.getJobId());
-
-    // 📌 convertToTask 메소드를 사용하여 Task 모델 리스트로 변환합니다.
     List<Task> tasks = taskDtos.stream().map(this::convertToTask).collect(Collectors.toList());
 
-    log.info("Job (JobRunId={}) 내 총 {}개의 Task를 실행합니다.", jobRun.getId(), tasks.size());
+    workflowLogger.info("Job (JobRunId={}) 내 총 {}개의 Task를 실행합니다.", jobRun.getId(), tasks.size());
 
     for (Task task : tasks) {
       TaskRun taskRun = TaskRun.start(jobRun.getId(), task.getId());
       taskRunMapper.insert(taskRun);
-      log.info("Task 실행 시작: TaskId={}, TaskRunId={}", task.getId(), taskRun.getId());
+
+      // Task 컨텍스트로 전환
+      mdcManager.setTaskContext(taskRun.getId());
+      workflowLogger.info("Task 실행 시작: TaskId={}, TaskRunId={}", task.getId(), taskRun.getId());
 
       String runnerBeanName = task.getType().toLowerCase() + "TaskRunner";
       TaskRunner runner = taskRunners.get(runnerBeanName);
@@ -99,7 +119,8 @@ public class WorkflowExecutionService {
       if (runner == null) {
         taskRun.finish("FAILED", "지원하지 않는 Task 타입: " + task.getType());
         taskRunMapper.update(taskRun);
-        log.error("Task 실행 실패 (미지원 타입): TaskRunId={}, Type={}", taskRun.getId(), task.getType());
+        workflowLogger.error("Task 실행 실패 (미지원 타입): Type={}", task.getType());
+        mdcManager.setJobContext(jobRun.getId()); // Job 컨텍스트로 복원
         return false;
       }
 
@@ -115,21 +136,26 @@ public class WorkflowExecutionService {
       taskRunMapper.update(taskRun);
 
       if (result.isFailure()) {
-        log.error("Task 실행 실패: TaskRunId={}, Message={}", taskRun.getId(), result.message());
+        workflowLogger.error("Task 실행 실패: Message={}", result.message());
+        mdcManager.setJobContext(jobRun.getId()); // Job 컨텍스트로 복원
         return false;
       }
 
       try {
         JsonNode resultJson = objectMapper.readTree(result.message());
         workflowContext.put(task.getName(), resultJson);
-        // TODO: task_io_data 테이블에 requestBody(INPUT)와 resultJson(OUTPUT) 저장
       } catch (JsonProcessingException e) {
-        log.error("Task 결과 JSON 파싱 실패: TaskRunId={}", taskRun.getId(), e);
+        workflowLogger.error("Task 결과 JSON 파싱 실패");
         taskRun.finish("FAILED", "결과 JSON 파싱 실패");
         taskRunMapper.update(taskRun);
+        mdcManager.setJobContext(jobRun.getId()); // Job 컨텍스트로 복원
         return false;
       }
-      log.info("Task 실행 성공: TaskRunId={}", taskRun.getId());
+
+      workflowLogger.info("Task 실행 성공: TaskRunId={}", taskRun.getId());
+
+      // 다시 Job 컨텍스트로 복원
+      mdcManager.setJobContext(jobRun.getId());
     }
     return true;
   }
