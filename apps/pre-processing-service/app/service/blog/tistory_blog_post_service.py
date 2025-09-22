@@ -1,5 +1,8 @@
 import os
 import time
+import json
+import requests
+from datetime import datetime
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -13,12 +16,27 @@ from app.service.blog.base_blog_post_service import BaseBlogPostService
 class TistoryBlogPostService(BaseBlogPostService):
     """티스토리 블로그 포스팅 서비스"""
 
+    def __init__(
+        self, blog_id: str, blog_password: str, blog_name: str, use_webdriver=True
+    ):
+        """네이버 블로그 서비스 초기화
+
+        Args:
+            blog_id: 네이버 아이디
+            blog_password: 네이버 비밀번호
+            use_webdriver: 웹드라이버 사용 여부
+        """
+        self.blog_id = blog_id
+        self.blog_password = blog_password
+        self.blog_name = blog_name
+        super().__init__(use_webdriver)
+
     def _load_config(self) -> None:
         """티스토리 블로그 설정 로드"""
 
-        self.blog_name = os.getenv("TISTORY_BLOG_NAME", "hoons2641")
-        self.id = os.getenv("TISTORY_ID", "fair_05@nate.com")
-        self.password = os.getenv("TISTORY_PASSWORD", "kdyn264105*")
+        self.blog_name = self.blog_name
+        self.id = self.blog_id
+        self.password = self.blog_password
         self.login_url = "https://accounts.kakao.com/login/?continue=https%3A%2F%2Fkauth.kakao.com%2Foauth%2Fauthorize%3Fclient_id%3D3e6ddd834b023f24221217e370daed18%26state%3DaHR0cHM6Ly93d3cudGlzdG9yeS5jb20v%26redirect_uri%3Dhttps%253A%252F%252Fwww.tistory.com%252Fauth%252Fkakao%252Fredirect%26response_type%3Dcode%26auth_tran_id%3Dslj3F.mFC~2JNOiCOGi5HdGPKOA.Pce4l5tiS~3fZkInLGuEG3tMq~xZkxx4%26ka%3Dsdk%252F2.7.3%2520os%252Fjavascript%2520sdk_type%252Fjavascript%2520lang%252Fko-KR%2520device%252FMacIntel%2520origin%252Fhttps%25253A%25252F%25252Fwww.tistory.com%26is_popup%3Dfalse%26through_account%3Dtrue&talk_login=hidden#login"
         self.post_content_url = f"https://{self.blog_name}.tistory.com/manage/newpost"
 
@@ -90,7 +108,60 @@ class TistoryBlogPostService(BaseBlogPostService):
         except Exception as e:
             raise BlogLoginException("티스토리 블로그", f"예상치 못한 오류: {str(e)}")
 
-    def _write_content(self, title: str, content: str, tags: List[str] = None) -> None:
+    def _get_post_url_from_api(self, title: str) -> str:
+        """API를 통해 제목이 일치하는 가장 최근 포스트의 URL을 가져옴"""
+        try:
+            # 현재 세션의 쿠키를 가져와서 API 요청에 사용
+            cookies = self.web_driver.get_cookies()
+            session_cookies = {}
+            for cookie in cookies:
+                session_cookies[cookie["name"]] = cookie["value"]
+
+            # 포스트 목록 API 호출
+            api_url = f"https://{self.blog_name}.tistory.com/manage/posts.json"
+            params = {
+                "category": "-3",
+                "page": "1",
+                "searchKeyword": "",
+                "searchType": "title",
+                "visibility": "all",
+            }
+
+            response = requests.get(api_url, params=params, cookies=session_cookies)
+
+            if response.status_code == 200:
+                data = response.json()
+                items = data.get("items", [])
+
+                # 제목이 일치하는 포스트들 찾기
+                matching_posts = [item for item in items if item["title"] == title]
+
+                if matching_posts:
+                    # created 시간으로 정렬하여 가장 최근 포스트 찾기
+                    latest_post = max(
+                        matching_posts,
+                        key=lambda x: datetime.strptime(x["created"], "%Y-%m-%d %H:%M"),
+                    )
+                    return latest_post["permalink"]
+                else:
+                    # 매칭되는 포스트가 없으면 가장 최근 포스트 반환
+                    if items:
+                        latest_post = max(
+                            items,
+                            key=lambda x: datetime.strptime(
+                                x["created"], "%Y-%m-%d %H:%M"
+                            ),
+                        )
+                        return latest_post["permalink"]
+
+            # API 호출 실패 시 블로그 메인 URL 반환
+            return f"https://{self.blog_name}.tistory.com"
+
+        except Exception:
+            # 오류 발생 시 블로그 메인 URL 반환
+            return f"https://{self.blog_name}.tistory.com"
+
+    def _write_content(self, title: str, content: str, tags: List[str] = None) -> str:
         """티스토리 블로그 포스팅 작성 구현"""
 
         try:
@@ -230,6 +301,11 @@ class TistoryBlogPostService(BaseBlogPostService):
                     raise BlogPostPublishException(
                         "티스토리 블로그", "발행 과정에서 오류가 발생했습니다"
                     )
+
+            # 발행 완료 확인 및 URL 가져오기
+            time.sleep(3)  # 발행 완료 대기
+            blog_url = self._get_post_url_from_api(title)
+            return blog_url
 
         except (BlogElementInteractionException, BlogPostPublishException):
             raise

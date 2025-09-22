@@ -78,7 +78,7 @@ jobs:
         run: |
           ./gradlew unitTest
           ./gradlew integrationTest
-          if [ "${{ github.base_ref }}" = "main" ]; then
+          if [ "${{ github.base_ref }}" = "main" ] || [[ "${{ github.ref }}" == refs/tags/* ]]; then
             ./gradlew e2eTest
           fi
         working-directory: apps/user-service
@@ -153,33 +153,57 @@ jobs:
           echo "=== Image Layer Analysis ==="
           docker history ghcr.io/${{ env.REPO_LC }}/user-service:${{ needs.set-image-tag.outputs.image-tag }} --human --no-trunc
 
-#  swagger-docs:
-#    name: Deploy Swagger Documentation
-#    runs-on: ubuntu-latest
-#    needs:
-#      - build
-#      - set-image-tag
-#    if: startsWith(github.ref, 'refs/tags/user-service-v')
-#
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v4
-#
-#      - name: Download OpenAPI spec artifacts
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: openapi-spec-${{ github.run_id }}-${{ github.run_attempt }}
-#          path: ./openapi-spec
-#
-#      - name: Generate Swagger UI
-#        uses: Legion2/swagger-ui-action@v1
-#        with:
-#          output: user-service-swagger-ui-${{ needs.set-image-tag.outputs.image-tag }}
-#          spec-file: openapi-spec/openapi3.yaml
-#
-#      - name: Deploy to GitHub Pages
-#        uses: peaceiris/actions-gh-pages@v3
-#        with:
-#          github_token: ${{ secrets.GITHUB_TOKEN }}
-#          publish_dir: ./user-service-swagger-ui-${{ needs.set-image-tag.outputs.image-tag }}
-#          destination_dir: user-service/${{ needs.set-image-tag.outputs.image-tag }}
+  swagger-docs:
+    name: Deploy Swagger Documentation
+    runs-on: ubuntu-latest
+    needs:
+      - build
+      - set-image-tag
+    if: startsWith(github.ref, 'refs/tags/user-service-v')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download OpenAPI spec artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-spec-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ./openapi-spec
+
+      - name: Check OpenAPI spec file exists
+        id: check-openapi
+        run: |
+          if [ -f "./openapi-spec/openapi3.yaml" ]; then
+            echo "openapi_exists=true" >> $GITHUB_OUTPUT
+            echo "✅ OpenAPI spec file found"
+            ls -la ./openapi-spec/
+          else
+            echo "openapi_exists=false" >> $GITHUB_OUTPUT
+            echo "❌ OpenAPI spec file not found"
+            echo "Available files:"
+            ls -la ./openapi-spec/ || echo "No openapi-spec directory found"
+            find . -name "*.yaml" -o -name "*.yml" -o -name "*.json" | grep -i openapi || echo "No OpenAPI files found"
+          fi
+
+      - name: Generate Swagger UI
+        if: steps.check-openapi.outputs.openapi_exists == 'true'
+        uses: Legion2/swagger-ui-action@v1
+        with:
+          output: user-service-swagger-ui-${{ needs.set-image-tag.outputs.image-tag }}
+          spec-file: openapi-spec/openapi3.yaml
+
+      - name: Deploy to GitHub Pages
+        if: steps.check-openapi.outputs.openapi_exists == 'true'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./user-service-swagger-ui-${{ needs.set-image-tag.outputs.image-tag }}
+          destination_dir: user-service/${{ needs.set-image-tag.outputs.image-tag }}
+
+      - name: Skip deployment notice
+        if: steps.check-openapi.outputs.openapi_exists == 'false'
+        run: |
+          echo "⏭️ Skipping Swagger documentation deployment"
+          echo "Reason: OpenAPI spec file not found at ./openapi-spec/openapi3.yaml"
+          echo "Please check your build configuration to ensure OpenAPI spec is generated"
