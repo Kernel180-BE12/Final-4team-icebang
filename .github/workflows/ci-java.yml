@@ -80,6 +80,7 @@ jobs:
           ./gradlew integrationTest
           if [ "${{ github.base_ref }}" = "main" ] || [[ "${{ github.ref }}" == refs/tags/* ]]; then
             ./gradlew e2eTest
+            ./gradlew openapi3
           fi
         working-directory: apps/user-service
 
