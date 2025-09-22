@@ -4,8 +4,10 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import site.icebang.common.dto.PageParams;
 import site.icebang.domain.workflow.dto.JobRunDto;
 import site.icebang.domain.workflow.dto.TaskRunDto;
+import site.icebang.domain.workflow.dto.WorkflowHistoryDTO;
 import site.icebang.domain.workflow.dto.WorkflowRunDto;
 
 @Mapper
@@ -41,4 +43,20 @@ public interface WorkflowHistoryMapper {
    * @return String traceId
    */
   String selectTraceIdByRunId(Long runId);
+
+  /**
+   * 워크플로우 런 페이지네이션
+   *
+   * @param pageParams pageParams
+   * @return List<WorkflowHistoryDTO>
+   * */
+  List<WorkflowHistoryDTO> selectWorkflowHistoryList(PageParams pageParams);
+
+  /**
+   * 워크플로우 런 인스턴스 개수 조회
+   * @param pageParams pageParams
+   * @return 결과 개수
+   * */
+  int selectWorkflowHistoryCount(PageParams pageParams);
+
 }

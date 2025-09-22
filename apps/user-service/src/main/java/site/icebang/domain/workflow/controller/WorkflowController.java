@@ -29,13 +29,6 @@ public class WorkflowController {
     return ApiResponse.success(result);
   }
 
-  @GetMapping("/history")
-  public ApiResponse<PageResult<WorkflowHistoryDTO>> getWorkflowHistoryList(
-          @ModelAttribute PageParams pageParams) {
-    PageResult<WorkflowHistoryDTO> result = workflowHistoryService.getPagedResult(pageParams);
-    return ApiResponse.success(result);
-  }
-
   @PostMapping("/{workflowId}/run")
   public ResponseEntity<Void> runWorkflow(@PathVariable Long workflowId) {
     // HTTP 요청/응답 스레드를 블로킹하지 않도록 비동기 실행

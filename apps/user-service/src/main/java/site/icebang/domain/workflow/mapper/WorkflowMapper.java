@@ -14,7 +14,4 @@ public interface WorkflowMapper {
 
   WorkflowCardDto selectWorkflowById(BigInteger id);
 
-  List<WorkflowHistoryDTO> selectWorkflowHistoryList(PageParams pageParams);
-
-  int selectWorkflowHistoryCount(PageParams pageParams);
 }
