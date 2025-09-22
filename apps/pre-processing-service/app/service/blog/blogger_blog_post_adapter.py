@@ -55,7 +55,7 @@ class BloggerBlogPostAdapter(BaseBlogPostService):
 
     def _get_platform_name(self) -> str:
         """플랫폼 이름 반환"""
-        return "Blogger"
+        return "BLOGGER"
 
     def _validate_content(
         self, title: str, content: str, tags: Optional[List[str]] = None
