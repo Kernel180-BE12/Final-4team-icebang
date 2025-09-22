@@ -231,7 +231,7 @@ class S3UploadData(BaseModel):
     selected_product_for_content: Optional[Dict] = Field(
         None,
         title="콘텐츠 생성용 선택 상품",
-        description="임시: 블로그 콘텐츠 생성을 위해 선택된 단일 상품 정보"
+        description="임시: 블로그 콘텐츠 생성을 위해 선택된 단일 상품 정보",
     )
 
 

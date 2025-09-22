@@ -38,7 +38,7 @@ class BlogPublishService:
                 raise CustomException(
                     detail=f"{request.tag} 블로그 포스팅에 실패했습니다.",
                     status_code=500,
-                    code="POSTING_FAIL"
+                    code="POSTING_FAIL",
                 )
 
             return response_data
@@ -51,5 +51,5 @@ class BlogPublishService:
             raise CustomException(
                 detail=f"블로그 포스팅 중 오류가 발생했습니다: {str(e)}",
                 status_code=500,
-                code="ERROR"
+                code="ERROR",
             )

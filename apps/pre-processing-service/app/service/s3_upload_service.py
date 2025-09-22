@@ -22,7 +22,7 @@ class S3UploadService:
         keyword = request.keyword  # 키워드 추가
         crawled_products = request.crawled_products
         base_folder = (
-                request.base_folder or "product"
+            request.base_folder or "product"
         )  # 🔸 기본값 변경: product-images → product
 
         logger.info(
@@ -132,7 +132,7 @@ class S3UploadService:
             raise InvalidItemDataException()
 
     def _select_single_product_for_content(
-            self, crawled_products: List[Dict], upload_results: List[Dict]
+        self, crawled_products: List[Dict], upload_results: List[Dict]
     ) -> Dict:
         """
         🆕 임시: 콘텐츠 생성을 위한 단일 상품 선택 로직
@@ -142,13 +142,17 @@ class S3UploadService:
         try:
             # 1순위: S3 업로드 성공하고 이미지가 있는 상품들
             successful_uploads = [
-                result for result in upload_results
-                if result.get("status") == "completed" and result.get("success_count", 0) > 0
+                result
+                for result in upload_results
+                if result.get("status") == "completed"
+                and result.get("success_count", 0) > 0
             ]
 
             if successful_uploads:
                 # 이미지 개수가 가장 많은 상품 선택
-                best_upload = max(successful_uploads, key=lambda x: x.get("success_count", 0))
+                best_upload = max(
+                    successful_uploads, key=lambda x: x.get("success_count", 0)
+                )
                 selected_index = best_upload["product_index"]
 
                 # 원본 크롤링 데이터에서 해당 상품 찾기
@@ -167,8 +171,9 @@ class S3UploadService:
 
             # 2순위: 크롤링 성공한 첫 번째 상품 (S3 업로드 실패해도)
             for product_info in crawled_products:
-                if (product_info.get("status") == "success" and
-                        product_info.get("product_detail")):
+                if product_info.get("status") == "success" and product_info.get(
+                    "product_detail"
+                ):
 
                     # 해당 상품의 S3 업로드 정보 찾기
                     upload_info = None
