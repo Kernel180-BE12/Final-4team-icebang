@@ -67,13 +67,13 @@ INSERT INTO `task` (`id`, `name`, `type`, `parameters`) VALUES
                                                             (8, '블로그 발행 태스크', 'FastAPI', JSON_OBJECT(
                                                                     'endpoint', '/blogs/publish', 'method', 'POST',
                                                                     'body', JSON_OBJECT( -- { tag: str, blog_id: str, ... }
-                                                                            'tag', 'NAVER_BLOG',
-                                                                            'blog_id', 'wtecho331',
-                                                                            'blog_pw', 'wt505033@#',
-                                                                            'blog_name', '박스박스dasdsafs.',
-                                                                            'post_title', '박스박스dasdsafs.',
-                                                                            'post_content', '퉁퉁퉁퉁퉁퉁퉁사후르',
-                                                                            'post_tags', '[]'
+                                                                            'tag', 'String',
+                                                                            'blog_id', 'String',
+                                                                            'blog_pw', 'String',
+                                                                            'blog_name', 'String',
+                                                                            'post_title', 'String',
+                                                                            'post_content', 'String',
+                                                                            'post_tags', 'List'
                                                                             )
                                                                                          ))
     ON DUPLICATE KEY UPDATE name = VALUES(name), type = VALUES(type), parameters = VALUES(parameters), updated_at = NOW();
