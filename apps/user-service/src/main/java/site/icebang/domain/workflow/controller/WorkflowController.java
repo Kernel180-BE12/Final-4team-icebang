@@ -1,7 +1,5 @@
 package site.icebang.domain.workflow.controller;
 
-import java.util.concurrent.CompletableFuture;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +29,7 @@ public class WorkflowController {
   @PostMapping("/{workflowId}/run")
   public ResponseEntity<Void> runWorkflow(@PathVariable Long workflowId) {
     // HTTP 요청/응답 스레드를 블로킹하지 않도록 비동기 실행
-    CompletableFuture.runAsync(() -> workflowExecutionService.executeWorkflow(workflowId));
+    workflowExecutionService.executeWorkflow(workflowId);
     return ResponseEntity.accepted().build();
   }
 }
