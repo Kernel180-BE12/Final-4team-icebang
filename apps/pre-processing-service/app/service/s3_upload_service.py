@@ -10,24 +10,24 @@ from app.utils.response import Response
 
 
 class S3UploadService:
-    """6단계: 크롤링된 상품 이미지들을 S3에 업로드하는 서비스"""
+    """6단계: 크롤링된 상품 이미지들과 데이터를 S3에 업로드하는 서비스"""
 
     def __init__(self):
         self.s3_util = S3UploadUtil()
 
     async def upload_crawled_products_to_s3(self, request: RequestS3Upload) -> dict:
         """
-        크롤링된 상품들의 이미지를 S3에 업로드하는 비즈니스 로직 (6단계)
+        크롤링된 상품들의 이미지와 데이터를 S3에 업로드하는 비즈니스 로직 (6단계)
         """
+        keyword = request.keyword  # 키워드 추가
         crawled_products = request.crawled_products
-        base_folder = request.base_folder or "product-images"
+        base_folder = request.base_folder or "product"  # 🔸 기본값 변경: product-images → product
 
-        logger.info(f"S3 업로드 서비스 시작: {len(crawled_products)}개 상품")
+        logger.info(f"S3 업로드 서비스 시작: keyword='{keyword}', {len(crawled_products)}개 상품")
 
         upload_results = []
         total_success_images = 0
         total_fail_images = 0
-        processed_products = 0
 
         try:
             # HTTP 세션을 사용한 이미지 다운로드
@@ -51,27 +51,25 @@ class S3UploadService:
                             {
                                 "product_index": product_index,
                                 "product_title": "Unknown",
-                                "product_url": product_info.get("url", ""),
                                 "status": "skipped",
-                                "reason": "크롤링 실패",
+                                "folder_s3_url": None,
+                                "uploaded_images": [],
                                 "success_count": 0,
                                 "fail_count": 0,
-                                "uploaded_images": [],
-                                "failed_images": [],
                             }
                         )
                         continue
 
                     try:
-                        # 상품 이미지 업로드 (유틸리티 사용)
+                        # 상품 이미지 + 데이터 업로드 (키워드 전달 추가!)
+                        # 🔸 전체 크롤링 데이터를 전달 (product_detail이 아닌 product_info 전체)
                         upload_result = await self.s3_util.upload_single_product_images(
-                            session, product_detail, product_index, base_folder
+                            session, product_info, product_index, keyword, base_folder  # product_detail → product_info
                         )
 
                         upload_results.append(upload_result)
                         total_success_images += upload_result["success_count"]
                         total_fail_images += upload_result["fail_count"]
-                        processed_products += 1
 
                         logger.success(
                             f"상품 {product_index} S3 업로드 완료: 성공 {upload_result['success_count']}개, "
@@ -84,13 +82,11 @@ class S3UploadService:
                             {
                                 "product_index": product_index,
                                 "product_title": product_detail.get("title", "Unknown"),
-                                "product_url": product_detail.get("url", ""),
                                 "status": "error",
-                                "error": str(e),
+                                "folder_s3_url": None,
+                                "uploaded_images": [],
                                 "success_count": 0,
                                 "fail_count": 0,
-                                "uploaded_images": [],
-                                "failed_images": [],
                             }
                         )
 
@@ -99,77 +95,23 @@ class S3UploadService:
                         await asyncio.sleep(1)
 
             logger.success(
-                f"S3 업로드 서비스 완료: 처리된 상품 {processed_products}개, "
-                f"총 성공 이미지 {total_success_images}개, 총 실패 이미지 {total_fail_images}개"
+                f"S3 업로드 서비스 완료: 총 성공 이미지 {total_success_images}개, 총 실패 이미지 {total_fail_images}개"
             )
 
-            # 응답 데이터 구성
+            # 간소화된 응답 데이터 구성
             data = {
                 "upload_results": upload_results,
                 "summary": {
                     "total_products": len(crawled_products),
-                    "processed_products": processed_products,
-                    "skipped_products": len(crawled_products) - processed_products,
                     "total_success_images": total_success_images,
                     "total_fail_images": total_fail_images,
-                    "success_rate": (
-                        f"{total_success_images}/{total_success_images + total_fail_images}"
-                        if (total_success_images + total_fail_images) > 0
-                        else "0/0"
-                    ),
                 },
-                "base_folder": base_folder,
                 "uploaded_at": time.strftime("%Y-%m-%d %H:%M:%S"),
             }
 
-            message = f"S3 업로드 완료: {total_success_images}개 이미지 업로드 성공"
+            message = f"S3 업로드 완료: {total_success_images}개 이미지 업로드 성공, 상품 데이터 JSON 파일 포함"
             return Response.ok(data, message)
 
         except Exception as e:
             logger.error(f"S3 업로드 서비스 전체 오류: {e}")
             raise InvalidItemDataException()
-
-    async def get_upload_status(self, upload_results: List[Dict]) -> Dict:
-        """
-        업로드 결과 상태 요약 (선택적 기능)
-        """
-        try:
-            total_products = len(upload_results)
-            successful_products = len(
-                [r for r in upload_results if r.get("status") == "completed"]
-            )
-            failed_products = len(
-                [r for r in upload_results if r.get("status") in ["error", "skipped"]]
-            )
-
-            total_images = sum(
-                r.get("success_count", 0) + r.get("fail_count", 0)
-                for r in upload_results
-            )
-            successful_images = sum(r.get("success_count", 0) for r in upload_results)
-            failed_images = sum(r.get("fail_count", 0) for r in upload_results)
-
-            status_summary = {
-                "products": {
-                    "total": total_products,
-                    "successful": successful_products,
-                    "failed": failed_products,
-                    "success_rate": f"{successful_products}/{total_products}",
-                },
-                "images": {
-                    "total": total_images,
-                    "successful": successful_images,
-                    "failed": failed_images,
-                    "success_rate": (
-                        f"{successful_images}/{total_images}"
-                        if total_images > 0
-                        else "0/0"
-                    ),
-                },
-            }
-
-            return status_summary
-
-        except Exception as e:
-            logger.error(f"업로드 상태 요약 오류: {e}")
-            return {}

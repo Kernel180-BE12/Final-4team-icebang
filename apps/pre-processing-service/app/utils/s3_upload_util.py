@@ -1,10 +1,11 @@
 import os
+import json
 import boto3
 import aiohttp
 import asyncio
 from datetime import datetime
 from urllib.parse import urlparse
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, Optional
 from loguru import logger
 
 
@@ -38,14 +39,14 @@ class S3UploadUtil:
         )
 
     async def download_image(
-        self, session: aiohttp.ClientSession, image_url: str
+            self, session: aiohttp.ClientSession, image_url: str
     ) -> Optional[bytes]:
         """이미지 URL에서 이미지 데이터 다운로드"""
         try:
             logger.debug(f"이미지 다운로드 시작: {image_url}")
 
             async with session.get(
-                image_url, timeout=aiohttp.ClientTimeout(total=30)
+                    image_url, timeout=aiohttp.ClientTimeout(total=30)
             ) as response:
                 if response.status == 200:
                     image_data = await response.read()
@@ -86,16 +87,16 @@ class S3UploadUtil:
         return content_types.get(file_extension, "image/jpeg")
 
     def upload_to_s3(
-        self, image_data: bytes, s3_key: str, content_type: str = "image/jpeg"
+            self, data: bytes, s3_key: str, content_type: str = "image/jpeg"
     ) -> bool:
-        """S3에 이미지 업로드"""
+        """S3에 데이터 업로드 (이미지 또는 JSON)"""
         try:
             logger.debug(f"S3 업로드 시작: key={s3_key}")
 
             self.s3_client.put_object(
                 Bucket=self.bucket_name,
                 Key=s3_key,
-                Body=image_data,
+                Body=data,
                 ContentType=content_type,
             )
 
@@ -106,27 +107,51 @@ class S3UploadUtil:
             logger.error(f"S3 업로드 오류: key={s3_key}, error={e}")
             return False
 
-    def generate_s3_key(
-        self,
-        base_folder: str,
-        product_index: int,
-        product_title: str,
-        image_index: int,
-        file_extension: str,
-    ) -> str:
-        """S3 키 생성"""
-        # 상품 제목에서 특수문자 제거
-        safe_title = (
-            product_title.replace("/", "-").replace("\\", "-").replace(" ", "_")[:30]
+    def upload_json_to_s3(self, json_data: Dict, s3_key: str) -> bool:
+        """JSON 데이터를 S3에 업로드"""
+        try:
+            json_str = json.dumps(json_data, ensure_ascii=False, indent=2)
+            json_bytes = json_str.encode('utf-8')
+
+            return self.upload_to_s3(json_bytes, s3_key, "application/json")
+
+        except Exception as e:
+            logger.error(f"JSON S3 업로드 오류: key={s3_key}, error={e}")
+            return False
+
+    def generate_product_folder_name(self, product_index: int, keyword: str) -> str:
+        """상품별 폴더명 생성 (시간_키워드_번호)"""
+        # 키워드에서 특수문자 제거
+        safe_keyword = (
+            keyword.replace("/", "-")
+            .replace("\\", "-")
+            .replace(" ", "_")
+            .replace(":", "-")
+            .replace("*", "-")
+            .replace("?", "-")
+            .replace('"', "-")
+            .replace("<", "-")
+            .replace(">", "-")
+            .replace("|", "-")[:20]  # 길이 제한
         )
 
-        # 타임스탬프 + 상품 정보로 폴더명 생성
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        folder_name = f"{timestamp}_product_{product_index}_{safe_title}"
+        # 날짜 형식: 20250922
+        date_str = datetime.now().strftime("%Y%m%d")
 
-        # 최종 S3 키
-        s3_key = f"{base_folder}/{folder_name}/image_{image_index:03d}{file_extension}"
+        # 폴더명: 20250922_키워드_1
+        folder_name = f"{date_str}_{safe_keyword}_{product_index}"
 
+        return folder_name
+
+    def generate_s3_key(
+            self,
+            base_folder: str,
+            folder_name: str,
+            file_name: str,
+    ) -> str:
+        """S3 키 생성"""
+        # 최종 S3 키: product/20250922_산리오_1/image_001.jpg 또는 product_data.json
+        s3_key = f"{base_folder}/{folder_name}/{file_name}"
         return s3_key
 
     def get_s3_url(self, s3_key: str) -> str:
@@ -134,39 +159,63 @@ class S3UploadUtil:
         return f"{self.base_url}/{s3_key}"
 
     async def upload_single_product_images(
-        self,
-        session: aiohttp.ClientSession,
-        product_data: Dict,
-        product_index: int,
-        base_folder: str = "product-images",
+            self,
+            session: aiohttp.ClientSession,
+            product_info: Dict,  # 🔸 이름 변경: product_data → product_info (전체 크롤링 데이터)
+            product_index: int,
+            keyword: str,  # 키워드 파라미터 추가
+            base_folder: str = "product",  # 🔸 기본 폴더 변경: product-images → product
     ) -> Dict:
-        """단일 상품의 모든 이미지를 S3에 업로드"""
+        """단일 상품의 모든 데이터(이미지 + JSON)를 S3에 업로드"""
 
-        product_title = product_data.get("title", "Unknown")
-        product_url = product_data.get("url", "")
-        product_images = product_data.get("product_images", [])
+        # 🔸 전체 크롤링 데이터에서 필요한 정보 추출
+        product_detail = product_info.get("product_detail", {})
+        product_title = product_detail.get("title", "Unknown")
+        product_images = product_detail.get("product_images", [])
 
         uploaded_images = []
-        failed_images = []
 
+        logger.info(
+            f"상품 {product_index} 업로드 시작: {len(product_images)}개 이미지, keyword='{keyword}'"
+        )
+
+        # 키워드 기반 폴더명 한 번만 생성
+        folder_name = self.generate_product_folder_name(product_index, keyword)
+
+        fail_count = 0
+        folder_s3_url = f"{self.base_url}/{base_folder}/{folder_name}"
+
+        # 🆕 1. 먼저 상품 데이터 JSON 파일 업로드
+        try:
+            # 전체 크롤링 데이터를 JSON으로 저장 (S3 업로드 메타데이터 추가)
+            product_data_with_meta = {
+                **product_info,  # 전체 크롤링 데이터 (index, url, product_detail, status, crawled_at 포함)
+                "s3_upload_keyword": keyword,  # 추가 메타데이터
+                "s3_uploaded_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+
+            json_s3_key = self.generate_s3_key(base_folder, folder_name, "product_data.json")
+
+            if self.upload_json_to_s3(product_data_with_meta, json_s3_key):
+                logger.success(f"상품 {product_index} JSON 데이터 업로드 완료")
+            else:
+                logger.error(f"상품 {product_index} JSON 데이터 업로드 실패")
+
+        except Exception as e:
+            logger.error(f"상품 {product_index} JSON 업로드 오류: {e}")
+
+        # 2. 이미지 업로드 (기존 로직)
         if not product_images:
             logger.warning(f"상품 {product_index}: 업로드할 이미지가 없음")
             return {
                 "product_index": product_index,
                 "product_title": product_title,
-                "product_url": product_url,
                 "status": "no_images",
+                "folder_s3_url": folder_s3_url,
                 "uploaded_images": uploaded_images,
-                "failed_images": failed_images,
                 "success_count": 0,
                 "fail_count": 0,
-                "upload_folder": None,
-                "folder_s3_url": None,
             }
-
-        logger.info(
-            f"상품 {product_index} 이미지 업로드 시작: {len(product_images)}개 이미지"
-        )
 
         # 각 이미지 업로드
         for img_idx, img_info in enumerate(product_images, 1):
@@ -174,13 +223,7 @@ class S3UploadUtil:
 
             if not original_url:
                 logger.warning(f"상품 {product_index}, 이미지 {img_idx}: URL이 없음")
-                failed_images.append(
-                    {
-                        "index": img_idx,
-                        "original_url": original_url,
-                        "error": "URL이 없음",
-                    }
-                )
+                fail_count += 1
                 continue
 
             try:
@@ -188,20 +231,13 @@ class S3UploadUtil:
                 image_data = await self.download_image(session, original_url)
 
                 if not image_data:
-                    failed_images.append(
-                        {
-                            "index": img_idx,
-                            "original_url": original_url,
-                            "error": "다운로드 실패",
-                        }
-                    )
+                    fail_count += 1
                     continue
 
-                # S3 키 생성
+                # S3 키 생성 (키워드 기반 폴더명 사용)
                 file_extension = self.get_file_extension(original_url)
-                s3_key = self.generate_s3_key(
-                    base_folder, product_index, product_title, img_idx, file_extension
-                )
+                image_file_name = f"image_{img_idx:03d}{file_extension}"
+                s3_key = self.generate_s3_key(base_folder, folder_name, image_file_name)
 
                 # S3 업로드
                 content_type = self.get_content_type(file_extension)
@@ -212,52 +248,32 @@ class S3UploadUtil:
                         {
                             "index": img_idx,
                             "original_url": original_url,
-                            "s3_key": s3_key,
                             "s3_url": s3_url,
-                            "file_size": len(image_data),
-                            "content_type": content_type,
-                        }
-                    )
-                    logger.debug(f"상품 {product_index}, 이미지 {img_idx} 업로드 완료")
-                else:
-                    failed_images.append(
-                        {
-                            "index": img_idx,
-                            "original_url": original_url,
-                            "error": "S3 업로드 실패",
                         }
                     )
 
+                    logger.debug(f"상품 {product_index}, 이미지 {img_idx} 업로드 완료")
+                else:
+                    fail_count += 1
+
             except Exception as e:
                 logger.error(f"상품 {product_index}, 이미지 {img_idx} 처리 오류: {e}")
-                failed_images.append(
-                    {"index": img_idx, "original_url": original_url, "error": str(e)}
-                )
+                fail_count += 1
 
             # 이미지 간 간격 (서버 부하 방지)
             await asyncio.sleep(0.5)
 
-        # 업로드 폴더 정보 계산
-        upload_folder = None
-        folder_s3_url = None
-        if uploaded_images:
-            first_s3_key = uploaded_images[0]["s3_key"]
-            upload_folder = "/".join(first_s3_key.split("/")[:-1])  # 파일명 제거
-            folder_s3_url = f"{self.base_url}/{upload_folder}"
-
         logger.success(
-            f"상품 {product_index} 업로드 완료: 성공 {len(uploaded_images)}개, 실패 {len(failed_images)}개"
+            f"상품 {product_index} 업로드 완료: 성공 {len(uploaded_images)}개, 실패 {fail_count}개, folder='{folder_name}'"
         )
 
         return {
             "product_index": product_index,
             "product_title": product_title,
-            "product_url": product_url,
             "status": "completed",
-            "upload_folder": upload_folder,
-            "folder_s3_url": folder_s3_url,
+            "folder_s3_url": folder_s3_url,  # 🔸 폴더 전체를 가리킴 (이미지 + JSON 포함)
+            "json_s3_url": f"{folder_s3_url}/product_data.json",  # 🆕 JSON 파일 직접 링크
             "uploaded_images": uploaded_images,
-            "failed_images": failed_images,
             "success_count": len(uploaded_images),
-            "fail_count": len(failed_images),
+            "fail_count": fail_count,
         }
