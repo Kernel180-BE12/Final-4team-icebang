@@ -13,11 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 
 import site.icebang.common.dto.ApiResponse;
+import site.icebang.domain.workflow.service.WorkflowHistoryService;
 
 @RestController
 @RequestMapping("/v0/workflow-runs")
 @RequiredArgsConstructor
 public class WorkflowHistoryController {
+  private final WorkflowHistoryService workflowHistoryService;
+
   @GetMapping("/{runId}")
   public ApiResponse<Map<String, Object>> getWorkflowRunDetail(@PathVariable Long runId) {
     Map<String, Object> response = new HashMap<>();
