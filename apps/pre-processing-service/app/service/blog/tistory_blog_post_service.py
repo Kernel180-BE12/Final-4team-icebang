@@ -16,7 +16,9 @@ from app.service.blog.base_blog_post_service import BaseBlogPostService
 class TistoryBlogPostService(BaseBlogPostService):
     """티스토리 블로그 포스팅 서비스"""
 
-    def __init__(self, blog_id: str, blog_password: str, blog_name:str ,use_webdriver=True):
+    def __init__(
+        self, blog_id: str, blog_password: str, blog_name: str, use_webdriver=True
+    ):
         """네이버 블로그 서비스 초기화
 
         Args:
@@ -113,36 +115,44 @@ class TistoryBlogPostService(BaseBlogPostService):
             cookies = self.web_driver.get_cookies()
             session_cookies = {}
             for cookie in cookies:
-                session_cookies[cookie['name']] = cookie['value']
+                session_cookies[cookie["name"]] = cookie["value"]
 
             # 포스트 목록 API 호출
             api_url = f"https://{self.blog_name}.tistory.com/manage/posts.json"
             params = {
-                'category': '-3',
-                'page': '1',
-                'searchKeyword': '',
-                'searchType': 'title',
-                'visibility': 'all'
+                "category": "-3",
+                "page": "1",
+                "searchKeyword": "",
+                "searchType": "title",
+                "visibility": "all",
             }
 
             response = requests.get(api_url, params=params, cookies=session_cookies)
 
             if response.status_code == 200:
                 data = response.json()
-                items = data.get('items', [])
+                items = data.get("items", [])
 
                 # 제목이 일치하는 포스트들 찾기
-                matching_posts = [item for item in items if item['title'] == title]
+                matching_posts = [item for item in items if item["title"] == title]
 
                 if matching_posts:
                     # created 시간으로 정렬하여 가장 최근 포스트 찾기
-                    latest_post = max(matching_posts, key=lambda x: datetime.strptime(x['created'], '%Y-%m-%d %H:%M'))
-                    return latest_post['permalink']
+                    latest_post = max(
+                        matching_posts,
+                        key=lambda x: datetime.strptime(x["created"], "%Y-%m-%d %H:%M"),
+                    )
+                    return latest_post["permalink"]
                 else:
                     # 매칭되는 포스트가 없으면 가장 최근 포스트 반환
                     if items:
-                        latest_post = max(items, key=lambda x: datetime.strptime(x['created'], '%Y-%m-%d %H:%M'))
-                        return latest_post['permalink']
+                        latest_post = max(
+                            items,
+                            key=lambda x: datetime.strptime(
+                                x["created"], "%Y-%m-%d %H:%M"
+                            ),
+                        )
+                        return latest_post["permalink"]
 
             # API 호출 실패 시 블로그 메인 URL 반환
             return f"https://{self.blog_name}.tistory.com"

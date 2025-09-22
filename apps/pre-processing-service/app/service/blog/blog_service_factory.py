@@ -22,7 +22,7 @@ class BlogServiceFactory:
         platform: str,
         blog_id: str,
         blog_password: str,
-        blog_name: Optional[str] = None
+        blog_name: Optional[str] = None,
     ) -> BaseBlogPostService:
         """
         플랫폼에 따른 블로그 서비스 인스턴스 생성
@@ -41,22 +41,18 @@ class BlogServiceFactory:
                 status_code=400,
             )
 
-        #각 서비스의 설정을 의존성 주입
+        # 각 서비스의 설정을 의존성 주입
         if platform.lower() == "tistory_blog":
             if not blog_name:
                 raise CustomException(
                     200,
                     "티스토리 블로그가 존재하지않습니다.",
                     "NOT_FOUND_BLOG",
-
                 )
-            return service_class(blog_id, blog_password,blog_name)
+            return service_class(blog_id, blog_password, blog_name)
         if platform.lower() == "blogger":
             return service_class()
         return service_class(blog_id, blog_password)
-
-
-
 
     @classmethod
     def get_supported_platforms(cls) -> list:

@@ -36,6 +36,7 @@ class NaverBlogPostService(BaseBlogPostService):
         self.post_content_url = f"https://blog.naver.com/PostWriteForm.naver?blogId={self.id}&Redirect=Write&redirect=Write&widgetTypeCall=true&noTrackingCode=true&directAccess=false"
         # print(self.id)
         # print(self.password)
+
     def _get_platform_name(self) -> str:
         return "NAVER_BLOG"
 
@@ -231,7 +232,10 @@ class NaverBlogPostService(BaseBlogPostService):
                         # 가장 최근 포스트 링크 찾기
                         recent_post = self.wait_driver.until(
                             EC.element_to_be_clickable(
-                                (By.CSS_SELECTOR, ".post_area .post_item:first-child .title_area a")
+                                (
+                                    By.CSS_SELECTOR,
+                                    ".post_area .post_item:first-child .title_area a",
+                                )
                             )
                         )
                         blog_url = recent_post.get_attribute("href")

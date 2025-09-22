@@ -25,11 +25,14 @@ class BlogPublishService:
         try:
             # 팩토리를 통해 적절한 서비스 생성
             blog_service = self.factory.create_service(
-                request.tag, blog_id=request.blog_id, blog_password=request.blog_pw,blog_name=request.blog_name
+                request.tag,
+                blog_id=request.blog_id,
+                blog_password=request.blog_pw,
+                blog_name=request.blog_name,
             )
 
             # 공통 인터페이스로 포스팅 실행
-            response_data=blog_service.post_content(
+            response_data = blog_service.post_content(
                 title=request.post_title,
                 content=request.post_content,
                 tags=request.post_tags,
@@ -37,7 +40,7 @@ class BlogPublishService:
 
             if not response_data:
                 raise CustomException(
-                    500,f"{request.tag} 블로그 포스팅에 실패했습니다.","POSTING_FAIL"
+                    500, f"{request.tag} 블로그 포스팅에 실패했습니다.", "POSTING_FAIL"
                 )
 
             return response_data
@@ -48,5 +51,5 @@ class BlogPublishService:
         except Exception as e:
             # 예상치 못한 예외 처리
             raise CustomException(
-                500,f"블로그 포스팅 중 오류가 발생했습니다: {str(e)}","ERROR"
+                500, f"블로그 포스팅 중 오류가 발생했습니다: {str(e)}", "ERROR"
             )
