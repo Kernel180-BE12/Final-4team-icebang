@@ -91,6 +91,18 @@ class BaseSettingsConfig(BaseSettings):
     grafana_cloud_prometheus_user: Optional[str] = None
     grafana_cloud_api_key: Optional[str] = None
 
+    # S3 업로드 관련 설정
+    AWS_ACCESS_KEY_ID: str = None
+    AWS_SECRET_ACCESS_KEY: str = None
+    S3_BUCKET_NAME: str = None
+    AWS_REGION: str = None
+
+    # S3 업로드 옵션 설정
+    S3_BASE_FOLDER:str = None
+    S3_UPLOAD_ENABLED: bool = True
+    IMAGE_DOWNLOAD_TIMEOUT:int = 30
+    MAX_IMAGE_SIZE_MB: int = 10
+
     # 테스트/추가용 필드
     openai_api_key: Optional[str] = None  # << 이 부분 추가
 
