@@ -49,7 +49,7 @@ class SearchCrawler(BaseCrawler):
             logger.info(
                 f"Selenium으로 발견한 상품 링크: {len(unique_products)}개 (중복 제거 전: {len(product_links)}개)"
             )
-            return unique_products[:20]
+            return unique_products[:40]
 
         except Exception as e:
             logger.error(f"Selenium 검색 오류: keyword='{keyword}', error='{e}'")
@@ -88,7 +88,7 @@ class SearchCrawler(BaseCrawler):
                     product_links.append({"url": full_url, "title": title})
 
             logger.info(f"httpx로 발견한 상품 링크: {len(product_links)}개")
-            return product_links[:20]
+            return product_links[:40]
 
         except Exception as e:
             logger.error(f"httpx 검색 오류: keyword='{keyword}', error='{e}'")

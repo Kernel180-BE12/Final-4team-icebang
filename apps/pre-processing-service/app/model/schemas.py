@@ -110,8 +110,10 @@ class SadaguSimilarityData(BaseModel):
     keyword: str = Field(
         ..., title="분석 키워드", description="유사도 분석에 사용된 키워드"
     )
-    selected_product: Optional[Dict] = Field(
-        None, title="선택된 상품", description="유사도 분석 결과 선택된 상품"
+    top_products: List[Dict] = Field(
+        default_factory=list,
+        title="선택된 상품들",
+        description="유사도 분석 결과 선택된 상위 상품 목록",
     )
     reason: Optional[str] = Field(
         None, title="선택 이유", description="상품 선택 근거 및 점수 정보"
@@ -129,16 +131,23 @@ class ResponseSadaguSimilarity(ResponseBase[SadaguSimilarityData]):
 
 
 class RequestSadaguCrawl(RequestBase):
-    product_url: HttpUrl = Field(
+    product_urls: List[HttpUrl] = Field(
         ..., title="상품 URL", description="크롤링할 상품 페이지의 URL"
     )
 
 
 # 응답 데이터 모델
 class SadaguCrawlData(BaseModel):
-    product_url: str = Field(..., title="상품 URL", description="크롤링된 상품 URL")
-    product_detail: Optional[Dict] = Field(
-        None, title="상품 상세정보", description="크롤링된 상품의 상세 정보"
+    crawled_products: List[Dict] = Field(
+        ...,
+        title="크롤링된 상품들",
+        description="크롤링된 상품들의 상세 정보 목록 (URL 포함)",
+    )
+    success_count: int = Field(
+        ..., title="성공 개수", description="성공적으로 크롤링된 상품 개수"
+    )
+    fail_count: int = Field(
+        ..., title="실패 개수", description="크롤링에 실패한 상품 개수"
     )
     crawled_at: Optional[str] = Field(
         None, title="크롤링 시간", description="크롤링 완료 시간"
@@ -148,6 +157,81 @@ class SadaguCrawlData(BaseModel):
 # 최종 응답 모델
 class ResponseSadaguCrawl(ResponseBase[SadaguCrawlData]):
     """사다구몰 크롤링 API 응답"""
+
+    pass
+
+
+# ============== S3 이미지 업로드 ==============
+
+
+class RequestS3Upload(RequestBase):
+    keyword: str = Field(
+        ..., title="검색 키워드", description="폴더명 생성용 키워드"
+    )  # 추가
+    crawled_products: List[Dict] = Field(
+        ...,
+        title="크롤링된 상품 데이터",
+        description="이전 단계에서 크롤링된 상품들의 데이터",
+    )
+    base_folder: Optional[str] = Field(
+        "product", title="기본 폴더", description="S3 내 기본 저장 폴더 경로"
+    )
+
+
+# S3 업로드된 이미지 정보
+class S3ImageInfo(BaseModel):
+    index: int = Field(..., title="이미지 순번", description="상품 내 이미지 순번")
+    original_url: str = Field(
+        ..., title="원본 URL", description="크롤링된 원본 이미지 URL"
+    )
+    s3_url: str = Field(..., title="S3 URL", description="S3에서 접근 가능한 URL")
+
+
+# 상품별 S3 업로드 결과
+class ProductS3UploadResult(BaseModel):
+    product_index: int = Field(..., title="상품 순번", description="크롤링 순번")
+    product_title: str = Field(..., title="상품 제목", description="상품명")
+    status: str = Field(..., title="업로드 상태", description="completed/skipped/error")
+    uploaded_images: List[S3ImageInfo] = Field(
+        default_factory=list, title="업로드 성공 이미지"
+    )
+    success_count: int = Field(
+        ..., title="성공 개수", description="업로드 성공한 이미지 수"
+    )
+    fail_count: int = Field(
+        ..., title="실패 개수", description="업로드 실패한 이미지 수"
+    )
+
+
+# S3 업로드 요약 정보
+class S3UploadSummary(BaseModel):
+    total_products: int = Field(
+        ..., title="총 상품 수", description="처리 대상 상품 총 개수"
+    )
+    total_success_images: int = Field(
+        ..., title="성공 이미지 수", description="업로드 성공한 이미지 총 개수"
+    )
+    total_fail_images: int = Field(
+        ..., title="실패 이미지 수", description="업로드 실패한 이미지 총 개수"
+    )
+
+
+# 응답 데이터 모델
+class S3UploadData(BaseModel):
+    upload_results: List[ProductS3UploadResult] = Field(
+        ..., title="업로드 결과", description="각 상품의 S3 업로드 결과"
+    )
+    summary: S3UploadSummary = Field(
+        ..., title="업로드 요약", description="전체 업로드 결과 요약"
+    )
+    uploaded_at: str = Field(
+        ..., title="업로드 완료 시간", description="S3 업로드 완료 시간"
+    )
+
+
+# 최종 응답 모델
+class ResponseS3Upload(ResponseBase[S3UploadData]):
+    """S3 이미지 업로드 API 응답"""
 
     pass
 
