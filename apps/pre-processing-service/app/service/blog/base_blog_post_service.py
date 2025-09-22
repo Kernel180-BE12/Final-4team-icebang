@@ -103,7 +103,6 @@ class BaseBlogPostService(ABC):
         return {
             "tag": self._get_platform_name(),
             "post_title": title,
-            "content_length": len(content),
             "tags": tags or [],
             "publish_success": True,
             "post_url": post_url,
