@@ -45,7 +45,7 @@ class BlogServiceFactory:
         if platform.lower() == "tistory_blog":
             if not blog_name:
                 raise CustomException(
-                    200,
+                    400,
                     "티스토리 블로그가 존재하지않습니다.",
                     "NOT_FOUND_BLOG",
                 )

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="site.icebang.domain.workflow.mapper.WorkflowHistoryMapper">
+
+    <!-- WorkflowRunDto 조회 -->
+    <select id="selectWorkflowRun" parameterType="Long" resultType="site.icebang.domain.workflow.dto.WorkflowRunDto">
+        SELECT
+            wr.id,
+            wr.workflow_id AS workflowId,
+            w.name AS workflowName,
+            w.description AS workflowDescription,
+            wr.run_number AS runNumber,
+            wr.status,
+            wr.trigger_type AS triggerType,
+            wr.started_at AS startedAt,
+            wr.finished_at AS finishedAt,
+            TIMESTAMPDIFF(MICROSECOND, wr.started_at, wr.finished_at) / 1000 AS durationMs,
+            wr.created_by AS createdBy,
+            wr.created_at AS createdAt
+        FROM workflow_run wr
+                 JOIN workflow w ON wr.workflow_id = w.id
+        WHERE wr.id = #{runId}
+    </select>
+
+    <!-- JobRunDto 목록 조회 -->
+    <select id="selectJobRunsByWorkflowRunId" parameterType="Long" resultType="site.icebang.domain.workflow.dto.JobRunDto">
+        SELECT
+            jr.id,
+            jr.workflow_run_id AS workflowRunId,
+            jr.job_id AS jobId,
+            j.name AS jobName,
+            j.description AS jobDescription,
+            jr.status,
+            jr.execution_order AS executionOrder,
+            jr.started_at AS startedAt,
+            jr.finished_at AS finishedAt,
+            TIMESTAMPDIFF(MICROSECOND, jr.started_at, jr.finished_at) / 1000 AS durationMs
+        FROM job_run jr
+                 JOIN job j ON jr.job_id = j.id
+        WHERE jr.workflow_run_id = #{workflowRunId}
+        ORDER BY jr.execution_order
+    </select>
+
+    <!-- TaskRunDto 목록 조회 -->
+    <select id="selectTaskRunsByJobRunId" parameterType="Long" resultType="site.icebang.domain.workflow.dto.TaskRunDto">
+        SELECT
+            tr.id,
+            tr.job_run_id AS jobRunId,
+            tr.task_id AS taskId,
+            t.name AS taskName,
+            t.type AS taskType,
+            tr.status,
+            tr.execution_order AS executionOrder,
+            tr.started_at AS startedAt,
+            tr.finished_at AS finishedAt,
+            TIMESTAMPDIFF(MICROSECOND, tr.started_at, tr.finished_at) / 1000 AS durationMs
+        FROM task_run tr
+                 JOIN task t ON tr.task_id = t.id
+        WHERE tr.job_run_id = #{jobRunId}
+        ORDER BY tr.execution_order
+    </select>
+
+    <!-- TraceId 조회 -->
+    <select id="selectTraceIdByRunId" parameterType="Long" resultType="String">
+        SELECT trace_id
+        FROM workflow_run
+        WHERE id = #{runId}
+    </select>
+
+</mapper>
