@@ -162,6 +162,12 @@ jobs:
       - set-image-tag
     if: startsWith(github.ref, 'refs/tags/user-service-v')
 
+    permissions:
+      contents: read        # 리포지토리 읽기
+      pages: write         # GitHub Pages 쓰기
+      id-token: write      # OIDC 토큰
+      actions: read        # Actions 읽기
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -193,6 +199,7 @@ jobs:
         with:
           output: user-service-swagger-ui-${{ needs.set-image-tag.outputs.image-tag }}
           spec-file: openapi-spec/openapi3.yaml
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy to GitHub Pages
         if: steps.check-openapi.outputs.openapi_exists == 'true'
