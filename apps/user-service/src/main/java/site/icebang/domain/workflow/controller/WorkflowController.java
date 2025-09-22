@@ -9,7 +9,9 @@ import site.icebang.common.dto.ApiResponse;
 import site.icebang.common.dto.PageParams;
 import site.icebang.common.dto.PageResult;
 import site.icebang.domain.workflow.dto.WorkflowCardDto;
+import site.icebang.domain.workflow.dto.WorkflowHistoryDTO;
 import site.icebang.domain.workflow.service.WorkflowExecutionService;
+import site.icebang.domain.workflow.service.WorkflowHistoryService;
 import site.icebang.domain.workflow.service.WorkflowService;
 
 @RestController
@@ -18,11 +20,19 @@ import site.icebang.domain.workflow.service.WorkflowService;
 public class WorkflowController {
   private final WorkflowService workflowService;
   private final WorkflowExecutionService workflowExecutionService;
+  private final WorkflowHistoryService workflowHistoryService;
 
   @GetMapping("")
   public ApiResponse<PageResult<WorkflowCardDto>> getWorkflowList(
       @ModelAttribute PageParams pageParams) {
     PageResult<WorkflowCardDto> result = workflowService.getPagedResult(pageParams);
+    return ApiResponse.success(result);
+  }
+
+  @GetMapping("/history")
+  public ApiResponse<PageResult<WorkflowHistoryDTO>> getWorkflowHistoryList(
+          @ModelAttribute PageParams pageParams) {
+    PageResult<WorkflowHistoryDTO> result = workflowHistoryService.getPagedResult(pageParams);
     return ApiResponse.success(result);
   }
 

@@ -5,6 +5,7 @@ import java.util.*;
 
 import site.icebang.common.dto.PageParams;
 import site.icebang.domain.workflow.dto.WorkflowCardDto;
+import site.icebang.domain.workflow.dto.WorkflowHistoryDTO;
 
 public interface WorkflowMapper {
   List<WorkflowCardDto> selectWorkflowList(PageParams pageParams);
@@ -12,4 +13,8 @@ public interface WorkflowMapper {
   int selectWorkflowCount(PageParams pageParams);
 
   WorkflowCardDto selectWorkflowById(BigInteger id);
+
+  List<WorkflowHistoryDTO> selectWorkflowHistoryList(PageParams pageParams);
+
+  int selectWorkflowHistoryCount(PageParams pageParams);
 }
