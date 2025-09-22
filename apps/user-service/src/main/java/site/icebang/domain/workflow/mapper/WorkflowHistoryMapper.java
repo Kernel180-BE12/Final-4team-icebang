@@ -49,14 +49,14 @@ public interface WorkflowHistoryMapper {
    *
    * @param pageParams pageParams
    * @return List<WorkflowHistoryDTO>
-   * */
+   */
   List<WorkflowHistoryDTO> selectWorkflowHistoryList(PageParams pageParams);
 
   /**
    * 워크플로우 런 인스턴스 개수 조회
+   *
    * @param pageParams pageParams
    * @return 결과 개수
-   * */
+   */
   int selectWorkflowHistoryCount(PageParams pageParams);
-
 }

@@ -19,7 +19,7 @@ public class WorkflowHistoryController {
 
   @GetMapping("")
   public ApiResponse<PageResult<WorkflowHistoryDTO>> getWorkflowHistoryList(
-          @ModelAttribute PageParams pageParams) {
+      @ModelAttribute PageParams pageParams) {
     PageResult<WorkflowHistoryDTO> response = workflowHistoryService.getPagedResult(pageParams);
     return ApiResponse.success(response);
   }

@@ -12,7 +12,6 @@ import site.icebang.common.dto.PageResult;
 import site.icebang.common.service.PageableService;
 import site.icebang.domain.workflow.dto.*;
 import site.icebang.domain.workflow.mapper.WorkflowHistoryMapper;
-import site.icebang.domain.workflow.mapper.WorkflowMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -21,17 +20,18 @@ public class WorkflowHistoryService implements PageableService<WorkflowHistoryDT
 
   /**
    * 워크플로우 런 조회
+   *
    * @param pageParams pageParams
    * @return PageResult
-   * */
+   */
   @Override
   @Transactional(readOnly = true)
   public PageResult<WorkflowHistoryDTO> getPagedResult(PageParams pageParams) {
 
     return PageResult.from(
-            pageParams,
-            () -> workflowHistoryMapper.selectWorkflowHistoryList(pageParams),
-            () -> workflowHistoryMapper.selectWorkflowHistoryCount(pageParams));
+        pageParams,
+        () -> workflowHistoryMapper.selectWorkflowHistoryList(pageParams),
+        () -> workflowHistoryMapper.selectWorkflowHistoryCount(pageParams));
   }
 
   /**
