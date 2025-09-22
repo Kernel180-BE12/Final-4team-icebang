@@ -51,11 +51,20 @@ INSERT INTO `task` (`id`, `name`, `type`, `parameters`) VALUES
                                                                                             )),
                                                             (5, '상품 정보 크롤링 태스크', 'FastAPI', JSON_OBJECT(
                                                                     'endpoint', '/products/crawl', 'method', 'POST',
-                                                                    'body', JSON_OBJECT('product_url', 'String') -- { "product_url": str }
+                                                                    'body', JSON_OBJECT('product_urls', 'List') -- { "product_urls": List[str] } 수정됨
                                                                                             )),
+                                                            -- 🆕 S3 업로드 태스크 추가
+                                                            (6, 'S3 업로드 태스크', 'FastAPI', JSON_OBJECT(
+                                                                    'endpoint', '/products/s3-upload', 'method', 'POST',
+                                                                    'body', JSON_OBJECT( -- { keyword: str, crawled_products: List, base_folder: str }
+                                                                            'keyword', 'String',
+                                                                            'crawled_products', 'List',
+                                                                            'base_folder', 'String'
+                                                                            )
+                                                                                         )),
                                                             -- RAG관련 request body는 추후에 결정될 예정
-                                                            (6, '블로그 RAG 생성 태스크', 'FastAPI', JSON_OBJECT('endpoint', '/blogs/rag/create', 'method', 'POST')),
-                                                            (7, '블로그 발행 태스크', 'FastAPI', JSON_OBJECT(
+                                                            (7, '블로그 RAG 생성 태스크', 'FastAPI', JSON_OBJECT('endpoint', '/blogs/rag/create', 'method', 'POST')),
+                                                            (8, '블로그 발행 태스크', 'FastAPI', JSON_OBJECT(
                                                                     'endpoint', '/blogs/publish', 'method', 'POST',
                                                                     'body', JSON_OBJECT( -- { tag: str, blog_id: str, ... }
                                                                             'tag', 'String',
@@ -80,8 +89,9 @@ INSERT INTO `workflow_job` (`workflow_id`, `job_id`, `execution_order`) VALUES
 
 -- Job-Task 연결
 INSERT INTO `job_task` (`job_id`, `task_id`, `execution_order`) VALUES
-                                                                    (1, 1, 1), (1, 2, 2), (1, 3, 3), (1, 4, 4), (1, 5, 5),
-                                                                    (2, 6, 1), (2, 7, 2)
+                                                                    -- Job 1: 상품 분석 (키워드검색 → 상품검색 → 매칭 → 유사도 → 크롤링 → S3업로드)
+                                                                    (1, 1, 1), (1, 2, 2), (1, 3, 3), (1, 4, 4), (1, 5, 5), (1, 6, 6),
+                                                                    (2, 7, 1), (2, 8, 2)
     ON DUPLICATE KEY UPDATE execution_order = VALUES(execution_order);
 
 -- 스케줄 설정 (매일 오전 8시)
