@@ -98,9 +98,9 @@ class BaseSettingsConfig(BaseSettings):
     AWS_REGION: str = None
 
     # S3 업로드 옵션 설정
-    S3_BASE_FOLDER:str = None
+    S3_BASE_FOLDER: str = None
     S3_UPLOAD_ENABLED: bool = True
-    IMAGE_DOWNLOAD_TIMEOUT:int = 30
+    IMAGE_DOWNLOAD_TIMEOUT: int = 30
     MAX_IMAGE_SIZE_MB: int = 10
 
     # 테스트/추가용 필드
