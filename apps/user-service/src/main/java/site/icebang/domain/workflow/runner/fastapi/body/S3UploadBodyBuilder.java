@@ -17,33 +17,33 @@ import site.icebang.domain.workflow.model.Task;
 @RequiredArgsConstructor
 public class S3UploadBodyBuilder implements TaskBodyBuilder {
 
-    private final ObjectMapper objectMapper;
-    private static final String TASK_NAME = "S3 업로드 태스크";
-    private static final String KEYWORD_SOURCE_TASK = "키워드 검색 태스크";
-    private static final String CRAWL_SOURCE_TASK = "상품 정보 크롤링 태스크";
+  private final ObjectMapper objectMapper;
+  private static final String TASK_NAME = "S3 업로드 태스크";
+  private static final String KEYWORD_SOURCE_TASK = "키워드 검색 태스크";
+  private static final String CRAWL_SOURCE_TASK = "상품 정보 크롤링 태스크";
 
-    @Override
-    public boolean supports(String taskName) {
-        return TASK_NAME.equals(taskName);
-    }
+  @Override
+  public boolean supports(String taskName) {
+    return TASK_NAME.equals(taskName);
+  }
 
-    @Override
-    public ObjectNode build(Task task, Map<String, JsonNode> workflowContext) {
-        ObjectNode body = objectMapper.createObjectNode();
+  @Override
+  public ObjectNode build(Task task, Map<String, JsonNode> workflowContext) {
+    ObjectNode body = objectMapper.createObjectNode();
 
-        // 키워드 정보 가져오기
-        Optional.ofNullable(workflowContext.get(KEYWORD_SOURCE_TASK))
-                .map(node -> node.path("data").path("keyword"))
-                .ifPresent(keywordNode -> body.set("keyword", keywordNode));
+    // 키워드 정보 가져오기
+    Optional.ofNullable(workflowContext.get(KEYWORD_SOURCE_TASK))
+        .map(node -> node.path("data").path("keyword"))
+        .ifPresent(keywordNode -> body.set("keyword", keywordNode));
 
-        // 크롤링된 상품 데이터 가져오기
-        Optional.ofNullable(workflowContext.get(CRAWL_SOURCE_TASK))
-                .map(node -> node.path("data").path("crawled_products"))
-                .ifPresent(crawledProductsNode -> body.set("crawled_products", crawledProductsNode));
+    // 크롤링된 상품 데이터 가져오기
+    Optional.ofNullable(workflowContext.get(CRAWL_SOURCE_TASK))
+        .map(node -> node.path("data").path("crawled_products"))
+        .ifPresent(crawledProductsNode -> body.set("crawled_products", crawledProductsNode));
 
-        // 기본 폴더 설정
-        body.put("base_folder", "product");
+    // 기본 폴더 설정
+    body.put("base_folder", "product");
 
-        return body;
-    }
+    return body;
+  }
 }
