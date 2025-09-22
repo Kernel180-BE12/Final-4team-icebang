@@ -227,6 +227,12 @@ class S3UploadData(BaseModel):
     uploaded_at: str = Field(
         ..., title="업로드 완료 시간", description="S3 업로드 완료 시간"
     )
+    # 🆕 임시: 콘텐츠 생성용 단일 상품만 추가 (나중에 삭제 예정)
+    selected_product_for_content: Optional[Dict] = Field(
+        None,
+        title="콘텐츠 생성용 선택 상품",
+        description="임시: 블로그 콘텐츠 생성을 위해 선택된 단일 상품 정보"
+    )
 
 
 # 최종 응답 모델
