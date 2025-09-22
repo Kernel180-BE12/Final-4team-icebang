@@ -34,6 +34,14 @@ jobs:
           echo "GRAFANA_CLOUD_PROMETHEUS_URL=${{ secrets.GRAFANA_CLOUD_PROMETHEUS_URL }}" >> .env.prod
           echo "GRAFANA_CLOUD_PROMETHEUS_USER=${{ secrets.GRAFANA_CLOUD_PROMETHEUS_USER }}" >> .env.prod
           echo "GRAFANA_CLOUD_API_KEY=${{ secrets.GRAFANA_CLOUD_API_KEY }}" >> .env.prod
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env.prod
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env.prod
+          echo "S3_BUCKET_NAME=${{secrets.S3_BUCKET_NAME }}" >> .env.prod
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env.prod
+          echo "S3_BASE_FOLDER=${{ secrets.S3_BASE_FOLDER }}" >> .env.prod
+          echo "S3_UPLOAD_ENABLED=${{ secrets.S3_UPLOAD_ENABLED }}" >> .env.prod
+          echo "IMAGE_DOWNLOAD_TIMEOUT=${{ secrets.IMAGE_DOWNLOAD_TIMEOUT }}" >> .env.prod
+          echo "MAX_IMAGE_SIZE_MB=${{ secrets.MAX_IMAGE_SIZE_MB }}" >> .env.prod
 
       - name: Set repo lowercase
         run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV

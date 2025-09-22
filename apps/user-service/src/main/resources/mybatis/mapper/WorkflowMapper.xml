@@ -39,4 +39,31 @@
         LEFT JOIN user u ON w.created_by = u.id
         WHERE w.id = #{id}
     </select>
+
+    <select id="selectWorkflowHistoryList" parameterType="site.icebang.common.dto.PageParams"
+            resultType="site.icebang.domain.workflow.dto.WorkflowHistoryDTO">
+        SELECT
+            wr.id,
+            wr.workflow_id,
+            wr.trace_id,
+            wr.run_number,
+            wr.status,
+            wr.trigger_type,
+            wr.started_at,
+            wr.finished_at,
+            wr.created_by,
+            wr.created_at
+        FROM workflow_run wr
+        WHERE 1=1
+        ORDER BY wr.created_at DESC
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <select id="selectWorkflowHistoryCount" parameterType="site.icebang.common.dto.PageParams"
+            resultType="int">
+        SELECT COUNT(*)
+        FROM workflow_run
+        WHERE 1=1
+    </select>
+
 </mapper>
