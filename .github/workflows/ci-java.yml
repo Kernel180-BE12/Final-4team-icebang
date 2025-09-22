@@ -78,7 +78,7 @@ jobs:
         run: |
           ./gradlew unitTest
           ./gradlew integrationTest
-          if [ "${{ github.base_ref }}" = "main" ]; then
+          if [ "${{ github.base_ref }}" = "main" ] || [[ "${{ github.ref }}" == refs/tags/* ]]; then
             ./gradlew e2eTest
           fi
         working-directory: apps/user-service
