@@ -34,6 +34,8 @@ jobs:
           echo "GRAFANA_CLOUD_PROMETHEUS_URL=${{ secrets.GRAFANA_CLOUD_PROMETHEUS_URL }}" >> .env.prod
           echo "GRAFANA_CLOUD_PROMETHEUS_USER=${{ secrets.GRAFANA_CLOUD_PROMETHEUS_USER }}" >> .env.prod
           echo "GRAFANA_CLOUD_API_KEY=${{ secrets.GRAFANA_CLOUD_API_KEY }}" >> .env.prod
+          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env.prod
+          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env.prod
 
       - name: Set repo lowercase
         run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
