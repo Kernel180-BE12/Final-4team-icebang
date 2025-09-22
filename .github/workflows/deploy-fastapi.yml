@@ -39,7 +39,7 @@ jobs:
           echo "S3_BUCKET_NAME=${{secrets.S3_BUCKET_NAME }}" >> .env.prod
           echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env.prod
           echo "S3_BASE_FOLDER=${{ secrets.S3_BASE_FOLDER }}" >> .env.prod
-          ehco "S3_UPLOAD_ENABLED=${{ secrets.S3_UPLOAD_ENABLED }}" >> .env.prod
+          echo "S3_UPLOAD_ENABLED=${{ secrets.S3_UPLOAD_ENABLED }}" >> .env.prod
           echo "IMAGE_DOWNLOAD_TIMEOUT=${{ secrets.IMAGE_DOWNLOAD_TIMEOUT }}" >> .env.prod
           echo "MAX_IMAGE_SIZE_MB=${{ secrets.MAX_IMAGE_SIZE_MB }}" >> .env.prod
 
