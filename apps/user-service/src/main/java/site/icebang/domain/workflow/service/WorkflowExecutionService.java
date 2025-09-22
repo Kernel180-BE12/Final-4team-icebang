@@ -42,10 +42,10 @@ public class WorkflowExecutionService {
   private final WorkflowRunMapper workflowRunMapper;
   private final JobRunMapper jobRunMapper;
   private final TaskRunMapper taskRunMapper;
-  private final Map<String, TaskRunner> taskRunners;
   private final ObjectMapper objectMapper;
   private final List<TaskBodyBuilder> bodyBuilders;
   private final ExecutionMdcManager mdcManager;
+  private final TaskExecutionService taskExecutionService; // 📌 재시도 전담 서비스 주입
 
   @Transactional
   @Async("traceExecutor")
@@ -113,25 +113,21 @@ public class WorkflowExecutionService {
       mdcManager.setTaskContext(taskRun.getId());
       workflowLogger.info("Task 실행 시작: TaskId={}, TaskRunId={}", task.getId(), taskRun.getId());
 
-      String runnerBeanName = task.getType().toLowerCase() + "TaskRunner";
-      TaskRunner runner = taskRunners.get(runnerBeanName);
-
-      if (runner == null) {
-        taskRun.finish("FAILED", "지원하지 않는 Task 타입: " + task.getType());
-        taskRunMapper.update(taskRun);
-        workflowLogger.error("Task 실행 실패 (미지원 타입): Type={}", task.getType());
-        mdcManager.setJobContext(jobRun.getId()); // Job 컨텍스트로 복원
-        return false;
-      }
-
-      ObjectNode requestBody =
-          bodyBuilders.stream()
+      ObjectNode requestBody = bodyBuilders.stream()
               .filter(builder -> builder.supports(task.getName()))
               .findFirst()
               .map(builder -> builder.build(task, workflowContext))
               .orElse(objectMapper.createObjectNode());
 
-      TaskRunner.TaskExecutionResult result = runner.execute(task, taskRun, requestBody);
+      // 재시도 로직이 포함된 TaskExecutionService를 호출
+      TaskRunner.TaskExecutionResult result;
+      try {
+        result = taskExecutionService.executeWithRetry(task, taskRun, requestBody);
+      } catch (IllegalArgumentException e) {
+        // Runner를 찾지 못한 경우 등 재시도 대상이 아닌 예외 처리
+        result = TaskRunner.TaskExecutionResult.failure(e.getMessage());
+      }
+
       taskRun.finish(result.status(), result.message());
       taskRunMapper.update(taskRun);
 
