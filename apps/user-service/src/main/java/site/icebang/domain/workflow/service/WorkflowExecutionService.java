@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +44,7 @@ public class WorkflowExecutionService {
   private final List<TaskBodyBuilder> bodyBuilders;
 
   @Transactional
+  @Async("traceExecutor")
   public void executeWorkflow(Long workflowId) {
     log.info("========== 워크플로우 실행 시작: WorkflowId={} ==========", workflowId);
     WorkflowRun workflowRun = WorkflowRun.start(workflowId);
