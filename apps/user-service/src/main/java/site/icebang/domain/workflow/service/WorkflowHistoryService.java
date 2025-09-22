@@ -7,13 +7,32 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
+import site.icebang.common.dto.PageParams;
+import site.icebang.common.dto.PageResult;
+import site.icebang.common.service.PageableService;
 import site.icebang.domain.workflow.dto.*;
 import site.icebang.domain.workflow.mapper.WorkflowHistoryMapper;
 
 @Service
 @RequiredArgsConstructor
-public class WorkflowHistoryService {
+public class WorkflowHistoryService implements PageableService<WorkflowHistoryDTO> {
   private final WorkflowHistoryMapper workflowHistoryMapper;
+
+  /**
+   * 워크플로우 런 조회
+   *
+   * @param pageParams pageParams
+   * @return PageResult
+   */
+  @Override
+  @Transactional(readOnly = true)
+  public PageResult<WorkflowHistoryDTO> getPagedResult(PageParams pageParams) {
+
+    return PageResult.from(
+        pageParams,
+        () -> workflowHistoryMapper.selectWorkflowHistoryList(pageParams),
+        () -> workflowHistoryMapper.selectWorkflowHistoryCount(pageParams));
+  }
 
   /**
    * 워크플로우 실행 상세 조회
