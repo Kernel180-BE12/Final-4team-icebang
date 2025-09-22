@@ -165,7 +165,9 @@ class ResponseSadaguCrawl(ResponseBase[SadaguCrawlData]):
 
 
 class RequestS3Upload(RequestBase):
-    keyword: str = Field(..., title="검색 키워드", description="폴더명 생성용 키워드")  # 추가
+    keyword: str = Field(
+        ..., title="검색 키워드", description="폴더명 생성용 키워드"
+    )  # 추가
     crawled_products: List[Dict] = Field(
         ...,
         title="크롤링된 상품 데이터",
@@ -175,6 +177,7 @@ class RequestS3Upload(RequestBase):
         "product", title="기본 폴더", description="S3 내 기본 저장 폴더 경로"
     )
 
+
 # S3 업로드된 이미지 정보
 class S3ImageInfo(BaseModel):
     index: int = Field(..., title="이미지 순번", description="상품 내 이미지 순번")
@@ -182,6 +185,7 @@ class S3ImageInfo(BaseModel):
         ..., title="원본 URL", description="크롤링된 원본 이미지 URL"
     )
     s3_url: str = Field(..., title="S3 URL", description="S3에서 접근 가능한 URL")
+
 
 # 상품별 S3 업로드 결과
 class ProductS3UploadResult(BaseModel):
@@ -198,6 +202,7 @@ class ProductS3UploadResult(BaseModel):
         ..., title="실패 개수", description="업로드 실패한 이미지 수"
     )
 
+
 # S3 업로드 요약 정보
 class S3UploadSummary(BaseModel):
     total_products: int = Field(
@@ -209,6 +214,7 @@ class S3UploadSummary(BaseModel):
     total_fail_images: int = Field(
         ..., title="실패 이미지 수", description="업로드 실패한 이미지 총 개수"
     )
+
 
 # 응답 데이터 모델
 class S3UploadData(BaseModel):

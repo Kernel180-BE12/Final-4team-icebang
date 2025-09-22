@@ -21,9 +21,13 @@ class S3UploadService:
         """
         keyword = request.keyword  # 키워드 추가
         crawled_products = request.crawled_products
-        base_folder = request.base_folder or "product"  # 🔸 기본값 변경: product-images → product
+        base_folder = (
+            request.base_folder or "product"
+        )  # 🔸 기본값 변경: product-images → product
 
-        logger.info(f"S3 업로드 서비스 시작: keyword='{keyword}', {len(crawled_products)}개 상품")
+        logger.info(
+            f"S3 업로드 서비스 시작: keyword='{keyword}', {len(crawled_products)}개 상품"
+        )
 
         upload_results = []
         total_success_images = 0
@@ -64,7 +68,11 @@ class S3UploadService:
                         # 상품 이미지 + 데이터 업로드 (키워드 전달 추가!)
                         # 🔸 전체 크롤링 데이터를 전달 (product_detail이 아닌 product_info 전체)
                         upload_result = await self.s3_util.upload_single_product_images(
-                            session, product_info, product_index, keyword, base_folder  # product_detail → product_info
+                            session,
+                            product_info,
+                            product_index,
+                            keyword,
+                            base_folder,  # product_detail → product_info
                         )
 
                         upload_results.append(upload_result)

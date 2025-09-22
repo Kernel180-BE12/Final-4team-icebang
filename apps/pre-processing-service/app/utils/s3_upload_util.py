@@ -39,14 +39,14 @@ class S3UploadUtil:
         )
 
     async def download_image(
-            self, session: aiohttp.ClientSession, image_url: str
+        self, session: aiohttp.ClientSession, image_url: str
     ) -> Optional[bytes]:
         """이미지 URL에서 이미지 데이터 다운로드"""
         try:
             logger.debug(f"이미지 다운로드 시작: {image_url}")
 
             async with session.get(
-                    image_url, timeout=aiohttp.ClientTimeout(total=30)
+                image_url, timeout=aiohttp.ClientTimeout(total=30)
             ) as response:
                 if response.status == 200:
                     image_data = await response.read()
@@ -87,7 +87,7 @@ class S3UploadUtil:
         return content_types.get(file_extension, "image/jpeg")
 
     def upload_to_s3(
-            self, data: bytes, s3_key: str, content_type: str = "image/jpeg"
+        self, data: bytes, s3_key: str, content_type: str = "image/jpeg"
     ) -> bool:
         """S3에 데이터 업로드 (이미지 또는 JSON)"""
         try:
@@ -111,7 +111,7 @@ class S3UploadUtil:
         """JSON 데이터를 S3에 업로드"""
         try:
             json_str = json.dumps(json_data, ensure_ascii=False, indent=2)
-            json_bytes = json_str.encode('utf-8')
+            json_bytes = json_str.encode("utf-8")
 
             return self.upload_to_s3(json_bytes, s3_key, "application/json")
 
@@ -144,10 +144,10 @@ class S3UploadUtil:
         return folder_name
 
     def generate_s3_key(
-            self,
-            base_folder: str,
-            folder_name: str,
-            file_name: str,
+        self,
+        base_folder: str,
+        folder_name: str,
+        file_name: str,
     ) -> str:
         """S3 키 생성"""
         # 최종 S3 키: product/20250922_산리오_1/image_001.jpg 또는 product_data.json
@@ -159,12 +159,12 @@ class S3UploadUtil:
         return f"{self.base_url}/{s3_key}"
 
     async def upload_single_product_images(
-            self,
-            session: aiohttp.ClientSession,
-            product_info: Dict,  # 🔸 이름 변경: product_data → product_info (전체 크롤링 데이터)
-            product_index: int,
-            keyword: str,  # 키워드 파라미터 추가
-            base_folder: str = "product",  # 🔸 기본 폴더 변경: product-images → product
+        self,
+        session: aiohttp.ClientSession,
+        product_info: Dict,  # 🔸 이름 변경: product_data → product_info (전체 크롤링 데이터)
+        product_index: int,
+        keyword: str,  # 키워드 파라미터 추가
+        base_folder: str = "product",  # 🔸 기본 폴더 변경: product-images → product
     ) -> Dict:
         """단일 상품의 모든 데이터(이미지 + JSON)를 S3에 업로드"""
 
@@ -191,10 +191,12 @@ class S3UploadUtil:
             product_data_with_meta = {
                 **product_info,  # 전체 크롤링 데이터 (index, url, product_detail, status, crawled_at 포함)
                 "s3_upload_keyword": keyword,  # 추가 메타데이터
-                "s3_uploaded_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                "s3_uploaded_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             }
 
-            json_s3_key = self.generate_s3_key(base_folder, folder_name, "product_data.json")
+            json_s3_key = self.generate_s3_key(
+                base_folder, folder_name, "product_data.json"
+            )
 
             if self.upload_json_to_s3(product_data_with_meta, json_s3_key):
                 logger.success(f"상품 {product_index} JSON 데이터 업로드 완료")
