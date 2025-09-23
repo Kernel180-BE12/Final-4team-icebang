@@ -78,6 +78,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/v0/workflows/**")
                     .permitAll()
+                    .requestMatchers("/api/v1/email/**") // 이메일 API 경로 허용
+                    .permitAll()
                     .requestMatchers("/v0/auth/check-session")
                     .authenticated()
                     .requestMatchers(SecurityEndpoints.DATA_ADMIN.getMatchers())

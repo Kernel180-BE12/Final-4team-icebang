@@ -50,9 +50,10 @@ public class BlogPublishBodyBuilder implements TaskBodyBuilder {
                   .ifPresent(tagsNode -> body.set("post_tags", tagsNode));
             });
 
-    body.put("tag", "tistory");
+    body.put("tag", "TISTORY_BLOG");
+    body.put("blog_name", "hoons2641");
     body.put("blog_id", "fair_05@nate.com");
-    body.put("blog_pw", "kdyn2641*");
+    body.put("blog_pw", "kdyn26*");
 
     return body;
   }

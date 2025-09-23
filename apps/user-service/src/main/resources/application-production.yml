@@ -17,6 +17,22 @@ spring:
     minimum-idle: 5
     pool-name: HikariCP-MyBatis
 
+    # Gmail 연동 설정
+    mail:
+      host: smtp.gmail.com
+      port: 587
+      username: ${MAIL_USERNAME}
+      password: ${MAIL_PASSWORD}
+      properties:
+        mail:
+          smtp:
+            auth: true
+            starttls:
+              enable: true
+            connectiontimeout: 5000
+            timeout: 5000
+            writetimeout: 5000
+          debug: true
 #  quartz:
 #    jdbc:
 #      initialize-schema: never
