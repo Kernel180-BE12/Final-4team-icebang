@@ -102,11 +102,16 @@ class S3UploadService:
                     if product_index < len(crawled_products):
                         await asyncio.sleep(1)
 
+            # 🆕 임시: 콘텐츠 생성용 단일 상품 선택 로직
+            selected_product_for_content = self._select_single_product_for_content(
+                crawled_products, upload_results
+            )
+
             logger.success(
                 f"S3 업로드 서비스 완료: 총 성공 이미지 {total_success_images}개, 총 실패 이미지 {total_fail_images}개"
             )
 
-            # 간소화된 응답 데이터 구성
+            # 기존 응답 데이터 구성
             data = {
                 "upload_results": upload_results,
                 "summary": {
@@ -115,6 +120,8 @@ class S3UploadService:
                     "total_fail_images": total_fail_images,
                 },
                 "uploaded_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                # 🆕 임시: 콘텐츠 생성용 단일 상품만 추가 (나중에 삭제 예정)
+                "selected_product_for_content": selected_product_for_content,
             }
 
             message = f"S3 업로드 완료: {total_success_images}개 이미지 업로드 성공, 상품 데이터 JSON 파일 포함"
@@ -123,3 +130,89 @@ class S3UploadService:
         except Exception as e:
             logger.error(f"S3 업로드 서비스 전체 오류: {e}")
             raise InvalidItemDataException()
+
+    def _select_single_product_for_content(
+        self, crawled_products: List[Dict], upload_results: List[Dict]
+    ) -> Dict:
+        """
+        🆕 임시: 콘텐츠 생성을 위한 단일 상품 선택 로직
+        우선순위: 1) S3 업로드 성공한 상품 중 이미지 개수가 많은 것
+                 2) 없다면 크롤링 성공한 첫 번째 상품
+        """
+        try:
+            # 1순위: S3 업로드 성공하고 이미지가 있는 상품들
+            successful_uploads = [
+                result
+                for result in upload_results
+                if result.get("status") == "completed"
+                and result.get("success_count", 0) > 0
+            ]
+
+            if successful_uploads:
+                # 이미지 개수가 가장 많은 상품 선택
+                best_upload = max(
+                    successful_uploads, key=lambda x: x.get("success_count", 0)
+                )
+                selected_index = best_upload["product_index"]
+
+                # 원본 크롤링 데이터에서 해당 상품 찾기
+                for product_info in crawled_products:
+                    if product_info.get("index") == selected_index:
+                        logger.info(
+                            f"콘텐츠 생성용 상품 선택: index={selected_index}, "
+                            f"title='{product_info.get('product_detail', {}).get('title', 'Unknown')[:30]}', "
+                            f"images={best_upload.get('success_count', 0)}개"
+                        )
+                        return {
+                            "selection_reason": "s3_upload_success_with_most_images",
+                            "product_info": product_info,
+                            "s3_upload_info": best_upload,
+                        }
+
+            # 2순위: 크롤링 성공한 첫 번째 상품 (S3 업로드 실패해도)
+            for product_info in crawled_products:
+                if product_info.get("status") == "success" and product_info.get(
+                    "product_detail"
+                ):
+
+                    # 해당 상품의 S3 업로드 정보 찾기
+                    upload_info = None
+                    for result in upload_results:
+                        if result.get("product_index") == product_info.get("index"):
+                            upload_info = result
+                            break
+
+                    logger.info(
+                        f"콘텐츠 생성용 상품 선택 (fallback): index={product_info.get('index')}, "
+                        f"title='{product_info.get('product_detail', {}).get('title', 'Unknown')[:30]}'"
+                    )
+                    return {
+                        "selection_reason": "first_crawl_success",
+                        "product_info": product_info,
+                        "s3_upload_info": upload_info,
+                    }
+
+            # 3순위: 아무거나 (모든 상품이 실패한 경우)
+            if crawled_products:
+                logger.warning("모든 상품이 크롤링 실패 - 첫 번째 상품으로 fallback")
+                return {
+                    "selection_reason": "fallback_first_product",
+                    "product_info": crawled_products[0],
+                    "s3_upload_info": upload_results[0] if upload_results else None,
+                }
+
+            logger.error("선택할 상품이 없습니다")
+            return {
+                "selection_reason": "no_products_available",
+                "product_info": None,
+                "s3_upload_info": None,
+            }
+
+        except Exception as e:
+            logger.error(f"단일 상품 선택 오류: {e}")
+            return {
+                "selection_reason": "selection_error",
+                "product_info": crawled_products[0] if crawled_products else None,
+                "s3_upload_info": upload_results[0] if upload_results else None,
+                "error": str(e),
+            }

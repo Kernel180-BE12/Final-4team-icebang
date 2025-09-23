@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import lombok.RequiredArgsConstructor;
@@ -30,11 +31,27 @@ public class ProductCrawlBodyBuilder implements TaskBodyBuilder {
   public ObjectNode build(Task task, Map<String, JsonNode> workflowContext) {
     ObjectNode body = objectMapper.createObjectNode();
 
-    // 유사도 분석에서 선택된 상품의 URL 가져오기
+    // ArrayNode 준비 (product_urls 배열로 변경)
+    ArrayNode productUrls = objectMapper.createArrayNode();
+
+    // 유사도 분석에서 선택된 상품들의 URL 가져오기 (복수로 변경)
     Optional.ofNullable(workflowContext.get(SIMILARITY_SOURCE_TASK))
-        .map(node -> node.path("data").path("selected_product").path("url"))
-        .filter(urlNode -> !urlNode.isMissingNode() && !urlNode.asText().isEmpty())
-        .ifPresent(urlNode -> body.set("product_url", urlNode));
+        .ifPresent(
+            node -> {
+              JsonNode topProducts = node.path("data").path("top_products");
+              if (topProducts.isArray()) {
+                // top_products 배열에서 각 상품의 URL 추출
+                topProducts.forEach(
+                    product -> {
+                      JsonNode urlNode = product.path("url");
+                      if (!urlNode.isMissingNode() && !urlNode.asText().isEmpty()) {
+                        productUrls.add(urlNode.asText());
+                      }
+                    });
+              }
+            });
+
+    body.set("product_urls", productUrls);
 
     return body;
   }
