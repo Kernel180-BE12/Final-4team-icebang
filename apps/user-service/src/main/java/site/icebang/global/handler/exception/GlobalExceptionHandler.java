@@ -1,8 +1,11 @@
 package site.icebang.global.handler.exception;
 
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -19,9 +22,13 @@ import site.icebang.common.exception.DuplicateDataException;
 public class GlobalExceptionHandler {
   @ExceptionHandler(MethodArgumentNotValidException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ApiResponse<String> handleValidation(MethodArgumentNotValidException ex) {
-    String detail = ex.getBindingResult().toString();
-    return ApiResponse.error("Validation failed: " + detail, HttpStatus.BAD_REQUEST);
+  public ApiResponse<Void> handleValidation(MethodArgumentNotValidException ex) {
+    String errorMessage =
+        ex.getBindingResult().getFieldErrors().stream()
+            .map(FieldError::getDefaultMessage)
+            .collect(Collectors.joining(", "));
+
+    return ApiResponse.error("입력 값 검증 실패: " + errorMessage, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(Exception.class)
