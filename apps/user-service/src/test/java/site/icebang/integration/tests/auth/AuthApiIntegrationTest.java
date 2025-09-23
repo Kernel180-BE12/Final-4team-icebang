@@ -107,7 +107,7 @@ class AuthApiIntegrationTest extends IntegrationTestSupport {
                 .content(objectMapper.writeValueAsString(registerRequest)))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.success").value(true))
-        .andExpect(jsonPath("$.status").value("CREATED"))
+        .andExpect(jsonPath("$.status").value("OK"))
         .andExpect(jsonPath("$.message").value("OK"))
         .andExpect(jsonPath("$.data").isEmpty())
         .andDo(
