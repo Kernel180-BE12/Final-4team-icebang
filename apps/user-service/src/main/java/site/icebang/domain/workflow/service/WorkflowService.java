@@ -20,13 +20,13 @@ import site.icebang.domain.workflow.mapper.WorkflowMapper;
 /**
  * 워크플로우의 '정의'와 관련된 비즈니스 로직을 처리하는 서비스 클래스입니다.
  *
- * <p>이 서비스는 워크플로우의 실행(Execution)이 아닌, 생성된 워크플로우의 구조를
- * 조회하는 기능에 집중합니다.
+ * <p>이 서비스는 워크플로우의 실행(Execution)이 아닌, 생성된 워크플로우의 구조를 조회하는 기능에 집중합니다.
  *
  * <h2>주요 기능:</h2>
+ *
  * <ul>
- * <li>워크플로우 목록 페이징 조회</li>
- * <li>특정 워크플로우의 상세 구조 조회 (Job, Task, Schedule 포함)</li>
+ *   <li>워크플로우 목록 페이징 조회
+ *   <li>특정 워크플로우의 상세 구조 조회 (Job, Task, Schedule 포함)
  * </ul>
  *
  * @author jihu0210@naver.com
@@ -41,8 +41,8 @@ public class WorkflowService implements PageableService<WorkflowCardDto> {
   /**
    * 워크플로우 목록을 페이징 처리하여 조회합니다.
    *
-   * <p>이 메소드는 {@code PageableService} 인터페이스를 구현하며, {@code PageResult} 유틸리티를 사용하여
-   * 전체 카운트 쿼리와 목록 조회 쿼리를 실행하고 페이징 결과를 생성합니다.
+   * <p>이 메소드는 {@code PageableService} 인터페이스를 구현하며, {@code PageResult} 유틸리티를 사용하여 전체 카운트 쿼리와 목록 조회
+   * 쿼리를 실행하고 페이징 결과를 생성합니다.
    *
    * @param pageParams 페이징 처리에 필요한 파라미터 (페이지 번호, 페이지 크기 등)
    * @return 페이징 처리된 워크플로우 카드 목록
@@ -61,8 +61,7 @@ public class WorkflowService implements PageableService<WorkflowCardDto> {
   /**
    * 특정 워크플로우의 상세 구조를 조회합니다.
    *
-   * <p>지정된 워크플로우 ID에 해당하는 기본 정보, 연결된 스케줄 목록,
-   * 그리고 Job과 Task의 계층 구조를 모두 조회하여 하나의 DTO로 조합하여 반환합니다.
+   * <p>지정된 워크플로우 ID에 해당하는 기본 정보, 연결된 스케줄 목록, 그리고 Job과 Task의 계층 구조를 모두 조회하여 하나의 DTO로 조합하여 반환합니다.
    *
    * @param workflowId 조회할 워크플로우의 ID
    * @return 워크플로우의 전체 구조를 담은 상세 DTO

@@ -14,13 +14,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * MyBatis에서 Jackson 라이브러리의 {@code JsonNode} 타입을 데이터베이스의 문자열 타입(예: VARCHAR, JSON)과
- * 매핑하기 위한 커스텀 타입 핸들러입니다.
+ * MyBatis에서 Jackson 라이브러리의 {@code JsonNode} 타입을 데이터베이스의 문자열 타입(예: VARCHAR, JSON)과 매핑하기 위한 커스텀 타입
+ * 핸들러입니다.
  *
- * <p>이 핸들러를 통해, 애플리케이션에서는 JSON 데이터를 편리하게 {@code JsonNode} 객체로 다루고,
- * 데이터베이스에는 해당 객체를 JSON 문자열 형태로 저장하거나 읽어올 수 있습니다.
+ * <p>이 핸들러를 통해, 애플리케이션에서는 JSON 데이터를 편리하게 {@code JsonNode} 객체로 다루고, 데이터베이스에는 해당 객체를 JSON 문자열 형태로
+ * 저장하거나 읽어올 수 있습니다.
  *
  * <h2>MyBatis XML 매퍼에서의 사용 예제:</h2>
+ *
  * <pre>{@code
  * <resultMap id="TaskResultMap" type="site.icebang.domain.workflow.model.Task">
  * <result property="parameters"
