@@ -46,7 +46,7 @@ class BloggerApiService:
         if self.authenticated:
             return True
 
-        token_file = f"token_{self.current_upload_account.replace('@', '_').replace('.', '_')}.pkl"
+        token_file = f"blogger/token_{self.current_upload_account.replace('@', '_').replace('.', '_')}.pkl"
 
         try:
             creds = None
