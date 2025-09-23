@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
@@ -29,7 +30,7 @@ import site.icebang.integration.setup.support.IntegrationTestSupport;
 class AuthApiIntegrationTest extends IntegrationTestSupport {
   @Test
   @DisplayName("사용자 로그인 성공")
-  void login_success() throws Exception {
+  void loginSuccess() throws Exception {
     // given
     Map<String, String> loginRequest = new HashMap<>();
     loginRequest.put("email", "admin@icebang.site");
@@ -81,9 +82,21 @@ class AuthApiIntegrationTest extends IntegrationTestSupport {
                         .build())));
   }
 
+  @Disabled
+  @DisplayName("사용자 등록")
+  void register() throws Exception {}
+
+  @Disabled
+  @DisplayName("사용자 세션 체크")
+  void checkSession() throws Exception {}
+
+  @Disabled
+  @DisplayName("사용자 권한 요청")
+  void userPermission() throws Exception {}
+
   @Test
   @DisplayName("사용자 로그아웃 성공")
-  void logout_success() throws Exception {
+  void logoutSuccess() throws Exception {
     // given - 먼저 로그인
     Map<String, String> loginRequest = new HashMap<>();
     loginRequest.put("email", "admin@icebang.site");
