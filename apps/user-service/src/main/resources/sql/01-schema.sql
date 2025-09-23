@@ -333,3 +333,8 @@ CREATE INDEX idx_log_level_status ON execution_log(log_level, status);
 CREATE INDEX idx_error_code ON execution_log(error_code);
 CREATE INDEX idx_duration ON execution_log(duration_ms);
 CREATE INDEX idx_execution_type_source ON execution_log(execution_type, source_id);
+
+-- v0.5
+-- 기존 schedule 테이블 유니크키 수정
+-- 컬럼 추가 (한 번에 하나씩)
+ALTER TABLE schedule DROP CONSTRAINT uk_schedule_workflow;
