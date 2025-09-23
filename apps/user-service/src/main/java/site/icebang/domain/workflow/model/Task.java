@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import site.icebang.domain.workflow.dto.TaskDto;
+
 @Getter
 @NoArgsConstructor // MyBatis가 객체를 생성하기 위해 필요
 @AllArgsConstructor
@@ -26,4 +28,11 @@ public class Task {
 
   private LocalDateTime updatedAt;
 
+
+  public Task(TaskDto taskDto) {
+    this.id = taskDto.getId();
+    this.name = taskDto.getName();
+    this.type = taskDto.getType();
+    this.parameters = taskDto.getParameters();
+  }
 }

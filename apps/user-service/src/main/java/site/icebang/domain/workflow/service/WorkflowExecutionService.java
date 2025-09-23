@@ -1,9 +1,9 @@
 package site.icebang.domain.workflow.service;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +42,10 @@ public class WorkflowExecutionService {
   private final WorkflowRunMapper workflowRunMapper;
   private final JobRunMapper jobRunMapper;
   private final TaskRunMapper taskRunMapper;
+  private final Map<String, TaskRunner> taskRunners;
   private final ObjectMapper objectMapper;
   private final List<TaskBodyBuilder> bodyBuilders;
   private final ExecutionMdcManager mdcManager;
-  private final TaskExecutionService taskExecutionService; // 📌 재시도 전담 서비스 주입
 
   @Transactional
   @Async("traceExecutor")
@@ -101,54 +101,77 @@ public class WorkflowExecutionService {
 
   private boolean executeTasksForJob(JobRun jobRun, Map<String, JsonNode> workflowContext) {
     List<TaskDto> taskDtos = jobMapper.findTasksByJobId(jobRun.getJobId());
-    List<Task> tasks = taskDtos.stream().map(this::convertToTask).collect(Collectors.toList());
 
-    workflowLogger.info("Job (JobRunId={}) 내 총 {}개의 Task를 실행합니다.", jobRun.getId(), tasks.size());
+    // execution_order null 처리 및 중복 처리
+    taskDtos.sort(
+        Comparator.comparing(
+                TaskDto::getExecutionOrder, Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing(TaskDto::getId));
 
-    for (Task task : tasks) {
-      TaskRun taskRun = TaskRun.start(jobRun.getId(), task.getId());
+    workflowLogger.info(
+        "Job (JobRunId={}) 내 총 {}개의 Task를 execution_order 순으로 실행합니다.",
+        jobRun.getId(),
+        taskDtos.size());
+
+    for (TaskDto taskDto : taskDtos) {
+      TaskRun taskRun = TaskRun.start(jobRun.getId(), taskDto.getId(), taskDto.getExecutionOrder());
       taskRunMapper.insert(taskRun);
 
       // Task 컨텍스트로 전환
       mdcManager.setTaskContext(taskRun.getId());
-      workflowLogger.info("Task 실행 시작: TaskId={}, TaskRunId={}", task.getId(), taskRun.getId());
+      workflowLogger.info(
+          "Task 실행 시작: TaskId={}, ExecutionOrder={}, TaskName={}, TaskRunId={}",
+          taskDto.getId(),
+          taskDto.getExecutionOrder(),
+          taskDto.getName(),
+          taskRun.getId());
 
-      ObjectNode requestBody = bodyBuilders.stream()
-              .filter(builder -> builder.supports(task.getName()))
-              .findFirst()
-              .map(builder -> builder.build(task, workflowContext))
-              .orElse(objectMapper.createObjectNode());
+      String runnerBeanName = task.getType().toLowerCase() + "TaskRunner";
+      TaskRunner runner = taskRunners.get(runnerBeanName);
 
-      // 재시도 로직이 포함된 TaskExecutionService를 호출
-      TaskRunner.TaskExecutionResult result;
-      try {
-        result = taskExecutionService.executeWithRetry(task, taskRun, requestBody);
-      } catch (IllegalArgumentException e) {
-        // Runner를 찾지 못한 경우 등 재시도 대상이 아닌 예외 처리
-        result = TaskRunner.TaskExecutionResult.failure(e.getMessage());
+      if (runner == null) {
+        taskRun.finish("FAILED", "지원하지 않는 Task 타입: " + task.getType());
+        taskRunMapper.update(taskRun);
+        workflowLogger.error("Task 실행 실패 (미지원 타입): Type={}", task.getType());
+        mdcManager.setJobContext(jobRun.getId()); // Job 컨텍스트로 복원
+        return false;
       }
 
+      ObjectNode requestBody =
+          bodyBuilders.stream()
+              .filter(builder -> builder.supports(task.getName()))
+              .findFirst()
+              .map(builder -> builder.build(createTaskFromDto(taskDto), workflowContext))
+              .orElse(objectMapper.createObjectNode());
+
+      TaskRunner.TaskExecutionResult result = runner.execute(task, taskRun, requestBody);
       taskRun.finish(result.status(), result.message());
       taskRunMapper.update(taskRun);
 
       if (result.isFailure()) {
-        workflowLogger.error("Task 실행 실패: Message={}", result.message());
+        workflowLogger.error(
+            "Task 실행 실패: ExecutionOrder={}, Message={}",
+            taskDto.getExecutionOrder(),
+            result.message());
         mdcManager.setJobContext(jobRun.getId()); // Job 컨텍스트로 복원
         return false;
       }
 
       try {
         JsonNode resultJson = objectMapper.readTree(result.message());
-        workflowContext.put(task.getName(), resultJson);
+        workflowContext.put(taskDto.getName(), resultJson);
       } catch (JsonProcessingException e) {
-        workflowLogger.error("Task 결과 JSON 파싱 실패");
+        workflowLogger.error("Task 결과 JSON 파싱 실패: ExecutionOrder={}", taskDto.getExecutionOrder());
         taskRun.finish("FAILED", "결과 JSON 파싱 실패");
         taskRunMapper.update(taskRun);
         mdcManager.setJobContext(jobRun.getId()); // Job 컨텍스트로 복원
         return false;
       }
 
-      workflowLogger.info("Task 실행 성공: TaskRunId={}", taskRun.getId());
+      workflowLogger.info(
+          "Task 실행 성공: ExecutionOrder={}, TaskRunId={}",
+          taskDto.getExecutionOrder(),
+          taskRun.getId());
 
       // 다시 Job 컨텍스트로 복원
       mdcManager.setJobContext(jobRun.getId());
@@ -157,28 +180,7 @@ public class WorkflowExecutionService {
   }
 
   /** TaskDto를 Task 모델로 변환합니다. 📌 주의: Reflection을 사용한 방식은 성능이 느리고 불안정하므로 권장되지 않습니다. */
-  private Task convertToTask(TaskDto taskDto) {
-    Task task = new Task();
-    try {
-      java.lang.reflect.Field idField = Task.class.getDeclaredField("id");
-      idField.setAccessible(true);
-      idField.set(task, taskDto.getId());
-
-      java.lang.reflect.Field nameField = Task.class.getDeclaredField("name");
-      nameField.setAccessible(true);
-      nameField.set(task, taskDto.getName());
-
-      java.lang.reflect.Field typeField = Task.class.getDeclaredField("type");
-      typeField.setAccessible(true);
-      typeField.set(task, taskDto.getType());
-
-      java.lang.reflect.Field parametersField = Task.class.getDeclaredField("parameters");
-      parametersField.setAccessible(true);
-      parametersField.set(task, taskDto.getParameters());
-
-    } catch (Exception e) {
-      throw new RuntimeException("TaskDto to Task 변환 중 오류 발생", e);
-    }
-    return task;
+  private Task createTaskFromDto(TaskDto taskDto) {
+    return new Task(taskDto); // 생성자 사용
   }
 }
