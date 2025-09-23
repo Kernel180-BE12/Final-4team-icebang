@@ -1,5 +1,7 @@
 package site.icebang.domain.workflow.controller;
 
+import java.math.BigInteger;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,8 +11,8 @@ import site.icebang.common.dto.ApiResponse;
 import site.icebang.common.dto.PageParams;
 import site.icebang.common.dto.PageResult;
 import site.icebang.domain.workflow.dto.WorkflowCardDto;
+import site.icebang.domain.workflow.dto.WorkflowDetailCardDto;
 import site.icebang.domain.workflow.service.WorkflowExecutionService;
-import site.icebang.domain.workflow.service.WorkflowHistoryService;
 import site.icebang.domain.workflow.service.WorkflowService;
 
 @RestController
@@ -19,7 +21,6 @@ import site.icebang.domain.workflow.service.WorkflowService;
 public class WorkflowController {
   private final WorkflowService workflowService;
   private final WorkflowExecutionService workflowExecutionService;
-  private final WorkflowHistoryService workflowHistoryService;
 
   @GetMapping("")
   public ApiResponse<PageResult<WorkflowCardDto>> getWorkflowList(
@@ -33,5 +34,11 @@ public class WorkflowController {
     // HTTP 요청/응답 스레드를 블로킹하지 않도록 비동기 실행
     workflowExecutionService.executeWorkflow(workflowId);
     return ResponseEntity.accepted().build();
+  }
+
+  @GetMapping("/{workflowId}/detail")
+  public ApiResponse<WorkflowDetailCardDto> getWorkflowDetail(@PathVariable BigInteger workflowId) {
+    WorkflowDetailCardDto result = workflowService.getWorkflowDetail(workflowId);
+    return ApiResponse.success(result);
   }
 }

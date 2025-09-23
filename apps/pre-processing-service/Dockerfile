@@ -2,14 +2,20 @@
 FROM python:3.11-slim AS builder
 WORKDIR /app
 
-# 필수 OS 패키지
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
+# 필수 OS 패키지 (기존 + Chrome 설치용 패키지 추가)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    wget \
+    unzip \
+    gnupg \
+    ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
 # Poetry 설치
 RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH="/root/.local/bin:$PATH"
 RUN poetry self add "poetry-plugin-export>=1.7.0"
+
 # 런타임 가상환경
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
@@ -23,6 +29,38 @@ RUN poetry export --without dev -f requirements.txt -o requirements.txt \
 FROM python:3.11-slim AS final
 WORKDIR /app
 
+# Chrome과 ChromeDriver 설치를 위한 패키지 설치
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    unzip \
+    curl \
+    gnupg \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Chrome 설치
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends google-chrome-stable && \
+    rm -rf /var/lib/apt/lists/*
+
+# ChromeDriver 설치
+RUN LATEST_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE") && \
+    wget -O /tmp/chromedriver-linux64.zip "https://storage.googleapis.com/chrome-for-testing-public/${LATEST_VERSION}/linux64/chromedriver-linux64.zip" && \
+    unzip /tmp/chromedriver-linux64.zip -d /tmp/ && \
+    mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
+    chmod +x /usr/local/bin/chromedriver && \
+    rm -rf /tmp/* && \
+    apt-get clean
+
+# MeCab & 사전 설치 (형태소 분석 의존)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    mecab \
+    libmecab-dev \
+    mecab-ipadic-utf8 \
+    && rm -rf /var/lib/apt/lists/*
+
 # /opt/venv 복사
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
@@ -30,6 +68,9 @@ ENV PATH="/opt/venv/bin:$PATH"
 # 앱 소스
 COPY . .
 
+
+# 환경변수로 MeCab 경로 지정
+ENV MECAB_PATH=/usr/lib/mecab/dic/ipadic
 
 # (권장 대안) 코드에서 uvicorn import 안 하고 프로세스 매니저로 실행하려면:
 ENTRYPOINT ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "-b", "0.0.0.0:8000"]
