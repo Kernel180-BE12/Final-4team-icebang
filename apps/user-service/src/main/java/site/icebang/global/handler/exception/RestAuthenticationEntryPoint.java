@@ -18,19 +18,18 @@ import site.icebang.common.dto.ApiResponse;
 /**
  * 인증 진입점 처리기 (REST 전용 AuthenticationEntryPoint).
  *
- * <p>Spring Security에서 인증(Authentication) 실패 시 호출됩니다.
- * 인증되지 않은 사용자가 보호된 리소스에 접근하려고 하면
- * 이 핸들러가 실행되어 JSON 형식의 에러 응답을 반환합니다.</p>
+ * <p>Spring Security에서 인증(Authentication) 실패 시 호출됩니다. 인증되지 않은 사용자가 보호된 리소스에 접근하려고 하면 이 핸들러가 실행되어
+ * JSON 형식의 에러 응답을 반환합니다.
  *
- * <p>주요 특징:</p>
+ * <p>주요 특징:
+ *
  * <ul>
- *   <li>HTTP 상태 코드: {@link HttpStatus#UNAUTHORIZED} (401)</li>
- *   <li>응답 본문: {@link ApiResponse} 형식의 에러 메시지</li>
- *   <li>응답 Content-Type: {@code application/json;charset=UTF-8}</li>
+ *   <li>HTTP 상태 코드: {@link HttpStatus#UNAUTHORIZED} (401)
+ *   <li>응답 본문: {@link ApiResponse} 형식의 에러 메시지
+ *   <li>응답 Content-Type: {@code application/json;charset=UTF-8}
  * </ul>
  *
- * <p>이 핸들러는 기본 로그인 페이지 리다이렉트 대신, REST API 클라이언트에
- * JSON 기반의 표준 에러 응답을 제공하기 위해 사용됩니다.</p>
+ * <p>이 핸들러는 기본 로그인 페이지 리다이렉트 대신, REST API 클라이언트에 JSON 기반의 표준 에러 응답을 제공하기 위해 사용됩니다.
  */
 @Component
 @RequiredArgsConstructor

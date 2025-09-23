@@ -18,19 +18,18 @@ import site.icebang.common.dto.ApiResponse;
 /**
  * 접근 거부 처리기 (REST 전용 AccessDeniedHandler).
  *
- * <p>Spring Security에서 인가(Authorization) 실패 시 호출됩니다.
- * 사용자가 필요한 권한 없이 보호된 리소스에 접근하려고 하면
- * 이 핸들러가 실행되어 JSON 형식의 에러 응답을 반환합니다.</p>
+ * <p>Spring Security에서 인가(Authorization) 실패 시 호출됩니다. 사용자가 필요한 권한 없이 보호된 리소스에 접근하려고 하면 이 핸들러가 실행되어
+ * JSON 형식의 에러 응답을 반환합니다.
  *
- * <p>주요 특징:</p>
+ * <p>주요 특징:
+ *
  * <ul>
- *   <li>HTTP 상태 코드: {@link HttpStatus#FORBIDDEN} (403)</li>
- *   <li>응답 본문: {@link ApiResponse} 형식의 에러 메시지</li>
- *   <li>응답 Content-Type: {@code application/json;charset=UTF-8}</li>
+ *   <li>HTTP 상태 코드: {@link HttpStatus#FORBIDDEN} (403)
+ *   <li>응답 본문: {@link ApiResponse} 형식의 에러 메시지
+ *   <li>응답 Content-Type: {@code application/json;charset=UTF-8}
  * </ul>
  *
- * <p>이 핸들러는 기본 HTML 오류 페이지 대신, REST API 클라이언트에
- * JSON 기반의 표준 에러 응답을 제공하기 위해 사용됩니다.</p>
+ * <p>이 핸들러는 기본 HTML 오류 페이지 대신, REST API 클라이언트에 JSON 기반의 표준 에러 응답을 제공하기 위해 사용됩니다.
  */
 @Component
 @RequiredArgsConstructor

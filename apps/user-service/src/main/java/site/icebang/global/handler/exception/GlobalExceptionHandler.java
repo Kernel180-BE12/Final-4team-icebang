@@ -17,23 +17,21 @@ import site.icebang.common.exception.DuplicateDataException;
 /**
  * 전역 예외 처리기 (Global Exception Handler).
  *
- * <p>이 클래스는 애플리케이션 전역에서 발생하는 예외를
- * {@link ApiResponse} 형태로 변환하여 클라이언트에게 반환합니다.
- * 예외 유형에 따라 적절한 {@link HttpStatus} 코드를 설정하며,
- * 공통적인 예외 처리 로직을 중앙화합니다.</p>
+ * <p>이 클래스는 애플리케이션 전역에서 발생하는 예외를 {@link ApiResponse} 형태로 변환하여 클라이언트에게 반환합니다. 예외 유형에 따라 적절한 {@link
+ * HttpStatus} 코드를 설정하며, 공통적인 예외 처리 로직을 중앙화합니다.
  *
- * <p>처리되는 주요 예외는 다음과 같습니다:</p>
+ * <p>처리되는 주요 예외는 다음과 같습니다:
+ *
  * <ul>
- *   <li>{@link MethodArgumentNotValidException} - 요청 데이터 유효성 검증 실패</li>
- *   <li>{@link NoResourceFoundException} - 존재하지 않는 리소스 접근</li>
- *   <li>{@link AuthenticationException} - 인증 실패</li>
- *   <li>{@link AccessDeniedException} - 인가 실패</li>
- *   <li>{@link DuplicateDataException} - 중복 데이터 발생</li>
- *   <li>{@link Exception} - 그 외 처리되지 않은 일반 예외</li>
+ *   <li>{@link MethodArgumentNotValidException} - 요청 데이터 유효성 검증 실패
+ *   <li>{@link NoResourceFoundException} - 존재하지 않는 리소스 접근
+ *   <li>{@link AuthenticationException} - 인증 실패
+ *   <li>{@link AccessDeniedException} - 인가 실패
+ *   <li>{@link DuplicateDataException} - 중복 데이터 발생
+ *   <li>{@link Exception} - 그 외 처리되지 않은 일반 예외
  * </ul>
  *
- * <p>모든 응답은 {@code ApiResponse.error(...)} 메서드를 통해 생성되며,
- * 에러 메시지와 HTTP 상태 코드가 포함됩니다.</p>
+ * <p>모든 응답은 {@code ApiResponse.error(...)} 메서드를 통해 생성되며, 에러 메시지와 HTTP 상태 코드가 포함됩니다.
  */
 @RestControllerAdvice
 @Slf4j
@@ -53,8 +51,7 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * 처리되지 않은 모든 일반 예외를 처리합니다.
-   * 서버 내부 오류로 간주되며, 에러 로그를 남깁니다.
+   * 처리되지 않은 모든 일반 예외를 처리합니다. 서버 내부 오류로 간주되며, 에러 로그를 남깁니다.
    *
    * @param ex 발생한 {@link Exception}
    * @return {@link ApiResponse} - 내부 오류 메시지와 {@link HttpStatus#INTERNAL_SERVER_ERROR}

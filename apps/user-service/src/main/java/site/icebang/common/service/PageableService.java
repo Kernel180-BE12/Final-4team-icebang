@@ -6,13 +6,11 @@ import site.icebang.common.dto.PageResult;
 /**
  * 페이징 가능한 서비스 인터페이스.
  *
- * <p>
- * 엔티티나 DTO 목록을 페이징 처리하여 반환해야 하는 서비스에서 구현합니다.
- * 공통적으로 {@link PageParams} 요청 파라미터를 받아
- * {@link PageResult} 응답을 제공합니다.
- * </p>
+ * <p>엔티티나 DTO 목록을 페이징 처리하여 반환해야 하는 서비스에서 구현합니다. 공통적으로 {@link PageParams} 요청 파라미터를 받아 {@link
+ * PageResult} 응답을 제공합니다.
  *
- * <p><b>사용 예시:</b></p>
+ * <p><b>사용 예시:</b>
+ *
  * <pre>{@code
  * @Service
  * public class UserService implements PageableService<UserDto> {
@@ -31,10 +29,8 @@ import site.icebang.common.dto.PageResult;
  * }</pre>
  *
  * @param <T> 페이징 처리할 데이터 타입
- *
  * @author jys01012@gmail.com
  * @since v0.0.1-alpha
- *
  */
 public interface PageableService<T> {
 

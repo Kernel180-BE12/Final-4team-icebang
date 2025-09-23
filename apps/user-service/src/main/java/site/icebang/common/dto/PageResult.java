@@ -9,14 +9,12 @@ import lombok.NoArgsConstructor;
 /**
  * 페이징 처리된 결과 DTO 클래스.
  *
- * <p>
- * 목록 조회 API에서 페이징된 데이터를 반환할 때 사용됩니다.
- * 실제 데이터 목록({@link #data}), 전체 개수({@link #total}),
- * 현재 페이지 번호({@link #current}), 페이지 크기({@link #pageSize}),
- * 전체 페이지 수({@link #totalPages}), 다음/이전 페이지 여부를 포함합니다.
- * </p>
+ * <p>목록 조회 API에서 페이징된 데이터를 반환할 때 사용됩니다. 실제 데이터 목록({@link #data}), 전체 개수({@link #total}), 현재 페이지
+ * 번호({@link #current}), 페이지 크기({@link #pageSize}), 전체 페이지 수({@link #totalPages}), 다음/이전 페이지 여부를
+ * 포함합니다.
  *
- * <p><b>사용 예시:</b></p>
+ * <p><b>사용 예시:</b>
+ *
  * <pre>{@code
  * PageParams params = new PageParams();
  * params.setCurrent(2);
@@ -33,7 +31,6 @@ import lombok.NoArgsConstructor;
  * }</pre>
  *
  * @param <T> 데이터 타입
- *
  * @author jys01012@gmail.com
  * @since v0.0.1-alpha
  */
@@ -41,48 +38,33 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PageResult<T> {
 
-  /**
-   * 현재 페이지에 포함된 데이터 목록.
-   */
+  /** 현재 페이지에 포함된 데이터 목록. */
   private List<T> data;
 
-  /**
-   * 전체 데이터 개수.
-   */
+  /** 전체 데이터 개수. */
   private int total;
 
-  /**
-   * 현재 페이지 번호 (1부터 시작).
-   */
+  /** 현재 페이지 번호 (1부터 시작). */
   private int current;
 
-  /**
-   * 한 페이지에 포함되는 데이터 개수.
-   */
+  /** 한 페이지에 포함되는 데이터 개수. */
   private int pageSize;
 
-  /**
-   * 전체 페이지 수.
-   */
+  /** 전체 페이지 수. */
   private int totalPages;
 
-  /**
-   * 다음 페이지가 존재하는지 여부.
-   */
+  /** 다음 페이지가 존재하는지 여부. */
   private boolean hasNext;
 
-  /**
-   * 이전 페이지가 존재하는지 여부.
-   */
+  /** 이전 페이지가 존재하는지 여부. */
   private boolean hasPrevious;
-
 
   /**
    * 생성자.
    *
-   * @param data     현재 페이지 데이터
-   * @param total    전체 데이터 개수
-   * @param current  현재 페이지 번호
+   * @param data 현재 페이지 데이터
+   * @param total 전체 데이터 개수
+   * @param current 현재 페이지 번호
    * @param pageSize 페이지 크기
    */
   public PageResult(List<T> data, int total, int current, int pageSize) {
@@ -95,9 +77,8 @@ public class PageResult<T> {
 
   /**
    * 페이징 관련 필드를 계산합니다.
-   * <p>
-   * totalPages, hasNext, hasPrevious 값을 설정합니다.
-   * </p>
+   *
+   * <p>totalPages, hasNext, hasPrevious 값을 설정합니다.
    */
   private void calculatePagination() {
     this.totalPages = total > 0 ? (int) Math.ceil((double) total / pageSize) : 0;
@@ -108,11 +89,11 @@ public class PageResult<T> {
   /**
    * PageResult 객체를 생성합니다.
    *
-   * @param data     현재 페이지 데이터
-   * @param total    전체 데이터 개수
-   * @param current  현재 페이지 번호
+   * @param data 현재 페이지 데이터
+   * @param total 전체 데이터 개수
+   * @param current 현재 페이지 번호
    * @param pageSize 페이지 크기
-   * @param <T>      데이터 타입
+   * @param <T> 데이터 타입
    * @return PageResult 객체
    */
   public static <T> PageResult<T> of(List<T> data, int total, int current, int pageSize) {
@@ -122,10 +103,10 @@ public class PageResult<T> {
   /**
    * PageParams를 기반으로 PageResult 객체를 생성합니다.
    *
-   * @param data       현재 페이지 데이터
-   * @param total      전체 데이터 개수
+   * @param data 현재 페이지 데이터
+   * @param total 전체 데이터 개수
    * @param pageParams 요청 파라미터 ({@link PageParams})
-   * @param <T>        데이터 타입
+   * @param <T> 데이터 타입
    * @return PageResult 객체
    */
   public static <T> PageResult<T> of(List<T> data, int total, PageParams pageParams) {
@@ -134,14 +115,13 @@ public class PageResult<T> {
 
   /**
    * 함수형 인터페이스를 활용해 PageResult를 생성합니다.
-   * <p>
-   * 데이터 조회와 카운트 조회를 별도의 Supplier로 받아 트랜잭션 내에서 실행할 수 있습니다.
-   * </p>
    *
-   * @param pageParams    요청 파라미터 ({@link PageParams})
-   * @param dataSupplier  데이터 조회 함수
+   * <p>데이터 조회와 카운트 조회를 별도의 Supplier로 받아 트랜잭션 내에서 실행할 수 있습니다.
+   *
+   * @param pageParams 요청 파라미터 ({@link PageParams})
+   * @param dataSupplier 데이터 조회 함수
    * @param countSupplier 전체 개수 조회 함수
-   * @param <T>           데이터 타입
+   * @param <T> 데이터 타입
    * @return PageResult 객체
    */
   public static <T> PageResult<T> from(
@@ -155,7 +135,7 @@ public class PageResult<T> {
    * 비어 있는 페이지 결과를 생성합니다.
    *
    * @param pageParams 요청 파라미터 ({@link PageParams})
-   * @param <T>        데이터 타입
+   * @param <T> 데이터 타입
    * @return 빈 PageResult 객체
    */
   public static <T> PageResult<T> empty(PageParams pageParams) {
