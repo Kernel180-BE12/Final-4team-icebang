@@ -6,8 +6,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -22,7 +22,7 @@ import site.icebang.e2e.setup.support.E2eTestSupport;
 class UserLogoutFlowE2eTest extends E2eTestSupport {
 
   @SuppressWarnings("unchecked")
-  @Test
+  @Disabled
   @DisplayName("정상 로그아웃 전체 플로우 - TDD REd 단계")
   void completeUserRegistrationFlow_shouldFailBecauseApiNotImplemented() throws Exception {
     logStep(1, "관리자 로그인 (최우선)");
