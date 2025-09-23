@@ -64,4 +64,4 @@ COPY . .
 ENV MECAB_PATH=/usr/lib/mecab/dic/ipadic
 
 # (권장 대안) 코드에서 uvicorn import 안 하고 프로세스 매니저로 실행하려면:
-ENTRYPOINT ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "-b", "0.0.0.0:8000"]
+ENTRYPOINT ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "-b", "0.0.0.0:8000", "--timeout", "120"]
