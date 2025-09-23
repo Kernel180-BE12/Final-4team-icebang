@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  *
  * <p>이 클래스는 소문자, 대문자, 숫자, 특수문자를 포함한 강력한 패스워드를 생성합니다. 생성된 패스워드는 각 문자 유형을 최소 하나씩 포함하도록 보장됩니다.
  *
- * <h3>사용 예제:</h3>
+ * <h2>사용 예제:</h2>
  *
  * <pre>{@code
  * @Autowired
