@@ -28,7 +28,7 @@ public class TaskRun {
   }
 
   /** Task 실행 시작을 위한 정적 팩토리 메서드 */
-  public static TaskRun start(Long jobRunId, Long taskId,  Integer executionOrder) {
+  public static TaskRun start(Long jobRunId, Long taskId, Integer executionOrder) {
     TaskRun taskRun = new TaskRun(jobRunId, taskId);
     taskRun.executionOrder = executionOrder;
     taskRun.status = "RUNNING";
