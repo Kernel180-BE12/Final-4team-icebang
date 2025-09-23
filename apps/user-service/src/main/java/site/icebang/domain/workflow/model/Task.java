@@ -1,12 +1,12 @@
 package site.icebang.domain.workflow.model;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 import site.icebang.domain.workflow.dto.TaskDto;
 
@@ -27,7 +27,6 @@ public class Task {
   private LocalDateTime createdAt;
 
   private LocalDateTime updatedAt;
-
 
   public Task(TaskDto taskDto) {
     this.id = taskDto.getId();

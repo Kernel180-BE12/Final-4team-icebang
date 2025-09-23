@@ -6,7 +6,6 @@ import org.apache.ibatis.annotations.Mapper;
 
 import site.icebang.domain.workflow.dto.JobDto;
 import site.icebang.domain.workflow.dto.TaskDto;
-import site.icebang.domain.workflow.model.Job;
 
 @Mapper
 public interface JobMapper {
