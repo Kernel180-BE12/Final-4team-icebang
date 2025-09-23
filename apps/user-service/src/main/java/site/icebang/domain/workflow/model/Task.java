@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import site.icebang.domain.workflow.dto.TaskDto;
+
 @Getter
 @NoArgsConstructor // MyBatis가 객체를 생성하기 위해 필요
 public class Task {
@@ -17,4 +19,11 @@ public class Task {
 
   /** Task 실행에 필요한 파라미터 (JSON) 예: {"url": "http://...", "method": "POST", "body": {...}} */
   private JsonNode parameters;
+
+  public Task(TaskDto taskDto) {
+    this.id = taskDto.getId();
+    this.name = taskDto.getName();
+    this.type = taskDto.getType();
+    this.parameters = taskDto.getParameters();
+  }
 }
