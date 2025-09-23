@@ -10,7 +10,7 @@ import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
-import site.icebang.domain.execution.model.TaskRun;
+import site.icebang.domain.workflow.model.TaskRun;
 import site.icebang.domain.workflow.model.Task;
 import site.icebang.domain.workflow.runner.TaskRunner;
 
