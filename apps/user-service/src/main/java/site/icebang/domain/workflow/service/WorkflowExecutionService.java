@@ -1,10 +1,12 @@
 package site.icebang.domain.workflow.service;
 
+import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -26,8 +28,11 @@ import site.icebang.domain.execution.model.JobRun;
 import site.icebang.domain.execution.model.TaskRun;
 import site.icebang.domain.execution.model.WorkflowRun;
 import site.icebang.domain.workflow.dto.TaskDto;
+import site.icebang.domain.workflow.dto.WorkflowCardDto;
+import site.icebang.domain.workflow.dto.WorkflowDetailCardDto;
 import site.icebang.domain.workflow.manager.ExecutionMdcManager;
 import site.icebang.domain.workflow.mapper.JobMapper;
+import site.icebang.domain.workflow.mapper.WorkflowMapper;
 import site.icebang.domain.workflow.model.Job;
 import site.icebang.domain.workflow.model.Task;
 import site.icebang.domain.workflow.runner.TaskRunner;
@@ -40,6 +45,7 @@ public class WorkflowExecutionService {
   private static final Logger workflowLogger = LoggerFactory.getLogger("WORKFLOW_HISTORY");
   private final JobMapper jobMapper;
   private final WorkflowRunMapper workflowRunMapper;
+  private final WorkflowMapper workflowMapper;
   private final JobRunMapper jobRunMapper;
   private final TaskRunMapper taskRunMapper;
   private final Map<String, TaskRunner> taskRunners;
@@ -54,14 +60,13 @@ public class WorkflowExecutionService {
 
     try {
       workflowLogger.info("========== 워크플로우 실행 시작: WorkflowId={} ==========", workflowId);
-
       WorkflowRun workflowRun = WorkflowRun.start(workflowId);
       workflowRunMapper.insert(workflowRun);
-
       Map<String, JsonNode> workflowContext = new HashMap<>();
       List<Job> jobs = jobMapper.findJobsByWorkflowId(workflowId);
       workflowLogger.info("총 {}개의 Job을 순차적으로 실행합니다.", jobs.size());
-
+      WorkflowDetailCardDto settings = workflowMapper.selectWorkflowDetailById(BigInteger.valueOf(workflowId));
+      JsonNode setting = objectMapper.readTree(settings.getDefaultConfig());
       for (Job job : jobs) {
         JobRun jobRun = JobRun.start(workflowRun.getId(), job.getId());
         jobRunMapper.insert(jobRun);
@@ -71,7 +76,7 @@ public class WorkflowExecutionService {
         workflowLogger.info(
             "---------- Job 실행 시작: JobId={}, JobRunId={} ----------", job.getId(), jobRun.getId());
 
-        boolean jobSucceeded = executeTasksForJob(jobRun, workflowContext);
+        boolean jobSucceeded = executeTasksForJob(jobRun, workflowContext,setting);
 
         jobRun.finish(jobSucceeded ? "SUCCESS" : "FAILED");
         jobRunMapper.update(jobRun);
@@ -94,14 +99,25 @@ public class WorkflowExecutionService {
       workflowLogger.info(
           "========== 워크플로우 실행 성공: WorkflowRunId={} ==========", workflowRun.getId());
 
+    } catch (JsonMappingException e) {
+        throw new RuntimeException(e);
+    } catch (JsonProcessingException e) {
+        throw new RuntimeException(e);
     } finally {
       mdcManager.clearExecutionContext();
     }
   }
 
-  private boolean executeTasksForJob(JobRun jobRun, Map<String, JsonNode> workflowContext) {
+  private boolean executeTasksForJob(JobRun jobRun, Map<String, JsonNode> workflowContext,JsonNode setting) {
     List<TaskDto> taskDtos = jobMapper.findTasksByJobId(jobRun.getJobId());
-
+    //설정 값을 각 테스크에 넣음
+    for (TaskDto taskDto : taskDtos) {
+          String taskId = taskDto.getId().toString();
+          JsonNode settingForTask = setting.get(taskId);
+          if (settingForTask != null) {
+              taskDto.setSettings(settingForTask);
+          }
+    }
     // execution_order null 처리 및 중복 처리
     taskDtos.sort(
         Comparator.comparing(
