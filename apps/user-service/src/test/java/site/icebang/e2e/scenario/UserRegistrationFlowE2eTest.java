@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
@@ -22,7 +21,7 @@ import site.icebang.e2e.setup.support.E2eTestSupport;
 class UserRegistrationFlowE2eTest extends E2eTestSupport {
 
   @SuppressWarnings("unchecked")
-  @Disabled
+  @Test
   @DisplayName("관리자가 새 사용자를 등록하는 전체 플로우 (ERP 시나리오)")
   void completeUserRegistrationFlow() throws Exception {
     logStep(1, "관리자 로그인 (최우선)");
@@ -154,7 +153,7 @@ class UserRegistrationFlowE2eTest extends E2eTestSupport {
   }
 
   @SuppressWarnings("unchecked")
-  @Disabled
+  @Test
   @DisplayName("중복 이메일로 사용자 등록 시도 시 실패")
   void register_withDuplicateEmail_shouldFail() {
     // 선행 조건: 관리자 로그인
