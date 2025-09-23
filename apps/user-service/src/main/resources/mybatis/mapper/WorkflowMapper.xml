@@ -39,4 +39,94 @@
         LEFT JOIN user u ON w.created_by = u.id
         WHERE w.id = #{id}
     </select>
+
+    <resultMap id="WorkflowDetailMap" type="site.icebang.domain.workflow.dto.WorkflowDetailCardDto">
+        <id     property="id"            column="id"/>
+        <result property="name"          column="name"/>
+        <result property="description"   column="description"/>
+        <result property="isEnabled"     column="isEnabled"/>
+        <result property="defaultConfig" column="defaultConfig"/>
+        <result property="createdBy"     column="createdBy"/>
+        <result property="createdAt"     column="createdAt"/>
+        <result property="updatedBy"     column="updatedBy"/>
+        <result property="updatedAt"     column="updatedAt"/>
+    </resultMap>
+
+    <!-- 스케줄 정보 매핑 -->
+    <resultMap id="ScheduleMap" type="site.icebang.domain.workflow.dto.ScheduleDto">
+        <id     property="id"            column="id"/>
+        <result property="cronExpression" column="cronExpression"/>
+        <result property="isActive"       column="isActive"/>
+        <result property="lastRunStatus"  column="lastRunStatus"/>
+        <result property="lastRunAt"      column="lastRunAt"/>
+        <result property="scheduleText"   column="scheduleText"/>
+        <result property="createdAt"      column="createdAt"/>
+    </resultMap>
+
+    <!-- 워크플로우 기본 정보 조회 -->
+    <select id="selectWorkflowDetailById" parameterType="BigInteger"
+            resultMap="WorkflowDetailMap">
+        SELECT
+            w.id,
+            w.name,
+            w.description,
+            w.is_enabled        AS isEnabled,
+            w.default_config    AS defaultConfig,
+            creator.name        AS createdBy,
+            w.created_at        AS createdAt,
+            updater.name        AS updatedBy,
+            w.updated_at        AS updatedAt
+        FROM workflow w
+                 LEFT JOIN `user` creator ON w.created_by = creator.id
+                 LEFT JOIN `user` updater ON w.updated_by = updater.id
+        WHERE w.id = #{workflowId}
+    </select>
+
+    <!-- 워크플로우별 스케줄 목록 조회 -->
+    <select id="selectSchedulesByWorkflowId" parameterType="BigInteger"
+            resultMap="ScheduleMap">
+        SELECT
+            id,
+            cron_expression     AS cronExpression,
+            is_active          AS isActive,
+            last_run_status    AS lastRunStatus,
+            last_run_at        AS lastRunAt,
+            schedule_text      AS scheduleText,
+            created_at         AS createdAt
+        FROM schedule
+        WHERE workflow_id = #{workflowId}
+        ORDER BY id
+    </select>
+
+    <select id="selectWorkflowWithJobsAndTasks" parameterType="BigInteger"
+            resultType="java.util.Map">
+        SELECT
+            w.id as workflow_id,
+            wj.execution_order as job_execution_order,
+            j.id as job_id,
+            j.name as job_name,
+            j.description as job_description,
+            j.is_enabled as job_enabled,
+            -- Job별 Task 정보를 JSON 배열로 그룹화
+            JSON_ARRAYAGG(
+                    JSON_OBJECT(
+                            'task_id', t.id,
+                            'task_name', t.name,
+                            'task_type', t.type,
+                            'task_parameters', t.parameters,
+                            'execution_order', jt.execution_order
+                    ) ORDER BY jt.execution_order
+            ) as tasks
+        FROM workflow w
+                 LEFT JOIN workflow_job wj ON w.id = wj.workflow_id
+                 LEFT JOIN job j ON wj.job_id = j.id
+                 LEFT JOIN job_task jt ON j.id = jt.job_id
+                 LEFT JOIN task t ON jt.task_id = t.id
+        WHERE w.id = #{workflowId}
+          AND t.id IS NOT NULL  -- Task가 있는 Job만 조회
+        GROUP BY
+            w.id, w.name, w.description, w.is_enabled, w.default_config,
+            wj.execution_order, j.id, j.name, j.description, j.is_enabled
+        ORDER BY wj.execution_order
+    </select>
 </mapper>
