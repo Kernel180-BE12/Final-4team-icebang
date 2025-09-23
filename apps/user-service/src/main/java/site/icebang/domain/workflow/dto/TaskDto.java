@@ -11,9 +11,9 @@ public class TaskDto {
   private Long id;
   private String name;
   private String type;
+  private Integer executionOrder;
+  private JsonNode settings;
   private JsonNode parameters;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
-
-  private Integer executionOrder;
 }

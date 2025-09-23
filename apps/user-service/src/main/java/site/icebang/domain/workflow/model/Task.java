@@ -24,6 +24,8 @@ public class Task {
   /** Task 실행에 필요한 파라미터 (JSON) 예: {"url": "http://...", "method": "POST", "body": {...}} */
   private JsonNode parameters;
 
+  private JsonNode settings;
+
   private LocalDateTime createdAt;
 
   private LocalDateTime updatedAt;
@@ -32,6 +34,7 @@ public class Task {
     this.id = taskDto.getId();
     this.name = taskDto.getName();
     this.type = taskDto.getType();
+    this.settings = taskDto.getSettings();
     this.parameters = taskDto.getParameters();
   }
 }
