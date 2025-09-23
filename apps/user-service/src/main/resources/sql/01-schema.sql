@@ -337,4 +337,4 @@ CREATE INDEX idx_execution_type_source ON execution_log(execution_type, source_i
 -- v0.5
 -- 기존 schedule 테이블 유니크키 수정
 -- 컬럼 추가 (한 번에 하나씩)
-ALTER TABLE schedule DROP CONSTRAINT uk_schedule_workflow;
+ALTER TABLE schedule DROP CONSTRAINT IF EXISTS uk_schedule_workflow;
