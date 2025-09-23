@@ -13,7 +13,6 @@ import site.icebang.common.dto.PageResult;
 import site.icebang.domain.workflow.dto.WorkflowCardDto;
 import site.icebang.domain.workflow.dto.WorkflowDetailCardDto;
 import site.icebang.domain.workflow.service.WorkflowExecutionService;
-import site.icebang.domain.workflow.service.WorkflowHistoryService;
 import site.icebang.domain.workflow.service.WorkflowService;
 
 @RestController
@@ -22,7 +21,6 @@ import site.icebang.domain.workflow.service.WorkflowService;
 public class WorkflowController {
   private final WorkflowService workflowService;
   private final WorkflowExecutionService workflowExecutionService;
-  private final WorkflowHistoryService workflowHistoryService;
 
   @GetMapping("")
   public ApiResponse<PageResult<WorkflowCardDto>> getWorkflowList(
