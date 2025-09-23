@@ -27,7 +27,7 @@ public class KeywordSearchBodyBuilder implements TaskBodyBuilder {
   @Override
   public ObjectNode build(Task task, Map<String, JsonNode> workflowContext) {
     // 이 Task는 항상 정적인 Body를 가집니다.
-      String tag = task.getSettings().get("tag").asText();
+    String tag = task.getSettings().get("tag").asText();
     return objectMapper.createObjectNode().put("tag", tag);
   }
 }

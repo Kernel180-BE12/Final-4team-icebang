@@ -6,14 +6,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -57,8 +57,9 @@ public class WorkflowExecutionService {
       workflowRunMapper.insert(workflowRun);
 
       Map<String, JsonNode> workflowContext = new HashMap<>();
-    WorkflowDetailCardDto settings = workflowMapper.selectWorkflowDetailById(BigInteger.valueOf(workflowId));
-    JsonNode setting = objectMapper.readTree(settings.getDefaultConfig());
+      WorkflowDetailCardDto settings =
+          workflowMapper.selectWorkflowDetailById(BigInteger.valueOf(workflowId));
+      JsonNode setting = objectMapper.readTree(settings.getDefaultConfig());
       // 📌 Mapper로부터 JobDto 리스트를 조회합니다.
       List<JobDto> jobDtos = jobMapper.findJobsByWorkflowId(workflowId);
       // 📌 JobDto를 execution_order 기준으로 정렬합니다.
@@ -81,7 +82,7 @@ public class WorkflowExecutionService {
         workflowLogger.info(
             "---------- Job 실행 시작: JobId={}, JobRunId={} ----------", job.getId(), jobRun.getId());
 
-        boolean jobSucceeded = executeTasksForJob(jobRun, workflowContext,setting);
+        boolean jobSucceeded = executeTasksForJob(jobRun, workflowContext, setting);
         jobRun.finish(jobSucceeded ? "SUCCESS" : "FAILED");
         jobRunMapper.update(jobRun);
 
@@ -100,23 +101,24 @@ public class WorkflowExecutionService {
           hasAnyJobFailed ? "실패" : "성공",
           workflowRun.getId());
     } catch (JsonMappingException e) {
-        throw new RuntimeException(e);
+      throw new RuntimeException(e);
     } catch (JsonProcessingException e) {
-        throw new RuntimeException(e);
+      throw new RuntimeException(e);
     } finally {
       mdcManager.clearExecutionContext();
     }
   }
 
-  private boolean executeTasksForJob(JobRun jobRun, Map<String, JsonNode> workflowContext, JsonNode setting) {
+  private boolean executeTasksForJob(
+      JobRun jobRun, Map<String, JsonNode> workflowContext, JsonNode setting) {
     List<TaskDto> taskDtos = jobMapper.findTasksByJobId(jobRun.getJobId());
-      for (TaskDto taskDto : taskDtos) {
-          String taskId = taskDto.getId().toString();
-          JsonNode settingForTask = setting.get(taskId);
-          if (settingForTask != null) {
-              taskDto.setSettings(settingForTask);
-          }
+    for (TaskDto taskDto : taskDtos) {
+      String taskId = taskDto.getId().toString();
+      JsonNode settingForTask = setting.get(taskId);
+      if (settingForTask != null) {
+        taskDto.setSettings(settingForTask);
       }
+    }
     taskDtos.sort(
         Comparator.comparing(
                 TaskDto::getExecutionOrder, Comparator.nullsLast(Comparator.naturalOrder()))

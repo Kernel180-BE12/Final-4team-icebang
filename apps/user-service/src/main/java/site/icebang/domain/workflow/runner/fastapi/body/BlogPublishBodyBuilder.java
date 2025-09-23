@@ -51,9 +51,9 @@ public class BlogPublishBodyBuilder implements TaskBodyBuilder {
             });
     String blog_name = task.getSettings().path("blog_name").asText("");
     body.put("tag", task.getSettings().get("tag").asText());
-    body.put("blog_name",blog_name);
-    body.put("blog_id",  task.getSettings().get("blog_id").asText());
-    body.put("blog_pw",  task.getSettings().get("blog_pw").asText());
+    body.put("blog_name", blog_name);
+    body.put("blog_id", task.getSettings().get("blog_id").asText());
+    body.put("blog_pw", task.getSettings().get("blog_pw").asText());
 
     return body;
   }
