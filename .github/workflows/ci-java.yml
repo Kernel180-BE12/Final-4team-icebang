@@ -81,6 +81,7 @@ jobs:
           ./gradlew javadoc
           if [ "${{ github.base_ref }}" = "main" ] || [[ "${{ github.ref }}" == refs/tags/* ]]; then
             ./gradlew e2eTest
+            ./gradlew openapi3
           fi
         working-directory: apps/user-service
 
@@ -162,6 +163,12 @@ jobs:
       - set-image-tag
     if: startsWith(github.ref, 'refs/tags/user-service-v')
 
+    permissions:
+      contents: read        # 리포지토리 읽기
+      pages: write         # GitHub Pages 쓰기
+      id-token: write      # OIDC 토큰
+      actions: read        # Actions 읽기
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -193,12 +200,13 @@ jobs:
         with:
           output: user-service-swagger-ui-${{ needs.set-image-tag.outputs.image-tag }}
           spec-file: openapi-spec/openapi3.yaml
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy to GitHub Pages
         if: steps.check-openapi.outputs.openapi_exists == 'true'
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          personal_token: ${{ secrets.PERSONAL_TOKEN }}
           publish_dir: ./user-service-swagger-ui-${{ needs.set-image-tag.outputs.image-tag }}
           destination_dir: user-service/${{ needs.set-image-tag.outputs.image-tag }}
 
