@@ -16,7 +16,7 @@ DELETE FROM `workflow`;
 -- 워크플로우 생성 (ID: 1)
 INSERT INTO `workflow` (`id`, `name`, `description`, `created_by`, `default_config`) VALUES
     (1, '상품 분석 및 블로그 자동 발행', '키워드 검색부터 상품 분석 후 블로그 발행까지의 자동화 프로세스', 1,
-     JSON_OBJECT('keyword_search',json_object('tag','naver'),'blog_publish',json_object('tag','naver_blog','blog_id', 'wtecho331', 'blog_pw', 'testpass')))
+     JSON_OBJECT('1',json_object('tag','naver'),'8',json_object('tag','naver_blog','blog_id', 'wtecho331', 'blog_pw', 'testpass')))
 ON DUPLICATE KEY UPDATE
                      name = VALUES(name),
                      description = VALUES(description),
