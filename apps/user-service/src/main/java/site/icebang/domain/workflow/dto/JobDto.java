@@ -2,18 +2,18 @@ package site.icebang.domain.workflow.dto;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import lombok.Data;
 
 @Data
-public class TaskDto {
+public class JobDto {
   private Long id;
   private String name;
-  private String type;
-  private JsonNode parameters;
+  private String description;
+  private Boolean isEnabled;
   private LocalDateTime createdAt;
+  private Long createdBy;
   private LocalDateTime updatedAt;
+  private Long updatedBy;
 
   private Integer executionOrder;
 }
