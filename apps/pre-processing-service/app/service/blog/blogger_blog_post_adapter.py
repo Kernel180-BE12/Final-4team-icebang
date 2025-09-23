@@ -10,7 +10,7 @@ class BloggerBlogPostAdapter(BaseBlogPostService):
     현재 BaseBlogPostService 인터페이스와 호환
     """
 
-    def __init__(self, config_file="blogger/blog_config.json"):
+    def __init__(self, config_file="blog_config.json"):
         # API 전용 서비스 (Adaptee) 먼저 초기화
         self.api_service = BloggerApiService(config_file=config_file)
 

@@ -19,7 +19,7 @@ scripts/
 pytest-report.xml
 coverage.xml
 
-models/klue_bert.onnx
-blogger/token_dev_icebang5_gmail_com.pkl
-blogger/credentials.json
-blogger/blog_config.json
+klue_bert.onnx
+token_dev_icebang5_gmail_com.pkl
+credentials.json
+blog_config.json

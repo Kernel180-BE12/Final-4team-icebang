@@ -8,7 +8,7 @@ from transformers import AutoTokenizer
 class SimilarityAnalyzerONNX:
     """ONNX 기반 텍스트 유사도 분석기"""
 
-    def __init__(self, model_path: str = "models/klue_bert.onnx"):
+    def __init__(self, model_path: str = "klue_bert.onnx"):
         try:
             logger.info("토크나이저 로딩 중: klue/bert-base")
             self.tokenizer = AutoTokenizer.from_pretrained("klue/bert-base")

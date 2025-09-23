@@ -6,7 +6,7 @@ from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from app.errors.BlogPostingException import *
 from typing import Dict
-from loguru import logger
+
 
 class BloggerApiService:
     """
@@ -14,7 +14,7 @@ class BloggerApiService:
     완전히 다른 초기화/인증 방식을 사용
     """
 
-    def __init__(self, config_file:str):
+    def __init__(self, config_file="blog_config.json"):
         self.config_file = config_file
         self.config = {}
         self.current_upload_account = None
@@ -46,7 +46,7 @@ class BloggerApiService:
         if self.authenticated:
             return True
 
-        token_file = f"blogger/token_{self.current_upload_account.replace('@', '_').replace('.', '_')}.pkl"
+        token_file = f"token_{self.current_upload_account.replace('@', '_').replace('.', '_')}.pkl"
 
         try:
             creds = None
