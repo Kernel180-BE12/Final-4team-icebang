@@ -11,14 +11,10 @@ import site.icebang.domain.workflow.scheduler.WorkflowTriggerJob;
 @Service
 @RequiredArgsConstructor
 public class QuartzScheduleService {
-
     private final Scheduler scheduler;
 
     public void addOrUpdateSchedule(Schedule schedule) {
         try {
-            // 기존 스케줄 삭제 (있다면)
-            deleteSchedule(schedule.getWorkflowId());
-
             JobKey jobKey = JobKey.jobKey("workflow-" + schedule.getWorkflowId());
             JobDetail jobDetail = JobBuilder.newJob(WorkflowTriggerJob.class)
                     .withIdentity(jobKey)
@@ -34,23 +30,25 @@ public class QuartzScheduleService {
                     .withSchedule(CronScheduleBuilder.cronSchedule(schedule.getCronExpression()))
                     .build();
 
+            if (scheduler.checkExists(jobKey)) {
+                scheduler.deleteJob(jobKey); // 기존 Job 삭제 후 재생성 (업데이트)
+            }
             scheduler.scheduleJob(jobDetail, trigger);
             log.info("Quartz 스케줄 등록/업데이트 완료: Workflow ID {}", schedule.getWorkflowId());
         } catch (SchedulerException e) {
-            log.error("Quartz 스케줄 등록 실패", e);
+            log.error("Quartz 스케줄 등록 실패: Workflow ID " + schedule.getWorkflowId(), e);
         }
     }
 
     public void deleteSchedule(Long workflowId) {
         try {
-            JobKey jobkey = JobKey.jobKey("workflow-" + workflowId);
-            TriggerKey triggerKey = TriggerKey.triggerKey("trigger-for-workflow-" + workflowId);
-
-            scheduler.unscheduleJob(triggerKey);
-            scheduler.deleteJob(jobkey);
-            log.info("Quartz 스케줄 삭제 완료: Workflow ID {}", workflowId);
+            JobKey jobKey = JobKey.jobKey("workflow-" + workflowId);
+            if (scheduler.checkExists(jobKey)) {
+                scheduler.deleteJob(jobKey);
+                log.info("Quartz 스케줄 삭제 완료: Workflow ID {}", workflowId);
+            }
         } catch (SchedulerException e) {
-            log.error("Quartz 스케줄 삭제 실패: Workflow ID {}", workflowId, e);
+            log.error("Quartz 스케줄 삭제 실패: Workflow ID " + workflowId, e);
         }
     }
 }

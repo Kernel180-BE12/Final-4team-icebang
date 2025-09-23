@@ -2,8 +2,8 @@ package site.icebang.domain.workflow.runner;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import site.icebang.domain.execution.model.TaskRun;
 import site.icebang.domain.workflow.model.Task;
+import site.icebang.domain.workflow.model.TaskRun;
 
 /** 워크플로우의 개별 Task를 실행하는 모든 Runner가 구현해야 할 인터페이스 */
 public interface TaskRunner {

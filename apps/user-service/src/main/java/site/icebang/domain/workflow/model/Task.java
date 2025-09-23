@@ -1,7 +1,10 @@
 package site.icebang.domain.workflow.model;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +12,7 @@ import site.icebang.domain.workflow.dto.TaskDto;
 
 @Getter
 @NoArgsConstructor // MyBatis가 객체를 생성하기 위해 필요
+@AllArgsConstructor
 public class Task {
 
   private Long id;
@@ -19,6 +23,10 @@ public class Task {
 
   /** Task 실행에 필요한 파라미터 (JSON) 예: {"url": "http://...", "method": "POST", "body": {...}} */
   private JsonNode parameters;
+
+  private LocalDateTime createdAt;
+
+  private LocalDateTime updatedAt;
 
   public Task(TaskDto taskDto) {
     this.id = taskDto.getId();
