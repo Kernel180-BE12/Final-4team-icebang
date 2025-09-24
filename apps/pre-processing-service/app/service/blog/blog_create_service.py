@@ -1,17 +1,14 @@
 import json
 import logging
-import os
+from loguru import logger
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 
 from openai import OpenAI
-from dotenv import load_dotenv
-
+from app.core.config import settings
 from app.model.schemas import RequestBlogCreate
 from app.errors.BlogPostingException import *
 
-# 환경변수 로드
-load_dotenv(".env.dev")
 
 
 class BlogContentService:
@@ -19,14 +16,13 @@ class BlogContentService:
 
     def __init__(self):
         # OpenAI API 키 설정
-        self.openai_api_key = os.getenv("OPENAI_API_KEY")
+        self.openai_api_key = settings.OPENAI_API_KEY
         if not self.openai_api_key:
             raise ValueError("OPENAI_API_KEY가 .env.dev 파일에 설정되지 않았습니다.")
 
         # 인스턴스 레벨에서 클라이언트 생성
         self.client = OpenAI(api_key=self.openai_api_key)
         logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(__name__)
 
     def generate_blog_content(self, request: RequestBlogCreate) -> Dict[str, Any]:
         """
@@ -39,26 +35,26 @@ class BlogContentService:
             Dict: {"title": str, "content": str, "tags": List[str]} 형태의 결과
         """
         try:
-            self.logger.debug("[STEP1] 콘텐츠 컨텍스트 준비 시작")
+            logger.debug("[STEP1] 콘텐츠 컨텍스트 준비 시작")
             content_context = self._prepare_content_context(request)
-            self.logger.debug(f"[STEP1 완료] context length={len(content_context)}")
+            logger.debug(f"[STEP1 완료] context length={len(content_context)}")
 
-            self.logger.debug("[STEP2] 프롬프트 생성 시작")
+            logger.debug("[STEP2] 프롬프트 생성 시작")
             prompt = self._create_content_prompt(content_context, request)
-            self.logger.debug(f"[STEP2 완료] prompt length={len(prompt)}")
+            logger.debug(f"[STEP2 완료] prompt length={len(prompt)}")
 
-            self.logger.debug("[STEP3] OpenAI API 호출 시작")
+            logger.debug("[STEP3] OpenAI API 호출 시작")
             generated_content = self._generate_with_openai(prompt)
-            self.logger.debug(f"[STEP3 완료] generated length={len(generated_content)}")
+            logger.debug(f"[STEP3 완료] generated length={len(generated_content)}")
 
-            self.logger.debug("[STEP4] 콘텐츠 파싱 시작")
+            logger.debug("[STEP4] 콘텐츠 파싱 시작")
             result = self._parse_generated_content(generated_content, request)
-            self.logger.debug("[STEP4 완료]")
+            logger.debug("[STEP4 완료]")
 
             return result
 
         except Exception as e:
-            self.logger.error(f"콘텐츠 생성 실패: {e}")
+            logger.error(f"콘텐츠 생성 실패: {e}")
             return self._create_fallback_content(request)
 
     def _prepare_content_context(self, request: RequestBlogCreate) -> str:
