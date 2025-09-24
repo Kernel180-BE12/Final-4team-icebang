@@ -1,8 +1,7 @@
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
-
-load_dotenv()
+from app.core.config import settings
 
 
 class LLMExtractor:
@@ -13,7 +12,7 @@ class LLMExtractor:
         :param model: 사용할 LLM 모델 이름
         """
 
-        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
         self.model = model
 
     def login_extraction_prompt(self, target_description: str, html: str):
