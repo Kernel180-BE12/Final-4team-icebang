@@ -10,7 +10,6 @@ from app.model.schemas import RequestBlogCreate
 from app.errors.BlogPostingException import *
 
 
-
 class BlogContentService:
     """RAG를 사용한 블로그 콘텐츠 생성 전용 서비스"""
 
