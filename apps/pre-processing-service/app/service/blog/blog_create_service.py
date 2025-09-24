@@ -39,17 +39,23 @@ class BlogContentService:
             Dict: {"title": str, "content": str, "tags": List[str]} 형태의 결과
         """
         try:
-            # 1. 콘텐츠 정보 정리
+            self.logger.debug("[STEP1] 콘텐츠 컨텍스트 준비 시작")
             content_context = self._prepare_content_context(request)
+            self.logger.debug(f"[STEP1 완료] context length={len(content_context)}")
 
-            # 2. 프롬프트 생성
+            self.logger.debug("[STEP2] 프롬프트 생성 시작")
             prompt = self._create_content_prompt(content_context, request)
+            self.logger.debug(f"[STEP2 완료] prompt length={len(prompt)}")
 
-            # 3. GPT를 통한 콘텐츠 생성
+            self.logger.debug("[STEP3] OpenAI API 호출 시작")
             generated_content = self._generate_with_openai(prompt)
+            self.logger.debug(f"[STEP3 완료] generated length={len(generated_content)}")
 
-            # 4. 콘텐츠 파싱 및 구조화
-            return self._parse_generated_content(generated_content, request)
+            self.logger.debug("[STEP4] 콘텐츠 파싱 시작")
+            result = self._parse_generated_content(generated_content, request)
+            self.logger.debug("[STEP4 완료]")
+
+            return result
 
         except Exception as e:
             self.logger.error(f"콘텐츠 생성 실패: {e}")
