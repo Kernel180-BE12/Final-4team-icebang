@@ -55,26 +55,25 @@ public class AuthService {
     emailService.send(emailRequest);
   }
 
-    public void changePassword(String email, ChangePasswordRequestDto request) {
-        // 1. 새 비밀번호와 확인 비밀번호 일치 검증
-        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new PasswordMismatchException("새 비밀번호가 일치하지 않습니다");
-        }
-
-
-        // 2. 사용자 조회
-        String currentHashedPassword = authMapper.findPasswordByEmail(email);
-        if (currentHashedPassword == null) {
-            throw new IllegalArgumentException("사용자를 찾을 수 없습니다"); // 이건 그대로
-        }
-
-        // 3. 현재 비밀번호 검증
-        if (!passwordEncoder.matches(request.getCurrentPassword(), currentHashedPassword)) {
-            throw new InvalidPasswordException("현재 비밀번호가 올바르지 않습니다");
-        }
-
-        // 4. 새 비밀번호 해싱 및 업데이트
-        String hashedNewPassword = passwordEncoder.encode(request.getNewPassword());
-        authMapper.updatePassword(email, hashedNewPassword);
+  public void changePassword(String email, ChangePasswordRequestDto request) {
+    // 1. 새 비밀번호와 확인 비밀번호 일치 검증
+    if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+      throw new PasswordMismatchException("새 비밀번호가 일치하지 않습니다");
     }
+
+    // 2. 사용자 조회
+    String currentHashedPassword = authMapper.findPasswordByEmail(email);
+    if (currentHashedPassword == null) {
+      throw new IllegalArgumentException("사용자를 찾을 수 없습니다"); // 이건 그대로
+    }
+
+    // 3. 현재 비밀번호 검증
+    if (!passwordEncoder.matches(request.getCurrentPassword(), currentHashedPassword)) {
+      throw new InvalidPasswordException("현재 비밀번호가 올바르지 않습니다");
+    }
+
+    // 4. 새 비밀번호 해싱 및 업데이트
+    String hashedNewPassword = passwordEncoder.encode(request.getNewPassword());
+    authMapper.updatePassword(email, hashedNewPassword);
+  }
 }

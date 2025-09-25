@@ -49,10 +49,11 @@ public class BlogPublishBodyBuilder implements TaskBodyBuilder {
                   .filter(node -> !node.isMissingNode())
                   .ifPresent(tagsNode -> body.set("post_tags", tagsNode));
             });
-
-    body.put("tag", "tistory");
-    body.put("blog_id", "fair_05@nate.com");
-    body.put("blog_pw", "kdyn2641*");
+    String blog_name = task.getSettings().path("blog_name").asText("");
+    body.put("tag", task.getSettings().get("tag").asText());
+    body.put("blog_name", blog_name);
+    body.put("blog_id", task.getSettings().get("blog_id").asText());
+    body.put("blog_pw", task.getSettings().get("blog_pw").asText());
 
     return body;
   }

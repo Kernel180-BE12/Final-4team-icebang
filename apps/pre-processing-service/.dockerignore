@@ -18,3 +18,8 @@ scripts/
 *.log
 pytest-report.xml
 coverage.xml
+
+models/klue_bert.onnx
+blogger/token_dev_icebang5_gmail_com.pkl
+blogger/credentials.json
+blogger/blog_config.json

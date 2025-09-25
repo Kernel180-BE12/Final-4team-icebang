@@ -3,20 +3,14 @@
 
 <mapper namespace="site.icebang.domain.workflow.mapper.JobMapper">
 
-    <resultMap id="JobResultMap" type="site.icebang.domain.workflow.model.Job">
+    <resultMap id="JobDtoResultMap" type="site.icebang.domain.workflow.dto.JobDto">
         <id property="id" column="id"/>
         <result property="name" column="name"/>
         <result property="description" column="description"/>
         <result property="isEnabled" column="is_enabled"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
-    </resultMap>
-
-    <resultMap id="TaskResultMap" type="site.icebang.domain.workflow.model.Task">
-        <id property="id" column="id"/>
-        <result property="name" column="name"/>
-        <result property="type" column="type"/>
-        <result property="parameters" column="parameters" javaType="com.fasterxml.jackson.databind.JsonNode" jdbcType="VARCHAR" typeHandler="site.icebang.global.config.mybatis.typehandler.JsonNodeTypeHandler"/>
+        <result property="executionOrder" column="execution_order"/>
     </resultMap>
 
     <resultMap id="TaskDtoResultMap" type="site.icebang.domain.workflow.dto.TaskDto">
@@ -26,17 +20,24 @@
         <result property="parameters" column="parameters" javaType="com.fasterxml.jackson.databind.JsonNode" jdbcType="VARCHAR" typeHandler="site.icebang.global.config.mybatis.typehandler.JsonNodeTypeHandler"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
+        <result property="executionOrder" column="execution_order"/>
     </resultMap>
 
-    <select id="findJobsByWorkflowId" resultMap="JobResultMap">
-        SELECT j.* FROM job j
-        JOIN workflow_job wj ON j.id = wj.job_id
-        WHERE wj.workflow_id = #{workflowId}
+    <select id="findJobsByWorkflowId" resultMap="JobDtoResultMap">
+        SELECT
+            j.*,
+            wj.execution_order
+        FROM
+            job j
+                JOIN
+            workflow_job wj ON j.id = wj.job_id
+        WHERE
+            wj.workflow_id = #{workflowId}
         ORDER BY wj.execution_order ASC
     </select>
 
     <select id="findTasksByJobId" resultMap="TaskDtoResultMap">
-        SELECT t.* FROM task t
+        SELECT t.*, jt.execution_order FROM task t
         JOIN job_task jt ON t.id = jt.task_id
         WHERE jt.job_id = #{jobId}
         ORDER BY jt.execution_order ASC

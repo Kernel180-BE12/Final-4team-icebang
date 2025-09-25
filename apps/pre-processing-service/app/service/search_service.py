@@ -77,9 +77,9 @@ class SearchService:
                             logger.debug(f"상품 {i + 1}: 제목 추출 실패, 제외")
                             continue
 
-                    # 최대 20개까지만 처리
-                    if len(enriched_results) >= 20:
-                        logger.info("최대 20개 상품 수집 완료")
+                    # 최대 40개까지 처리
+                    if len(enriched_results) >= 40:
+                        logger.info("최대 40개 상품 수집 완료")
                         break
 
                 except Exception as e:

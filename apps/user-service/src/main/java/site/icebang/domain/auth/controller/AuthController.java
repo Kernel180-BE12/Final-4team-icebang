@@ -20,7 +20,6 @@ import site.icebang.domain.auth.dto.LoginRequestDto;
 import site.icebang.domain.auth.dto.RegisterDto;
 import site.icebang.domain.auth.model.AuthCredential;
 import site.icebang.domain.auth.service.AuthService;
-import site.icebang.global.handler.exception.PasswordMismatchException;
 
 @RestController
 @RequestMapping("/v0/auth")
@@ -78,12 +77,12 @@ public class AuthController {
     return ApiResponse.success(null);
   }
 
-    @PatchMapping("/change-password")
-    public ApiResponse<Void> changePassword(
-            @Valid @RequestBody ChangePasswordRequestDto request,
-            @AuthenticationPrincipal AuthCredential user) {
+  @PatchMapping("/change-password")
+  public ApiResponse<Void> changePassword(
+      @Valid @RequestBody ChangePasswordRequestDto request,
+      @AuthenticationPrincipal AuthCredential user) {
 
-        authService.changePassword(user.getEmail(), request);
-        return ApiResponse.success(null);
-    }
+    authService.changePassword(user.getEmail(), request);
+    return ApiResponse.success(null);
+  }
 }

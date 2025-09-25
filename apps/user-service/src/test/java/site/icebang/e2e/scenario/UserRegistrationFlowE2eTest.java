@@ -44,11 +44,12 @@ class UserRegistrationFlowE2eTest extends E2eTestSupport {
     assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat((Boolean) loginResponse.getBody().get("success")).isTrue();
 
-    logSuccess("관리자 로그인 성공 - 이제 모든 리소스 접근 가능");
+    logSuccess("관리자 로그인 성공 - 세션 쿠키 자동 저장됨");
+    logDebug("현재 세션 쿠키: " + getSessionCookies());
 
     logStep(2, "조직 목록 조회 (인증된 상태)");
 
-    // 2. 조직 목록 조회 (로그인 후 가능)
+    // 2. 조직 목록 조회 (로그인 후 가능, 쿠키 자동 전송)
     ResponseEntity<Map> organizationsResponse =
         restTemplate.getForEntity(getV0ApiUrl("/organizations"), Map.class);
 
@@ -56,7 +57,7 @@ class UserRegistrationFlowE2eTest extends E2eTestSupport {
     assertThat((Boolean) organizationsResponse.getBody().get("success")).isTrue();
     assertThat(organizationsResponse.getBody().get("data")).isNotNull();
 
-    logSuccess("조직 목록 조회 성공");
+    logSuccess("조직 목록 조회 성공 (인증된 요청)");
 
     logStep(3, "부서 및 각종 데이터 조회 (특정 조직 옵션)");
 
@@ -229,7 +230,8 @@ class UserRegistrationFlowE2eTest extends E2eTestSupport {
       throw new RuntimeException("Admin login failed");
     }
 
-    logSuccess("관리자 로그인 완료");
+    logSuccess("관리자 로그인 완료 - 세션 쿠키 저장됨");
+    logDebug("세션 쿠키: " + getSessionCookies());
   }
 
   /** 사용자 등록을 수행하는 헬퍼 메서드 */

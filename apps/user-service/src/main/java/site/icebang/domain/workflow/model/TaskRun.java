@@ -1,4 +1,4 @@
-package site.icebang.domain.execution.model;
+package site.icebang.domain.workflow.model;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +12,7 @@ public class TaskRun {
   private Long id;
   private Long jobRunId;
   private Long taskId;
+  private Integer executionOrder;
   private String status; // PENDING, RUNNING, SUCCESS, FAILED
   private String resultMessage; // 실행 결과 메시지
   private LocalDateTime startedAt;
@@ -27,8 +28,9 @@ public class TaskRun {
   }
 
   /** Task 실행 시작을 위한 정적 팩토리 메서드 */
-  public static TaskRun start(Long jobRunId, Long taskId) {
+  public static TaskRun start(Long jobRunId, Long taskId, Integer executionOrder) {
     TaskRun taskRun = new TaskRun(jobRunId, taskId);
+    taskRun.executionOrder = executionOrder;
     taskRun.status = "RUNNING";
     taskRun.startedAt = LocalDateTime.now();
     return taskRun;

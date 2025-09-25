@@ -10,7 +10,7 @@ class BloggerBlogPostAdapter(BaseBlogPostService):
     현재 BaseBlogPostService 인터페이스와 호환
     """
 
-    def __init__(self, config_file="blog_config.json"):
+    def __init__(self, config_file="blogger/blog_config.json"):
         # API 전용 서비스 (Adaptee) 먼저 초기화
         self.api_service = BloggerApiService(config_file=config_file)
 
@@ -55,7 +55,7 @@ class BloggerBlogPostAdapter(BaseBlogPostService):
 
     def _get_platform_name(self) -> str:
         """플랫폼 이름 반환"""
-        return "Blogger"
+        return "BLOGGER"
 
     def _validate_content(
         self, title: str, content: str, tags: Optional[List[str]] = None

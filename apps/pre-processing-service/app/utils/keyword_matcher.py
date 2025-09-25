@@ -1,3 +1,5 @@
+import os
+
 from app.core.config import settings  # pydantic_settings 기반
 from loguru import logger
 
@@ -15,26 +17,22 @@ except ImportError:
 
 
 class KeywordMatcher:
-    """키워드 매칭 분석기"""
-
     def __init__(self):
         self.konlpy_available = False
-
-        # MeCab 사용 가능 여부 확인
         if MECAB_AVAILABLE:
             try:
-                # 경로가 있으면 사용, 없으면 기본값
-                if settings.mecab_path:
-                    self.mecab = MeCab.Tagger(f"-d {settings.mecab_path}")
+                # 환경변수 MECAB_PATH가 있으면 사용, 없으면 기본값
+                mecab_path = os.getenv("MECAB_PATH")
+                if mecab_path:
+                    self.mecab = MeCab.Tagger(f"-d {mecab_path}")
                 else:
                     self.mecab = MeCab.Tagger()  # 기본 경로
 
-                # 테스트 실행
                 test_result = self.mecab.parse("테스트")
                 if test_result and test_result.strip():
                     self.konlpy_available = True
                     logger.info(
-                        f"MeCab 형태소 분석기 사용 가능 (경로: {settings.mecab_path or '기본'})"
+                        f"MeCab 형태소 분석기 사용 가능 (경로: {mecab_path or '기본'})"
                     )
                 else:
                     logger.warning("MeCab 테스트 실패")

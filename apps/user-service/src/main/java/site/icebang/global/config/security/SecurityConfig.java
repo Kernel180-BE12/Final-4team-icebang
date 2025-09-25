@@ -78,8 +78,12 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/v0/workflows/**")
                     .permitAll()
+                    .requestMatchers("/api/v1/email/**") // 이메일 API 경로 허용
+                    .permitAll()
                     .requestMatchers("/v0/auth/check-session")
                     .authenticated()
+                    .requestMatchers(SecurityEndpoints.SUPER_ADMIN.getMatchers())
+                    .hasAnyRole("SUPER_ADMIN")
                     .requestMatchers(SecurityEndpoints.DATA_ADMIN.getMatchers())
                     .hasRole("SUPER_ADMIN") // hasAuthority -> hasRole
                     .requestMatchers(SecurityEndpoints.DATA_ENGINEER.getMatchers())
