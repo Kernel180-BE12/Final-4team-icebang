@@ -1,7 +1,7 @@
 import json
 from typing import List, Dict
 from loguru import logger
-from app.model.schemas import RequestProductSelect
+from app.model.schemas import RequestProductSelect, ProductSelectData
 from app.utils.response import Response
 from app.db.mariadb_manager import MariadbManager
 
@@ -25,8 +25,15 @@ class ProductSelectionService:
 
             if not db_products:
                 logger.warning(f"DB에서 상품을 찾을 수 없음: task_run_id={task_run_id}")
+                # Pydantic Generic Response 구조에 맞춰 data에 항상 객체를 넣음
+                data = ProductSelectData(
+                    task_run_id=task_run_id,
+                    selected_product={},  # 상품 없음
+                    total_available_products=0,
+                )
                 return Response.error(
-                    "상품 데이터를 찾을 수 없습니다.", "PRODUCTS_NOT_FOUND"
+                    message="상품 데이터를 찾을 수 없습니다.",
+                    data=data.dict(),
                 )
 
             # 2. 최적 상품 선택
@@ -37,14 +44,16 @@ class ProductSelectionService:
                 f"selection_reason={selected_product['selection_reason']}"
             )
 
-            data = {
-                "task_run_id": task_run_id,
-                "selected_product": selected_product,
-                "total_available_products": len(db_products),
-            }
+            # 응답용 데이터 구성
+            data = ProductSelectData(
+                task_run_id=task_run_id,
+                selected_product=selected_product,
+                total_available_products=len(db_products),
+            )
 
             return Response.ok(
-                data, f"콘텐츠용 상품 선택 완료: {selected_product['name']}"
+                data=data.dict(),
+                message=f"콘텐츠용 상품 선택 완료: {selected_product['name']}"
             )
 
         except Exception as e:
@@ -63,7 +72,7 @@ class ProductSelectionService:
                   WHERE task_run_id = %s
                     AND io_type = 'OUTPUT'
                     AND data_type = 'JSON'
-                  ORDER BY name \
+                  ORDER BY name
                   """
 
             with self.db_manager.get_cursor() as cursor:
@@ -73,12 +82,8 @@ class ProductSelectionService:
                 products = []
                 for row in rows:
                     try:
-                        # MariaDB에서 반환되는 row는 튜플 형태
                         id, name, data_value_str, created_at = row
-
-                        # JSON 데이터 파싱
                         data_value = json.loads(data_value_str)
-
                         products.append(
                             {
                                 "id": id,
@@ -111,18 +116,13 @@ class ProductSelectionService:
         try:
             successful_products = []
 
-            # 1순위: S3 업로드 성공하고 이미지가 있는 상품들
+            # 1순위: S3 업로드 성공하고 이미지가 있는 상품
             for product in db_products:
                 data_value = product.get("data_value", {})
                 product_detail = data_value.get("product_detail", {})
                 product_images = product_detail.get("product_images", [])
 
-                # 크롤링 성공하고 이미지가 있는 상품
-                if (
-                    data_value.get("status") == "success"
-                    and product_detail
-                    and len(product_images) > 0
-                ):
+                if data_value.get("status") == "success" and product_detail and len(product_images) > 0:
                     successful_products.append(
                         {
                             "product": product,
@@ -132,14 +132,11 @@ class ProductSelectionService:
                     )
 
             if successful_products:
-                # 이미지 개수가 가장 많은 상품 선택
                 best_product = max(successful_products, key=lambda x: x["image_count"])
-
                 logger.info(
                     f"1순위 선택: name={best_product['product']['name']}, "
                     f"images={best_product['image_count']}개"
                 )
-
                 return {
                     "selection_reason": "s3_upload_success_with_most_images",
                     "name": best_product["product"]["name"],
@@ -148,15 +145,12 @@ class ProductSelectionService:
                     "title": best_product["title"],
                 }
 
-            # 2순위: 크롤링 성공한 첫 번째 상품 (이미지 없어도)
+            # 2순위: 크롤링 성공한 첫 번째 상품
             for product in db_products:
                 data_value = product.get("data_value", {})
-                if data_value.get("status") == "success" and data_value.get(
-                    "product_detail"
-                ):
+                if data_value.get("status") == "success" and data_value.get("product_detail"):
                     product_detail = data_value.get("product_detail", {})
                     logger.info(f"2순위 선택: name={product['name']}")
-
                     return {
                         "selection_reason": "first_crawl_success",
                         "name": product["name"],
@@ -170,9 +164,7 @@ class ProductSelectionService:
                 first_product = db_products[0]
                 data_value = first_product.get("data_value", {})
                 product_detail = data_value.get("product_detail", {})
-
                 logger.warning(f"3순위 fallback 선택: name={first_product['name']}")
-
                 return {
                     "selection_reason": "fallback_first_product",
                     "name": first_product["name"],

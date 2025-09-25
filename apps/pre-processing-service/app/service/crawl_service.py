@@ -5,6 +5,8 @@ from app.errors.CustomException import InvalidItemDataException
 from app.model.schemas import RequestSadaguCrawl
 from loguru import logger
 from app.utils.response import Response
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 class CrawlService:
