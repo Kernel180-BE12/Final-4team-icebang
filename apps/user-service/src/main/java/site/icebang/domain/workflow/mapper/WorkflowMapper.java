@@ -6,7 +6,6 @@ import java.util.*;
 import site.icebang.common.dto.PageParams;
 import site.icebang.domain.workflow.dto.ScheduleDto;
 import site.icebang.domain.workflow.dto.WorkflowCardDto;
-import site.icebang.domain.workflow.dto.WorkflowCreateDto;
 import site.icebang.domain.workflow.dto.WorkflowDetailCardDto;
 
 public interface WorkflowMapper {
@@ -17,9 +16,11 @@ public interface WorkflowMapper {
   int insertWorkflow(Map<String, Object> params); // insert workflow
 
   // Job 생성 관련 메서드
-  void insertJobs(Map<String, Object> params);  // 여러 Job을 동적으로 생성
-  void insertWorkflowJobs(Map<String, Object> params);  // Workflow-Job 연결
-  void insertJobTasks(Map<String, Object> params);  // Job-Task 연결
+  void insertJobs(Map<String, Object> params); // 여러 Job을 동적으로 생성
+
+  void insertWorkflowJobs(Map<String, Object> params); // Workflow-Job 연결
+
+  void insertJobTasks(Map<String, Object> params); // Job-Task 연결
 
   boolean existsByName(String name);
 

@@ -1,21 +1,21 @@
 package site.icebang.e2e.scenario;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.*;
-import org.springframework.test.context.jdbc.Sql;
-import site.icebang.e2e.setup.annotation.E2eTest;
-import site.icebang.e2e.setup.support.E2eTestSupport;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.*;
+import org.springframework.test.context.jdbc.Sql;
+
+import site.icebang.e2e.setup.annotation.E2eTest;
+import site.icebang.e2e.setup.support.E2eTestSupport;
 
 @Sql(
-        value = {"classpath:sql/00-truncate.sql", "classpath:sql/01-insert-internal-users.sql"},
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+    value = {"classpath:sql/00-truncate.sql", "classpath:sql/01-insert-internal-users.sql"},
+    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @DisplayName("워크플로우 생성 플로우 E2E 테스트")
 @E2eTest
 class WorkflowCreateFlowE2eTest extends E2eTestSupport {
@@ -39,7 +39,7 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
     HttpEntity<Map<String, String>> loginEntity = new HttpEntity<>(loginRequest, loginHeaders);
 
     ResponseEntity<Map> loginResponse =
-            restTemplate.postForEntity(getV0ApiUrl("/auth/login"), loginEntity, Map.class);
+        restTemplate.postForEntity(getV0ApiUrl("/auth/login"), loginEntity, Map.class);
 
     assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat((Boolean) loginResponse.getBody().get("success")).isTrue();
@@ -63,10 +63,10 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
     workflowHeaders.setContentType(MediaType.APPLICATION_JSON);
 
     HttpEntity<Map<String, Object>> naverEntity =
-            new HttpEntity<>(naverBlogWorkflow, workflowHeaders);
+        new HttpEntity<>(naverBlogWorkflow, workflowHeaders);
 
     ResponseEntity<Map> naverResponse =
-            restTemplate.postForEntity(getV0ApiUrl("/workflows"), naverEntity, Map.class);
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), naverEntity, Map.class);
 
     assertThat(naverResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat((Boolean) naverResponse.getBody().get("success")).isTrue();
@@ -83,14 +83,14 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
     tstoryWorkflow.put("posting_platform", "tstory_blog");
     tstoryWorkflow.put("posting_account_id", "test_tstory");
     tstoryWorkflow.put("posting_account_password", "tstory_password123");
-    tstoryWorkflow.put("blog_name", "my-tech-blog");  // 티스토리는 블로그명 필수
+    tstoryWorkflow.put("blog_name", "my-tech-blog"); // 티스토리는 블로그명 필수
     tstoryWorkflow.put("is_enabled", true);
 
     HttpEntity<Map<String, Object>> tstoryEntity =
-            new HttpEntity<>(tstoryWorkflow, workflowHeaders);
+        new HttpEntity<>(tstoryWorkflow, workflowHeaders);
 
     ResponseEntity<Map> tstoryResponse =
-            restTemplate.postForEntity(getV0ApiUrl("/workflows"), tstoryEntity, Map.class);
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), tstoryEntity, Map.class);
 
     assertThat(tstoryResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat((Boolean) tstoryResponse.getBody().get("success")).isTrue();
@@ -108,10 +108,10 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
     // posting_platform, posting_account_id, posting_account_password는 선택사항
 
     HttpEntity<Map<String, Object>> searchOnlyEntity =
-            new HttpEntity<>(searchOnlyWorkflow, workflowHeaders);
+        new HttpEntity<>(searchOnlyWorkflow, workflowHeaders);
 
     ResponseEntity<Map> searchOnlyResponse =
-            restTemplate.postForEntity(getV0ApiUrl("/workflows"), searchOnlyEntity, Map.class);
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), searchOnlyEntity, Map.class);
 
     assertThat(searchOnlyResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat((Boolean) searchOnlyResponse.getBody().get("success")).isTrue();
@@ -141,7 +141,7 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
     HttpEntity<Map<String, Object>> firstEntity = new HttpEntity<>(firstWorkflow, headers);
 
     ResponseEntity<Map> firstResponse =
-            restTemplate.postForEntity(getV0ApiUrl("/workflows"), firstEntity, Map.class);
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), firstEntity, Map.class);
 
     assertThat(firstResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     logSuccess("첫 번째 워크플로우 생성 성공");
@@ -150,19 +150,18 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
 
     // 동일한 이름으로 다시 생성 시도
     Map<String, Object> duplicateWorkflow = new HashMap<>();
-    duplicateWorkflow.put("name", "중복테스트워크플로우");  // 동일한 이름
+    duplicateWorkflow.put("name", "중복테스트워크플로우"); // 동일한 이름
     duplicateWorkflow.put("search_platform", "naver_store");
     duplicateWorkflow.put("is_enabled", true);
 
-    HttpEntity<Map<String, Object>> duplicateEntity =
-            new HttpEntity<>(duplicateWorkflow, headers);
+    HttpEntity<Map<String, Object>> duplicateEntity = new HttpEntity<>(duplicateWorkflow, headers);
 
     ResponseEntity<Map> duplicateResponse =
-            restTemplate.postForEntity(getV0ApiUrl("/workflows"), duplicateEntity, Map.class);
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), duplicateEntity, Map.class);
 
     // 중복 이름 처리 확인 (400 또는 409 예상)
     assertThat(duplicateResponse.getStatusCode())
-            .isIn(HttpStatus.BAD_REQUEST, HttpStatus.CONFLICT, HttpStatus.INTERNAL_SERVER_ERROR);
+        .isIn(HttpStatus.BAD_REQUEST, HttpStatus.CONFLICT, HttpStatus.INTERNAL_SERVER_ERROR);
 
     logSuccess("중복 이름 워크플로우 생성 차단 확인");
   }
@@ -186,10 +185,10 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
     HttpEntity<Map<String, Object>> entity = new HttpEntity<>(noNameWorkflow, headers);
 
     ResponseEntity<Map> response =
-            restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
 
     assertThat(response.getStatusCode())
-            .isIn(HttpStatus.BAD_REQUEST, HttpStatus.UNPROCESSABLE_ENTITY);
+        .isIn(HttpStatus.BAD_REQUEST, HttpStatus.UNPROCESSABLE_ENTITY);
 
     logSuccess("필수 필드 검증 확인");
   }
@@ -208,7 +207,7 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
     HttpEntity<Map<String, String>> entity = new HttpEntity<>(loginRequest, headers);
 
     ResponseEntity<Map> response =
-            restTemplate.postForEntity(getV0ApiUrl("/auth/login"), entity, Map.class);
+        restTemplate.postForEntity(getV0ApiUrl("/auth/login"), entity, Map.class);
 
     if (response.getStatusCode() != HttpStatus.OK) {
       logError("사용자 로그인 실패: " + response.getStatusCode());
