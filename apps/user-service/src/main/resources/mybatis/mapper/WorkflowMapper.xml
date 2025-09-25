@@ -143,7 +143,7 @@
                      #{dto.description},
                      #{dto.isEnabled},
                      #{createdBy},
-                     NOW(),
+                     UTC_TIMESTAMP(),
                      #{dto.defaultConfigJson}
                  )
     </insert>
@@ -161,8 +161,8 @@
             SELECT LAST_INSERT_ID() as id
         </selectKey>
         INSERT INTO job (name, description, created_by, created_at) VALUES
-        ('상품 분석', '키워드 검색, 상품 크롤링 및 유사도 분석 작업', #{createdBy}, NOW()),
-        ('블로그 콘텐츠 생성', '분석 데이터를 기반으로 RAG 콘텐츠 생성 및 발행 작업', #{createdBy}, NOW())
+        ('상품 분석', '키워드 검색, 상품 크롤링 및 유사도 분석 작업', #{createdBy}, UTC_TIMESTAMP()),
+        ('블로그 콘텐츠 생성', '분석 데이터를 기반으로 RAG 콘텐츠 생성 및 발행 작업', #{createdBy}, UTC_TIMESTAMP())
     </insert>
 
     <!-- Workflow-Job 연결 -->

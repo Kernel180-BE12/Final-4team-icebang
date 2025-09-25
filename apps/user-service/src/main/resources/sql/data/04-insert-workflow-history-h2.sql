@@ -1,5 +1,5 @@
 -- ===================================================================
--- 워크플로우 히스토리 테스트용 데이터 삽입
+-- 워크플로우 히스토리 테스트용 데이터 삽입 (H2 전용)
 -- ===================================================================
 
 -- 기존 실행 데이터 삭제 (참조 순서 고려)
@@ -33,7 +33,7 @@ INSERT INTO `workflow_run` (
              NULL
          );
 
--- Job 실행 데이터 삽입 (job_run)
+-- Job 실행 데이터 삽입 (job_run) - H2에서는 NOW() 사용
 INSERT INTO `job_run` (
     `id`,
     `workflow_run_id`,
@@ -51,10 +51,10 @@ INSERT INTO `job_run` (
              NULL,
              '2025-09-22 18:18:44',
              '2025-09-22 18:18:44',
-             UTC_TIMESTAMP()
+             NOW()
          );
 
--- Task 실행 데이터 삽입 (task_run)
+-- Task 실행 데이터 삽입 (task_run) - H2에서는 NOW() 사용
 INSERT INTO `task_run` (
     `id`,
     `job_run_id`,
@@ -72,5 +72,5 @@ INSERT INTO `task_run` (
              NULL,
              '2025-09-22 18:18:44',
              '2025-09-22 18:18:44',
-             UTC_TIMESTAMP()
+             NOW()
          );
