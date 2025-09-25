@@ -165,6 +165,7 @@ class ResponseSadaguCrawl(ResponseBase[SadaguCrawlData]):
 
 
 class RequestS3Upload(RequestBase):
+    task_run_id: int = Field(..., title="Task Run ID", description="워크플로우 실행 ID")
     keyword: str = Field(
         ..., title="검색 키워드", description="폴더명 생성용 키워드"
     )  # 추가

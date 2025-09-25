@@ -20,7 +20,9 @@ class S3UploadService:
         self.s3_util = S3UploadUtil()
         self.db_manager = MariadbManager()
 
-    async def upload_crawled_products_to_s3(self, request: RequestS3Upload) -> dict:
+    async def upload_crawled_products_to_s3(
+        self, request: RequestS3Upload, max_concurrent: int = 5
+    ) -> dict:
         """
         크롤링된 상품들의 이미지와 데이터를 S3에 업로드하고 DB에 저장하는 비즈니스 로직 (6단계)
         """
@@ -31,11 +33,24 @@ class S3UploadService:
         # task_run_id는 자바 워크플로우에서 전달받음
         task_run_id = getattr(request, "task_run_id", None)
         if not task_run_id:
-            # 임시: task_run_id가 없으면 생성
-            task_run_id = int(time.time() * 1000)
-            logger.warning(f"task_run_id가 없어서 임시로 생성: {task_run_id}")
-        else:
-            logger.info(f"자바 워크플로우에서 전달받은 task_run_id: {task_run_id}")
+            # 자바에서 TaskRun을 만들었으므로 없으면 에러
+            logger.error("task_run_id가 없어서 파이썬에서 실행 불가")
+            return Response.error(
+                data={
+                    "upload_results": [],
+                    "db_save_results": [],
+                    "task_run_id": None,
+                    "summary": {
+                        "total_products": 0,
+                        "total_success_images": 0,
+                        "total_fail_images": 0,
+                        "db_success_count": 0,
+                        "db_fail_count": 0,
+                    },
+                    "uploaded_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                },
+                message="task_run_id is required from Java workflow",
+            )
 
         logger.info(
             f"S3 업로드 + DB 저장 서비스 시작: keyword='{keyword}', "
@@ -49,79 +64,37 @@ class S3UploadService:
 
         try:
             # HTTP 세션을 사용한 이미지 다운로드
-
             ssl_context = ssl.create_default_context(cafile=certifi.where())
             connector = aiohttp.TCPConnector(ssl=ssl_context)
 
             async with aiohttp.ClientSession(connector=connector) as session:
+                # 세마포어로 동시 실행 수 제한
+                semaphore = asyncio.Semaphore(max_concurrent)
 
-                # 각 상품별로 순차 업로드
+                # 모든 업로드 태스크를 동시에 실행
+                tasks = []
                 for product_info in crawled_products:
-                    product_index = product_info.get("index", 0)
-                    product_detail = product_info.get("product_detail")
-
-                    logger.info(
-                        f"상품 {product_index}/{len(crawled_products)} S3 업로드 + DB 저장 시작"
+                    task = self._upload_single_product_with_semaphore(
+                        semaphore,
+                        session,
+                        product_info,
+                        keyword,
+                        base_folder,
+                        task_run_id,
                     )
+                    tasks.append(task)
 
-                    # 크롤링 실패한 상품은 스킵
-                    if not product_detail or product_info.get("status") != "success":
-                        logger.warning(
-                            f"상품 {product_index}: 크롤링 실패로 인한 업로드 스킵"
-                        )
+                # 모든 태스크 동시 실행 및 결과 수집
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+
+                # 결과 정리
+                for result in results:
+                    if isinstance(result, Exception):
+                        logger.error(f"업로드 태스크 오류: {result}")
                         upload_results.append(
                             {
-                                "product_index": product_index,
+                                "product_index": len(upload_results) + 1,
                                 "product_title": "Unknown",
-                                "status": "skipped",
-                                "folder_s3_url": None,
-                                "uploaded_images": [],
-                                "success_count": 0,
-                                "fail_count": 0,
-                            }
-                        )
-                        db_save_results.append(
-                            {
-                                "product_index": product_index,
-                                "db_status": "skipped",
-                                "error": "크롤링 실패",
-                            }
-                        )
-                        continue
-
-                    try:
-                        # 1. 상품 이미지 + 데이터 S3 업로드
-                        upload_result = await self.s3_util.upload_single_product_images(
-                            session,
-                            product_info,
-                            product_index,
-                            keyword,
-                            base_folder,
-                        )
-
-                        upload_results.append(upload_result)
-                        total_success_images += upload_result["success_count"]
-                        total_fail_images += upload_result["fail_count"]
-
-                        # 2. DB에 상품 데이터 저장
-                        db_result = self._save_product_to_db(
-                            task_run_id, keyword, product_index, product_info
-                        )
-                        db_save_results.append(db_result)
-
-                        logger.success(
-                            f"상품 {product_index} S3 업로드 + DB 저장 완료: "
-                            f"이미지 성공 {upload_result['success_count']}개, DB {db_result['db_status']}"
-                        )
-
-                    except Exception as e:
-                        logger.error(
-                            f"상품 {product_index} S3 업로드/DB 저장 오류: {e}"
-                        )
-                        upload_results.append(
-                            {
-                                "product_index": product_index,
-                                "product_title": product_detail.get("title", "Unknown"),
                                 "status": "error",
                                 "folder_s3_url": None,
                                 "uploaded_images": [],
@@ -131,46 +104,152 @@ class S3UploadService:
                         )
                         db_save_results.append(
                             {
-                                "product_index": product_index,
+                                "product_index": len(db_save_results) + 1,
                                 "db_status": "error",
-                                "error": str(e),
+                                "error": str(result),
                             }
                         )
+                    else:
+                        upload_result, db_result = result
+                        upload_results.append(upload_result)
+                        db_save_results.append(db_result)
 
-                    # 상품간 간격 (서버 부하 방지)
-                    if product_index < len(crawled_products):
-                        await asyncio.sleep(1)
+                        total_success_images += upload_result["success_count"]
+                        total_fail_images += upload_result["fail_count"]
+
+            # 인덱스 순으로 정렬
+            upload_results.sort(key=lambda x: x["product_index"])
+            db_save_results.sort(key=lambda x: x["product_index"])
 
             logger.success(
                 f"S3 업로드 + DB 저장 서비스 완료: 총 성공 이미지 {total_success_images}개, "
                 f"총 실패 이미지 {total_fail_images}개"
             )
 
-            # 응답 데이터 구성
-            data = {
-                "upload_results": upload_results,
-                "db_save_results": db_save_results,
-                "task_run_id": task_run_id,
-                "summary": {
-                    "total_products": len(crawled_products),
-                    "total_success_images": total_success_images,
-                    "total_fail_images": total_fail_images,
-                    "db_success_count": len(
-                        [r for r in db_save_results if r.get("db_status") == "success"]
-                    ),
-                    "db_fail_count": len(
-                        [r for r in db_save_results if r.get("db_status") == "error"]
-                    ),
+            # Response.ok 사용하여 올바른 스키마로 응답
+            return Response.ok(
+                data={
+                    "upload_results": upload_results,
+                    "db_save_results": db_save_results,
+                    "task_run_id": task_run_id,
+                    "summary": {
+                        "total_products": len(crawled_products),
+                        "total_success_images": total_success_images,
+                        "total_fail_images": total_fail_images,
+                        "db_success_count": len(
+                            [
+                                r
+                                for r in db_save_results
+                                if r.get("db_status") == "success"
+                            ]
+                        ),
+                        "db_fail_count": len(
+                            [
+                                r
+                                for r in db_save_results
+                                if r.get("db_status") == "error"
+                            ]
+                        ),
+                    },
+                    "uploaded_at": time.strftime("%Y-%m-%d %H:%M:%S"),
                 },
-                "uploaded_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-            }
-
-            message = f"S3 업로드 + DB 저장 완료: {total_success_images}개 이미지 성공, {len([r for r in db_save_results if r.get('db_status') == 'success'])}개 상품 DB 저장 성공"
-            return Response.ok(data, message)
+                message=f"S3 업로드 + DB 저장 완료: 총 성공 이미지 {total_success_images}개, 총 실패 이미지 {total_fail_images}개",
+            )
 
         except Exception as e:
             logger.error(f"S3 업로드 + DB 저장 서비스 전체 오류: {e}")
-            raise InvalidItemDataException()
+            # Response.error 사용하여 에러도 올바른 스키마로 응답
+            return Response.error(
+                data={
+                    "upload_results": [],
+                    "db_save_results": [],
+                    "task_run_id": task_run_id,
+                    "summary": {
+                        "total_products": 0,
+                        "total_success_images": 0,
+                        "total_fail_images": 0,
+                        "db_success_count": 0,
+                        "db_fail_count": 0,
+                    },
+                    "uploaded_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                },
+                message=f"S3 업로드 서비스 오류: {str(e)}",
+            )
+
+    async def _upload_single_product_with_semaphore(
+        self,
+        semaphore: asyncio.Semaphore,
+        session: aiohttp.ClientSession,
+        product_info: Dict,
+        keyword: str,
+        base_folder: str,
+        task_run_id: int,
+    ) -> tuple:
+        """세마포어를 사용한 단일 상품 업로드 + DB 저장"""
+        async with semaphore:
+            product_index = product_info.get("index", 0)
+            product_detail = product_info.get("product_detail")
+
+            logger.info(f"상품 {product_index} S3 업로드 + DB 저장 시작")
+
+            # 크롤링 실패한 상품은 스킵
+            if not product_detail or product_info.get("status") != "success":
+                logger.warning(f"상품 {product_index}: 크롤링 실패로 인한 업로드 스킵")
+                upload_result = {
+                    "product_index": product_index,
+                    "product_title": "Unknown",
+                    "status": "skipped",
+                    "folder_s3_url": None,
+                    "uploaded_images": [],
+                    "success_count": 0,
+                    "fail_count": 0,
+                }
+                db_result = {
+                    "product_index": product_index,
+                    "db_status": "skipped",
+                    "error": "크롤링 실패",
+                }
+                return upload_result, db_result
+
+            try:
+                # S3 업로드와 DB 저장을 동시에 실행
+                upload_task = self.s3_util.upload_single_product_images(
+                    session, product_info, product_index, keyword, base_folder
+                )
+                db_task = asyncio.to_thread(
+                    self._save_product_to_db,
+                    task_run_id,
+                    keyword,
+                    product_index,
+                    product_info,
+                )
+
+                upload_result, db_result = await asyncio.gather(upload_task, db_task)
+
+                logger.success(
+                    f"상품 {product_index} S3 업로드 + DB 저장 완료: "
+                    f"이미지 성공 {upload_result['success_count']}개, DB {db_result['db_status']}"
+                )
+
+                return upload_result, db_result
+
+            except Exception as e:
+                logger.error(f"상품 {product_index} S3 업로드/DB 저장 오류: {e}")
+                upload_result = {
+                    "product_index": product_index,
+                    "product_title": product_detail.get("title", "Unknown"),
+                    "status": "error",
+                    "folder_s3_url": None,
+                    "uploaded_images": [],
+                    "success_count": 0,
+                    "fail_count": 0,
+                }
+                db_result = {
+                    "product_index": product_index,
+                    "db_status": "error",
+                    "error": str(e),
+                }
+                return upload_result, db_result
 
     def _save_product_to_db(
         self, task_run_id: int, keyword: str, product_index: int, product_info: Dict
@@ -192,8 +271,8 @@ class S3UploadService:
             with self.db_manager.get_cursor() as cursor:
                 sql = """
                       INSERT INTO task_io_data
-                      (task_run_id, io_type, name, data_type, data_value, created_at)
-                      VALUES (%s, %s, %s, %s, %s, %s) \
+                          (task_run_id, io_type, name, data_type, data_value, created_at)
+                      VALUES (%s, %s, %s, %s, %s, %s)
                       """
 
                 cursor.execute(
