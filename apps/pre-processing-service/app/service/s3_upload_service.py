@@ -20,7 +20,9 @@ class S3UploadService:
         self.s3_util = S3UploadUtil()
         self.db_manager = MariadbManager()
 
-    async def upload_crawled_products_to_s3(self, request: RequestS3Upload, max_concurrent: int = 5) -> dict:
+    async def upload_crawled_products_to_s3(
+        self, request: RequestS3Upload, max_concurrent: int = 5
+    ) -> dict:
         """
         크롤링된 상품들의 이미지와 데이터를 S3에 업로드하고 DB에 저장하는 비즈니스 로직 (6단계)
         """
@@ -47,7 +49,7 @@ class S3UploadService:
                     },
                     "uploaded_at": time.strftime("%Y-%m-%d %H:%M:%S"),
                 },
-                message="task_run_id is required from Java workflow"
+                message="task_run_id is required from Java workflow",
             )
 
         logger.info(
@@ -73,7 +75,12 @@ class S3UploadService:
                 tasks = []
                 for product_info in crawled_products:
                     task = self._upload_single_product_with_semaphore(
-                        semaphore, session, product_info, keyword, base_folder, task_run_id
+                        semaphore,
+                        session,
+                        product_info,
+                        keyword,
+                        base_folder,
+                        task_run_id,
                     )
                     tasks.append(task)
 
@@ -84,20 +91,24 @@ class S3UploadService:
                 for result in results:
                     if isinstance(result, Exception):
                         logger.error(f"업로드 태스크 오류: {result}")
-                        upload_results.append({
-                            "product_index": len(upload_results) + 1,
-                            "product_title": "Unknown",
-                            "status": "error",
-                            "folder_s3_url": None,
-                            "uploaded_images": [],
-                            "success_count": 0,
-                            "fail_count": 0,
-                        })
-                        db_save_results.append({
-                            "product_index": len(db_save_results) + 1,
-                            "db_status": "error",
-                            "error": str(result),
-                        })
+                        upload_results.append(
+                            {
+                                "product_index": len(upload_results) + 1,
+                                "product_title": "Unknown",
+                                "status": "error",
+                                "folder_s3_url": None,
+                                "uploaded_images": [],
+                                "success_count": 0,
+                                "fail_count": 0,
+                            }
+                        )
+                        db_save_results.append(
+                            {
+                                "product_index": len(db_save_results) + 1,
+                                "db_status": "error",
+                                "error": str(result),
+                            }
+                        )
                     else:
                         upload_result, db_result = result
                         upload_results.append(upload_result)
@@ -126,15 +137,23 @@ class S3UploadService:
                         "total_success_images": total_success_images,
                         "total_fail_images": total_fail_images,
                         "db_success_count": len(
-                            [r for r in db_save_results if r.get("db_status") == "success"]
+                            [
+                                r
+                                for r in db_save_results
+                                if r.get("db_status") == "success"
+                            ]
                         ),
                         "db_fail_count": len(
-                            [r for r in db_save_results if r.get("db_status") == "error"]
+                            [
+                                r
+                                for r in db_save_results
+                                if r.get("db_status") == "error"
+                            ]
                         ),
                     },
                     "uploaded_at": time.strftime("%Y-%m-%d %H:%M:%S"),
                 },
-                message=f"S3 업로드 + DB 저장 완료: 총 성공 이미지 {total_success_images}개, 총 실패 이미지 {total_fail_images}개"
+                message=f"S3 업로드 + DB 저장 완료: 총 성공 이미지 {total_success_images}개, 총 실패 이미지 {total_fail_images}개",
             )
 
         except Exception as e:
@@ -154,17 +173,17 @@ class S3UploadService:
                     },
                     "uploaded_at": time.strftime("%Y-%m-%d %H:%M:%S"),
                 },
-                message=f"S3 업로드 서비스 오류: {str(e)}"
+                message=f"S3 업로드 서비스 오류: {str(e)}",
             )
 
     async def _upload_single_product_with_semaphore(
-            self,
-            semaphore: asyncio.Semaphore,
-            session: aiohttp.ClientSession,
-            product_info: Dict,
-            keyword: str,
-            base_folder: str,
-            task_run_id: int
+        self,
+        semaphore: asyncio.Semaphore,
+        session: aiohttp.ClientSession,
+        product_info: Dict,
+        keyword: str,
+        base_folder: str,
+        task_run_id: int,
     ) -> tuple:
         """세마포어를 사용한 단일 상품 업로드 + DB 저장"""
         async with semaphore:
@@ -198,7 +217,11 @@ class S3UploadService:
                     session, product_info, product_index, keyword, base_folder
                 )
                 db_task = asyncio.to_thread(
-                    self._save_product_to_db, task_run_id, keyword, product_index, product_info
+                    self._save_product_to_db,
+                    task_run_id,
+                    keyword,
+                    product_index,
+                    product_info,
                 )
 
                 upload_result, db_result = await asyncio.gather(upload_task, db_task)
@@ -229,7 +252,7 @@ class S3UploadService:
                 return upload_result, db_result
 
     def _save_product_to_db(
-            self, task_run_id: int, keyword: str, product_index: int, product_info: Dict
+        self, task_run_id: int, keyword: str, product_index: int, product_info: Dict
     ) -> Dict:
         """
         상품 데이터를 TASK_IO_DATA 테이블에 저장 (MariaDB)

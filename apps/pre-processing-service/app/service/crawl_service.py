@@ -6,6 +6,7 @@ from app.model.schemas import RequestSadaguCrawl
 from loguru import logger
 from app.utils.response import Response
 import os
+
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
@@ -13,7 +14,9 @@ class CrawlService:
     def __init__(self):
         pass
 
-    async def crawl_product_detail(self, request: RequestSadaguCrawl, max_concurrent: int = 5) -> dict:
+    async def crawl_product_detail(
+        self, request: RequestSadaguCrawl, max_concurrent: int = 5
+    ) -> dict:
         """
         선택된 상품들의 상세 정보를 크롤링하는 비즈니스 로직입니다. (5단계)
         여러 상품 URL을 입력받아 비동기로 상세 정보를 크롤링하여 딕셔너리로 반환합니다.
@@ -33,7 +36,9 @@ class CrawlService:
             # 모든 크롤링 태스크를 동시에 실행
             tasks = []
             for i, product_url in enumerate(product_urls, 1):
-                task = self._crawl_single_with_semaphore(semaphore, i, product_url, len(product_urls))
+                task = self._crawl_single_with_semaphore(
+                    semaphore, i, product_url, len(product_urls)
+                )
                 tasks.append(task)
 
             # 모든 태스크 동시 실행 및 결과 수집
@@ -43,14 +48,16 @@ class CrawlService:
             for result in results:
                 if isinstance(result, Exception):
                     logger.error(f"크롤링 태스크 오류: {result}")
-                    crawled_products.append({
-                        "index": len(crawled_products) + 1,
-                        "url": "unknown",
-                        "product_detail": None,
-                        "status": "failed",
-                        "error": str(result),
-                        "crawled_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-                    })
+                    crawled_products.append(
+                        {
+                            "index": len(crawled_products) + 1,
+                            "url": "unknown",
+                            "product_detail": None,
+                            "status": "failed",
+                            "error": str(result),
+                            "crawled_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                        }
+                    )
                     fail_count += 1
                 else:
                     crawled_products.append(result)
@@ -83,8 +90,13 @@ class CrawlService:
             logger.error(f"배치 크롤링 서비스 오류: error='{e}'")
             raise InvalidItemDataException()
 
-    async def _crawl_single_with_semaphore(self, semaphore: asyncio.Semaphore, index: int, product_url: str,
-                                           total_count: int) -> dict:
+    async def _crawl_single_with_semaphore(
+        self,
+        semaphore: asyncio.Semaphore,
+        index: int,
+        product_url: str,
+        total_count: int,
+    ) -> dict:
         """
         세마포어를 사용한 단일 상품 크롤링
         """
@@ -122,7 +134,9 @@ class CrawlService:
                     }
 
             except Exception as e:
-                logger.error(f"상품 {index} 크롤링 오류: url={product_url}, error='{e}'")
+                logger.error(
+                    f"상품 {index} 크롤링 오류: url={product_url}, error='{e}'"
+                )
                 return {
                     "index": index,
                     "url": product_url,

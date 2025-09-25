@@ -22,7 +22,9 @@ class DetailCrawler(SearchCrawler):
             )
 
             # 기본 정보 추출 (CPU 집약적 작업을 별도 스레드에서 실행)
-            extraction_tasks = await asyncio.to_thread(self._extract_all_data, soup, product_url)
+            extraction_tasks = await asyncio.to_thread(
+                self._extract_all_data, soup, product_url
+            )
 
             title, price, rating, options, material_info, all_images = extraction_tasks
 
@@ -56,7 +58,7 @@ class DetailCrawler(SearchCrawler):
                 self.driver.get(url)
                 self.wait.until(
                     lambda driver: driver.execute_script("return document.readyState")
-                                   == "complete"
+                    == "complete"
                 )
                 time.sleep(2)
                 logger.debug("Selenium HTML 로딩 완료")
@@ -92,9 +94,7 @@ class DetailCrawler(SearchCrawler):
         # 이미지 정보 추출
         logger.info("이미지 정보 추출 중...")
         page_images = self._extract_images(soup)
-        option_images = [
-            opt["image_url"] for opt in options if opt.get("image_url")
-        ]
+        option_images = [opt["image_url"] for opt in options if opt.get("image_url")]
         # 중복 제거 후 합치기
         all_images = list(set(page_images + option_images))
 

@@ -53,7 +53,7 @@ class ProductSelectionService:
 
             return Response.ok(
                 data=data.dict(),
-                message=f"콘텐츠용 상품 선택 완료: {selected_product['name']}"
+                message=f"콘텐츠용 상품 선택 완료: {selected_product['name']}",
             )
 
         except Exception as e:
@@ -122,7 +122,11 @@ class ProductSelectionService:
                 product_detail = data_value.get("product_detail", {})
                 product_images = product_detail.get("product_images", [])
 
-                if data_value.get("status") == "success" and product_detail and len(product_images) > 0:
+                if (
+                    data_value.get("status") == "success"
+                    and product_detail
+                    and len(product_images) > 0
+                ):
                     successful_products.append(
                         {
                             "product": product,
@@ -148,7 +152,9 @@ class ProductSelectionService:
             # 2순위: 크롤링 성공한 첫 번째 상품
             for product in db_products:
                 data_value = product.get("data_value", {})
-                if data_value.get("status") == "success" and data_value.get("product_detail"):
+                if data_value.get("status") == "success" and data_value.get(
+                    "product_detail"
+                ):
                     product_detail = data_value.get("product_detail", {})
                     logger.info(f"2순위 선택: name={product['name']}")
                     return {
