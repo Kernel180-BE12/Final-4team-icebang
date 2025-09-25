@@ -11,6 +11,16 @@ services:
       - ~/app/blogger:/app/blogger
       - ~/app/models:/app/models
       - logs_volume:/logs
+      # Chrome 관련 볼륨 마운트
+      - /opt/google/chrome:/opt/google/chrome:ro
+      - /usr/bin/google-chrome:/usr/bin/google-chrome:ro
+      - /usr/bin/google-chrome-stable:/usr/bin/google-chrome-stable:ro
+      # MeCab 관련 볼륨 마운트
+      - /usr/lib/mecab:/usr/lib/mecab:ro
+      - /var/lib/mecab:/var/lib/mecab:ro
+      - /usr/lib/x86_64-linux-gnu/libmecab.so.2:/usr/lib/x86_64-linux-gnu/libmecab.so.2:ro
+      - /usr/lib/x86_64-linux-gnu/libmecab.so:/usr/lib/x86_64-linux-gnu/libmecab.so:ro
+      - /usr/lib/x86_64-linux-gnu/libmecab.so.2.0.0:/usr/lib/x86_64-linux-gnu/libmecab.so.2.0.0:ro
     depends_on:
       - promtail
     env_file:

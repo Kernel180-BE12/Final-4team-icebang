@@ -48,11 +48,12 @@ public class WorkflowExecutionService {
   @Transactional
   @Async("traceExecutor")
   public void executeWorkflow(Long workflowId) {
-    mdcManager.setWorkflowContext(workflowId);
+    WorkflowRun workflowRun = WorkflowRun.start(workflowId);
+    workflowRunMapper.insert(workflowRun);
+
+    mdcManager.setWorkflowContext(workflowId, workflowRun.getTraceId());
     try {
       workflowLogger.info("========== 워크플로우 실행 시작: WorkflowId={} ==========", workflowId);
-      WorkflowRun workflowRun = WorkflowRun.start(workflowId);
-      workflowRunMapper.insert(workflowRun);
 
       Map<String, JsonNode> workflowContext = new HashMap<>();
 

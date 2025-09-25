@@ -1,5 +1,6 @@
 package site.icebang.external.fastapi.adapter;
 
+import org.slf4j.MDC;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -23,6 +24,13 @@ public class FastApiAdapter {
     String fullUrl = properties.getUrl() + endpoint;
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
+
+    String traceId = MDC.get("traceId");
+    if (traceId != null) {
+      headers.set("X-Request-ID", traceId);
+      log.debug("TraceID 헤더 추가: {}", traceId);
+    }
+
     HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
     try {
