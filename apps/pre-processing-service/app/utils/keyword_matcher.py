@@ -22,7 +22,7 @@ class KeywordMatcher:
         if MECAB_AVAILABLE:
             try:
                 # 환경변수 MECAB_PATH가 있으면 사용, 없으면 기본값
-                os.environ['MECABRC'] = os.getenv('MECABRC')
+                os.environ["MECABRC"] = os.getenv("MECABRC")
                 mecab_path = os.getenv("MECAB_PATH")
                 if mecab_path:
                     self.mecab = MeCab.Tagger(f"-d {mecab_path}")
