@@ -129,4 +129,29 @@
             wj.execution_order, j.id, j.name, j.description, j.is_enabled
         ORDER BY wj.execution_order
     </select>
+
+    <insert id="insertWorkflow" parameterType="map" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO workflow (
+            name,
+            description,
+            is_enabled,
+            created_by,
+            created_at,
+            default_config
+        ) VALUES (
+                     #{dto.name},
+                     #{dto.description},
+                     #{dto.isEnabled},
+                     #{createdBy},
+                     NOW(),
+                     #{dto.defaultConfigJson}
+                 )
+    </insert>
+
+    <!-- 워크플로우 이름 중복 체크 -->
+    <select id="existsByName" parameterType="string" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM workflow
+        WHERE name = #{name}
+    </select>
 </mapper>
