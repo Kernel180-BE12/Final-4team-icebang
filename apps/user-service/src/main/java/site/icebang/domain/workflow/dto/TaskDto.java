@@ -1,6 +1,6 @@
 package site.icebang.domain.workflow.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -14,6 +14,6 @@ public class TaskDto {
   private Integer executionOrder;
   private JsonNode settings;
   private JsonNode parameters;
-  private LocalDateTime createdAt;
-  private LocalDateTime updatedAt;
+  private Instant createdAt;
+  private Instant updatedAt;
 }

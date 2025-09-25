@@ -10,7 +10,7 @@ spring:
     password:
     driver-class-name: org.h2.Driver
     hikari:
-      connection-init-sql: "SET MODE MariaDB; SET NON_KEYWORDS USER;"
+      connection-init-sql: "SET MODE MariaDB; SET NON_KEYWORDS USER; "
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000

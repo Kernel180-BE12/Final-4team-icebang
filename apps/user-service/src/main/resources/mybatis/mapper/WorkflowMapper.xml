@@ -47,9 +47,9 @@
         <result property="isEnabled"     column="isEnabled"/>
         <result property="defaultConfig" column="defaultConfig"/>
         <result property="createdBy"     column="createdBy"/>
-        <result property="createdAt"     column="createdAt"/>
+        <result property="createdAt"     column="createdAt" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
         <result property="updatedBy"     column="updatedBy"/>
-        <result property="updatedAt"     column="updatedAt"/>
+        <result property="updatedAt"     column="updatedAt" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
     </resultMap>
 
     <!-- 스케줄 정보 매핑 -->
@@ -58,9 +58,9 @@
         <result property="cronExpression" column="cronExpression"/>
         <result property="isActive"       column="isActive"/>
         <result property="lastRunStatus"  column="lastRunStatus"/>
-        <result property="lastRunAt"      column="lastRunAt"/>
+        <result property="lastRunAt"      column="lastRunAt" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
         <result property="scheduleText"   column="scheduleText"/>
-        <result property="createdAt"      column="createdAt"/>
+        <result property="createdAt"      column="createdAt" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
     </resultMap>
 
     <!-- 워크플로우 기본 정보 조회 -->

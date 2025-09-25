@@ -7,6 +7,10 @@ spring:
     context:
       cache:
         maxSize: 1
+  jackson:
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
 
 mybatis:
   # Mapper XML 파일 위치

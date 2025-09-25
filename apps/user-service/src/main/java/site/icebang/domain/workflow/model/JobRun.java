@@ -1,6 +1,6 @@
 package site.icebang.domain.workflow.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,15 +13,15 @@ public class JobRun {
   private Long workflowRunId;
   private Long jobId;
   private String status; // PENDING, RUNNING, SUCCESS, FAILED
-  private LocalDateTime startedAt;
-  private LocalDateTime finishedAt;
-  private LocalDateTime createdAt;
+  private Instant startedAt;
+  private Instant finishedAt;
+  private Instant createdAt;
 
   private JobRun(Long workflowRunId, Long jobId) {
     this.workflowRunId = workflowRunId;
     this.jobId = jobId;
     this.status = "RUNNING";
-    this.startedAt = LocalDateTime.now();
+    this.startedAt = Instant.now();
     this.createdAt = this.startedAt;
   }
 
@@ -33,6 +33,6 @@ public class JobRun {
   /** Job 실행 완료 처리 */
   public void finish(String status) {
     this.status = status;
-    this.finishedAt = LocalDateTime.now();
+    this.finishedAt = Instant.now();
   }
 }
