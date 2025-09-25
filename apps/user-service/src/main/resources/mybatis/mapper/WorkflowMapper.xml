@@ -154,4 +154,36 @@
         FROM workflow
         WHERE name = #{name}
     </select>
+
+    <!-- Job 생성 -->
+    <insert id="insertDefaultJobs" parameterType="map" useGeneratedKeys="true" keyProperty="jobIds">
+        <selectKey keyProperty="jobIds" resultType="java.util.List" order="AFTER">
+            SELECT LAST_INSERT_ID() as id
+        </selectKey>
+        INSERT INTO job (name, description, created_by, created_at) VALUES
+        ('상품 분석', '키워드 검색, 상품 크롤링 및 유사도 분석 작업', #{createdBy}, NOW()),
+        ('블로그 콘텐츠 생성', '분석 데이터를 기반으로 RAG 콘텐츠 생성 및 발행 작업', #{createdBy}, NOW())
+    </insert>
+
+    <!-- Workflow-Job 연결 -->
+    <insert id="insertWorkflowJob" parameterType="map">
+        INSERT INTO workflow_job (workflow_id, job_id, execution_order) VALUES
+                                                                            (#{workflowId}, #{job1Id}, 1),
+                                                                            (#{workflowId}, #{job2Id}, 2)
+    </insert>
+
+    <!-- Job-Task 연결 -->
+    <insert id="insertJobTask" parameterType="map">
+        INSERT INTO job_task (job_id, task_id, execution_order) VALUES
+        <!-- Job 1: 상품 분석 (Task 1~6) -->
+        (#{job1Id}, 1, 1),
+        (#{job1Id}, 2, 2),
+        (#{job1Id}, 3, 3),
+        (#{job1Id}, 4, 4),
+        (#{job1Id}, 5, 5),
+        (#{job1Id}, 6, 6),
+        <!-- Job 2: 블로그 콘텐츠 생성 (Task 7~8) -->
+        (#{job2Id}, 7, 1),
+        (#{job2Id}, 8, 2)
+    </insert>
 </mapper>
