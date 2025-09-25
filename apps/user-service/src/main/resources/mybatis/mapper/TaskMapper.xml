@@ -8,6 +8,8 @@
         <result property="name" column="name"/>
         <result property="type" column="type"/>
         <result property="parameters" column="parameters" javaType="com.fasterxml.jackson.databind.JsonNode" jdbcType="VARCHAR" typeHandler="site.icebang.global.config.mybatis.typehandler.JsonNodeTypeHandler"/>
+        <result property="createdAt" column="created_at" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
+        <result property="updatedAt" column="updated_at" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
     </resultMap>
 
     <select id="findById" resultMap="TaskResultMap">

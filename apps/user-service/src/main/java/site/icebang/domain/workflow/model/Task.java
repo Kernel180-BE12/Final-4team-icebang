@@ -1,6 +1,6 @@
 package site.icebang.domain.workflow.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -26,9 +26,9 @@ public class Task {
 
   private JsonNode settings;
 
-  private LocalDateTime createdAt;
+  private Instant createdAt;
 
-  private LocalDateTime updatedAt;
+  private Instant updatedAt;
 
   public Task(TaskDto taskDto) {
     this.id = taskDto.getId();

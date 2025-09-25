@@ -22,8 +22,8 @@ import site.icebang.integration.setup.support.IntegrationTestSupport;
 
 @Sql(
     value = {
-      "classpath:sql/01-insert-internal-users.sql",
-      "classpath:sql/02-insert-external-users.sql"
+      "classpath:sql/data/01-insert-internal-users.sql",
+      "classpath:sql/data/02-insert-external-users.sql"
     },
     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Transactional

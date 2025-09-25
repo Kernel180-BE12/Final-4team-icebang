@@ -47,9 +47,9 @@
         <result property="isEnabled"     column="isEnabled"/>
         <result property="defaultConfig" column="defaultConfig"/>
         <result property="createdBy"     column="createdBy"/>
-        <result property="createdAt"     column="createdAt"/>
+        <result property="createdAt"     column="createdAt" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
         <result property="updatedBy"     column="updatedBy"/>
-        <result property="updatedAt"     column="updatedAt"/>
+        <result property="updatedAt"     column="updatedAt" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
     </resultMap>
 
     <!-- 스케줄 정보 매핑 -->
@@ -58,9 +58,9 @@
         <result property="cronExpression" column="cronExpression"/>
         <result property="isActive"       column="isActive"/>
         <result property="lastRunStatus"  column="lastRunStatus"/>
-        <result property="lastRunAt"      column="lastRunAt"/>
+        <result property="lastRunAt"      column="lastRunAt" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
         <result property="scheduleText"   column="scheduleText"/>
-        <result property="createdAt"      column="createdAt"/>
+        <result property="createdAt"      column="createdAt" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
     </resultMap>
 
     <!-- 워크플로우 기본 정보 조회 -->
@@ -143,7 +143,7 @@
                      #{dto.description},
                      #{dto.isEnabled},
                      #{createdBy},
-                     NOW(),
+                     UTC_TIMESTAMP(),
                      #{dto.defaultConfigJson}
                  )
     </insert>
@@ -161,8 +161,8 @@
             SELECT LAST_INSERT_ID() as id
         </selectKey>
         INSERT INTO job (name, description, created_by, created_at) VALUES
-        ('상품 분석', '키워드 검색, 상품 크롤링 및 유사도 분석 작업', #{createdBy}, NOW()),
-        ('블로그 콘텐츠 생성', '분석 데이터를 기반으로 RAG 콘텐츠 생성 및 발행 작업', #{createdBy}, NOW())
+        ('상품 분석', '키워드 검색, 상품 크롤링 및 유사도 분석 작업', #{createdBy}, UTC_TIMESTAMP()),
+        ('블로그 콘텐츠 생성', '분석 데이터를 기반으로 RAG 콘텐츠 생성 및 발행 작업', #{createdBy}, UTC_TIMESTAMP())
     </insert>
 
     <!-- Workflow-Job 연결 -->

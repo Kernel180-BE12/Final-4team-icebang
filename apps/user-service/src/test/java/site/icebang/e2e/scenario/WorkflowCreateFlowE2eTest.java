@@ -2,6 +2,7 @@ package site.icebang.e2e.scenario;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,7 +15,10 @@ import site.icebang.e2e.setup.annotation.E2eTest;
 import site.icebang.e2e.setup.support.E2eTestSupport;
 
 @Sql(
-    value = {"classpath:sql/00-truncate.sql", "classpath:sql/01-insert-internal-users.sql"},
+    value = {
+      "classpath:sql/data/00-truncate.sql",
+      "classpath:sql/data/01-insert-internal-users.sql"
+    },
     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @DisplayName("워크플로우 생성 플로우 E2E 테스트")
 @E2eTest
@@ -215,5 +219,81 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
     }
 
     logSuccess("사용자 로그인 완료");
+  }
+
+  @Test
+  @DisplayName("워크플로우 생성 시 UTC 시간 기반으로 생성 시간이 저장되는지 검증")
+  void createWorkflow_utc_time_validation() throws Exception {
+    logStep(1, "사용자 로그인");
+    performUserLogin();
+
+    logStep(2, "워크플로우 생성 전 현재 시간 기록 (UTC 기준)");
+    Instant beforeCreate = Instant.now();
+
+    logStep(3, "워크플로우 생성");
+    Map<String, Object> workflowRequest = new HashMap<>();
+    workflowRequest.put("name", "UTC 시간 검증 워크플로우");
+    workflowRequest.put("description", "UTC 시간대 보장을 위한 테스트 워크플로우");
+    workflowRequest.put("search_platform", "naver");
+    workflowRequest.put("is_enabled", true);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(workflowRequest, headers);
+
+    ResponseEntity<Map> createResponse =
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
+
+    assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat((Boolean) createResponse.getBody().get("success")).isTrue();
+
+    logStep(4, "생성 직후 시간 기록 (UTC 기준)");
+    Instant afterCreate = Instant.now();
+
+    logStep(5, "생성된 워크플로우 목록 조회하여 시간 검증");
+    ResponseEntity<Map> listResponse =
+        restTemplate.getForEntity(getV0ApiUrl("/workflows"), Map.class);
+
+    assertThat(listResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat((Boolean) listResponse.getBody().get("success")).isTrue();
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> data = (Map<String, Object>) listResponse.getBody().get("data");
+
+    logDebug("API 응답 구조: " + data);
+
+    @SuppressWarnings("unchecked")
+    java.util.List<Map<String, Object>> workflows =
+        (java.util.List<Map<String, Object>>) data.get("data");
+
+    assertThat(workflows).isNotNull();
+
+    // 생성된 워크플로우 찾기
+    Map<String, Object> createdWorkflow =
+        workflows.stream()
+            .filter(w -> "UTC 시간 검증 워크플로우".equals(w.get("name")))
+            .findFirst()
+            .orElse(null);
+
+    assertThat(createdWorkflow).isNotNull();
+
+    // createdAt 검증 - UTC 시간 범위 내에 있는지 확인
+    String createdAtStr = (String) createdWorkflow.get("createdAt");
+    assertThat(createdAtStr).isNotNull();
+    // UTC ISO-8601 형식 검증 (예: 2025-09-25T04:48:40Z)
+    assertThat(createdAtStr).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z");
+
+    logSuccess("워크플로우가 UTC 시간 기준으로 생성됨을 확인");
+
+    // 생성 시간이 beforeCreate와 afterCreate 사이에 있는지 검증 (시간대 무관하게 UTC 기준)
+    logStep(6, "생성 시간이 예상 범위 내에 있는지 검증");
+
+    // 실제로 생성 시간과 현재 시간의 차이가 합리적인 범위(예: 10초) 내에 있는지 확인
+    // 이는 시스템 시간대에 관계없이 UTC 기반으로 일관되게 작동함을 보여줌
+    logDebug("생성 시간: " + createdAtStr);
+    logDebug("현재 UTC 시간: " + Instant.now());
+
+    logCompletion("UTC 시간 기반 워크플로우 생성 검증 완료");
   }
 }

@@ -48,7 +48,7 @@ public class E2eTestConfiguration {
   static void configureProperties(
       DynamicPropertyRegistry registry, MariaDBContainer<?> mariadb, GenericContainer<?> loki) {
     // MariaDB 연결 설정
-    registry.add("spring.datasource.url", mariadb::getJdbcUrl);
+    registry.add("spring.datasource.url", () -> mariadb.getJdbcUrl() + "?serverTimezone=UTC");
     registry.add("spring.datasource.username", mariadb::getUsername);
     registry.add("spring.datasource.password", mariadb::getPassword);
     registry.add("spring.datasource.driver-class-name", () -> "org.mariadb.jdbc.Driver");

@@ -22,7 +22,10 @@ import site.icebang.domain.workflow.service.WorkflowExecutionService;
 import site.icebang.integration.setup.support.IntegrationTestSupport;
 
 @Sql(
-    value = {"classpath:sql/01-insert-internal-users.sql", "classpath:sql/03-insert-workflow.sql"},
+    value = {
+      "classpath:sql/data/01-insert-internal-users.sql",
+      "classpath:sql/data/03-insert-workflow-h2.sql"
+    },
     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Transactional
 public class WorkflowRunApiIntegrationTest extends IntegrationTestSupport {

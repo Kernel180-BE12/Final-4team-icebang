@@ -51,7 +51,7 @@ INSERT INTO `job_run` (
              NULL,
              '2025-09-22 18:18:44',
              '2025-09-22 18:18:44',
-             NOW()
+             UTC_TIMESTAMP()
          );
 
 -- Task 실행 데이터 삽입 (task_run)
@@ -72,5 +72,5 @@ INSERT INTO `task_run` (
              NULL,
              '2025-09-22 18:18:44',
              '2025-09-22 18:18:44',
-             NOW()
+             UTC_TIMESTAMP()
          );

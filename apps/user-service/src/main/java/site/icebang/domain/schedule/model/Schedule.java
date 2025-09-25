@@ -1,6 +1,6 @@
 package site.icebang.domain.schedule.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -22,10 +22,10 @@ public class Schedule {
   private String parameters; // JSON format
   private boolean isActive;
   private String lastRunStatus;
-  private LocalDateTime lastRunAt;
-  private LocalDateTime createdAt;
+  private Instant lastRunAt;
+  private Instant createdAt;
   private Long createdBy;
-  private LocalDateTime updatedAt;
+  private Instant updatedAt;
   private Long updatedBy;
   private String scheduleText;
 }

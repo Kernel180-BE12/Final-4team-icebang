@@ -11,7 +11,7 @@ spring:
     password:
     driver-class-name: org.h2.Driver
     hikari:
-      connection-init-sql: "SET MODE MariaDB"
+      connection-init-sql: "SET MODE MariaDB "
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
@@ -29,8 +29,10 @@ spring:
     init:
       mode: always
       schema-locations:
-        - classpath:sql/00-drop-h2.sql
-        - classpath:sql/01-schema.sql
+        - classpath:sql/schema/00-drop-h2.sql
+        - classpath:sql/schema/01-schema.sql
+        - classpath:sql/schema/02-quartz-schema.sql
+        - classpath:sql/schema/03-schema-h2-timezone.sql
       encoding: UTF-8
 
 mybatis:

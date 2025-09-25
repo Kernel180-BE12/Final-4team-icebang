@@ -1,7 +1,7 @@
 package site.icebang.domain.workflow.dto;
 
 import java.math.BigInteger;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.Data;
 
@@ -12,5 +12,5 @@ public class WorkflowCardDto {
   private String description;
   private boolean isEnabled;
   private String createdBy;
-  private LocalDateTime createdAt;
+  private Instant createdAt;
 }

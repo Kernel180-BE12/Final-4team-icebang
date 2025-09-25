@@ -27,7 +27,7 @@ import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import site.icebang.integration.setup.support.IntegrationTestSupport;
 
 @Sql(
-    value = "classpath:sql/01-insert-internal-users.sql",
+    value = "classpath:sql/data/01-insert-internal-users.sql",
     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Transactional
 class AuthApiIntegrationTest extends IntegrationTestSupport {

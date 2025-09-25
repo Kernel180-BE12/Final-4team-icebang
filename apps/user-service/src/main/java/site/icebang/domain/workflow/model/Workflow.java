@@ -1,6 +1,6 @@
 package site.icebang.domain.workflow.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -16,9 +16,9 @@ public class Workflow {
   private String name;
   private String description;
   private boolean isEnabled;
-  private LocalDateTime createdAt;
+  private Instant createdAt;
   private Long createdBy;
-  private LocalDateTime updatedAt;
+  private Instant updatedAt;
   private Long updatedBy;
 
   /** 워크플로우별 기본 설정값 (JSON) */

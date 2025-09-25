@@ -2,6 +2,19 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="site.icebang.domain.workflow.mapper.TaskRunMapper">
+
+    <resultMap id="TaskRunResultMap" type="site.icebang.domain.workflow.model.TaskRun">
+        <id property="id" column="id"/>
+        <result property="jobRunId" column="job_run_id"/>
+        <result property="taskId" column="task_id"/>
+        <result property="executionOrder" column="execution_order"/>
+        <result property="status" column="status"/>
+        <result property="resultMessage" column="result_message"/>
+        <result property="startedAt" column="started_at" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
+        <result property="finishedAt" column="finished_at" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
+        <result property="createdAt" column="created_at" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
+    </resultMap>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO task_run (job_run_id, task_id, execution_order, status, started_at, created_at)
         VALUES (#{jobRunId}, #{taskId}, #{executionOrder}, #{status}, #{startedAt}, #{createdAt})
