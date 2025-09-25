@@ -13,6 +13,17 @@ public interface WorkflowMapper {
 
   int selectWorkflowCount(PageParams pageParams);
 
+  int insertWorkflow(Map<String, Object> params); // insert workflow
+
+  // Job 생성 관련 메서드
+  void insertJobs(Map<String, Object> params); // 여러 Job을 동적으로 생성
+
+  void insertWorkflowJobs(Map<String, Object> params); // Workflow-Job 연결
+
+  void insertJobTasks(Map<String, Object> params); // Job-Task 연결
+
+  boolean existsByName(String name);
+
   WorkflowCardDto selectWorkflowById(BigInteger id);
 
   WorkflowDetailCardDto selectWorkflowDetailById(BigInteger workflowId);
