@@ -235,10 +235,14 @@ class ResponseS3Upload(ResponseBase[S3UploadData]):
 
     pass
 
+
 # ============== 상품 선택 (새로 추가) ==============
 
+
 class RequestProductSelect(RequestBase):
-    task_run_id: int = Field(..., title="Task Run ID", description="상품을 선택할 task_run_id")
+    task_run_id: int = Field(
+        ..., title="Task Run ID", description="상품을 선택할 task_run_id"
+    )
     selection_criteria: Optional[str] = Field(
         None, title="선택 기준", description="특별한 선택 기준 (기본: 이미지 개수 우선)"
     )
@@ -247,14 +251,20 @@ class RequestProductSelect(RequestBase):
 # 응답 데이터 모델
 class ProductSelectData(BaseModel):
     task_run_id: int = Field(..., title="Task Run ID")
-    selected_product: Dict = Field(..., title="선택된 상품", description="콘텐츠 생성용으로 선택된 상품")
-    total_available_products: int = Field(..., title="전체 상품 수", description="선택 가능했던 전체 상품 개수")
+    selected_product: Dict = Field(
+        ..., title="선택된 상품", description="콘텐츠 생성용으로 선택된 상품"
+    )
+    total_available_products: int = Field(
+        ..., title="전체 상품 수", description="선택 가능했던 전체 상품 개수"
+    )
 
 
 # 최종 응답 모델
 class ResponseProductSelect(ResponseBase[ProductSelectData]):
     """상품 선택 API 응답"""
+
     pass
+
 
 # ============== 블로그 콘텐츠 생성 ==============
 

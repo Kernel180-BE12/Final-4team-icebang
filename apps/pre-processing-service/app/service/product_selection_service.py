@@ -25,7 +25,9 @@ class ProductSelectionService:
 
             if not db_products:
                 logger.warning(f"DB에서 상품을 찾을 수 없음: task_run_id={task_run_id}")
-                return Response.error("상품 데이터를 찾을 수 없습니다.", "PRODUCTS_NOT_FOUND")
+                return Response.error(
+                    "상품 데이터를 찾을 수 없습니다.", "PRODUCTS_NOT_FOUND"
+                )
 
             # 2. 최적 상품 선택
             selected_product = self._select_best_product(db_products)
@@ -41,7 +43,9 @@ class ProductSelectionService:
                 "total_available_products": len(db_products),
             }
 
-            return Response.ok(data, f"콘텐츠용 상품 선택 완료: {selected_product['name']}")
+            return Response.ok(
+                data, f"콘텐츠용 상품 선택 완료: {selected_product['name']}"
+            )
 
         except Exception as e:
             logger.error(f"콘텐츠용 상품 선택 오류: {e}")
@@ -75,12 +79,14 @@ class ProductSelectionService:
                         # JSON 데이터 파싱
                         data_value = json.loads(data_value_str)
 
-                        products.append({
-                            "id": id,
-                            "name": name,
-                            "data_value": data_value,
-                            "created_at": created_at
-                        })
+                        products.append(
+                            {
+                                "id": id,
+                                "name": name,
+                                "data_value": data_value,
+                                "created_at": created_at,
+                            }
+                        )
                     except json.JSONDecodeError as e:
                         logger.warning(f"JSON 파싱 실패: name={name}, error={e}")
                         continue
@@ -112,13 +118,18 @@ class ProductSelectionService:
                 product_images = product_detail.get("product_images", [])
 
                 # 크롤링 성공하고 이미지가 있는 상품
-                if (data_value.get("status") == "success" and
-                        product_detail and len(product_images) > 0):
-                    successful_products.append({
-                        "product": product,
-                        "image_count": len(product_images),
-                        "title": product_detail.get("title", "Unknown")
-                    })
+                if (
+                    data_value.get("status") == "success"
+                    and product_detail
+                    and len(product_images) > 0
+                ):
+                    successful_products.append(
+                        {
+                            "product": product,
+                            "image_count": len(product_images),
+                            "title": product_detail.get("title", "Unknown"),
+                        }
+                    )
 
             if successful_products:
                 # 이미지 개수가 가장 많은 상품 선택
@@ -134,14 +145,15 @@ class ProductSelectionService:
                     "name": best_product["product"]["name"],
                     "product_info": best_product["product"]["data_value"],
                     "image_count": best_product["image_count"],
-                    "title": best_product["title"]
+                    "title": best_product["title"],
                 }
 
             # 2순위: 크롤링 성공한 첫 번째 상품 (이미지 없어도)
             for product in db_products:
                 data_value = product.get("data_value", {})
-                if (data_value.get("status") == "success" and
-                        data_value.get("product_detail")):
+                if data_value.get("status") == "success" and data_value.get(
+                    "product_detail"
+                ):
                     product_detail = data_value.get("product_detail", {})
                     logger.info(f"2순위 선택: name={product['name']}")
 
@@ -150,7 +162,7 @@ class ProductSelectionService:
                         "name": product["name"],
                         "product_info": data_value,
                         "image_count": len(product_detail.get("product_images", [])),
-                        "title": product_detail.get("title", "Unknown")
+                        "title": product_detail.get("title", "Unknown"),
                     }
 
             # 3순위: 첫 번째 상품 (fallback)
@@ -166,7 +178,7 @@ class ProductSelectionService:
                     "name": first_product["name"],
                     "product_info": data_value,
                     "image_count": len(product_detail.get("product_images", [])),
-                    "title": product_detail.get("title", "Unknown")
+                    "title": product_detail.get("title", "Unknown"),
                 }
 
             # 모든 경우 실패
@@ -176,7 +188,7 @@ class ProductSelectionService:
                 "name": None,
                 "product_info": None,
                 "image_count": 0,
-                "title": "Unknown"
+                "title": "Unknown",
             }
 
         except Exception as e:
@@ -187,5 +199,5 @@ class ProductSelectionService:
                 "product_info": db_products[0]["data_value"] if db_products else None,
                 "image_count": 0,
                 "title": "Unknown",
-                "error": str(e)
+                "error": str(e),
             }

@@ -123,17 +123,24 @@ async def s3_upload(request: RequestS3Upload):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/select", response_model=ResponseProductSelect, summary="콘텐츠용 상품 선택")
+
+@router.post(
+    "/select", response_model=ResponseProductSelect, summary="콘텐츠용 상품 선택"
+)
 def select_product(request: RequestProductSelect):  # async 제거
     """
     S3 업로드 완료 후 콘텐츠 생성을 위한 최적 상품을 선택합니다.
     """
     try:
         selection_service = ProductSelectionService()
-        response_data = selection_service.select_product_for_content(request)  # await 제거
+        response_data = selection_service.select_product_for_content(
+            request
+        )  # await 제거
 
         if not response_data:
-            raise CustomException(500, "상품 선택에 실패했습니다.", "PRODUCT_SELECTION_FAILED")
+            raise CustomException(
+                500, "상품 선택에 실패했습니다.", "PRODUCT_SELECTION_FAILED"
+            )
 
         return response_data
     except Exception as e:

@@ -29,7 +29,7 @@ class S3UploadService:
         base_folder = request.base_folder or "product"
 
         # task_run_id는 자바 워크플로우에서 전달받음
-        task_run_id = getattr(request, 'task_run_id', None)
+        task_run_id = getattr(request, "task_run_id", None)
         if not task_run_id:
             # 임시: task_run_id가 없으면 생성
             task_run_id = int(time.time() * 1000)
@@ -80,11 +80,13 @@ class S3UploadService:
                                 "fail_count": 0,
                             }
                         )
-                        db_save_results.append({
-                            "product_index": product_index,
-                            "db_status": "skipped",
-                            "error": "크롤링 실패"
-                        })
+                        db_save_results.append(
+                            {
+                                "product_index": product_index,
+                                "db_status": "skipped",
+                                "error": "크롤링 실패",
+                            }
+                        )
                         continue
 
                     try:
@@ -103,10 +105,7 @@ class S3UploadService:
 
                         # 2. DB에 상품 데이터 저장
                         db_result = self._save_product_to_db(
-                            task_run_id,
-                            keyword,
-                            product_index,
-                            product_info
+                            task_run_id, keyword, product_index, product_info
                         )
                         db_save_results.append(db_result)
 
@@ -116,7 +115,9 @@ class S3UploadService:
                         )
 
                     except Exception as e:
-                        logger.error(f"상품 {product_index} S3 업로드/DB 저장 오류: {e}")
+                        logger.error(
+                            f"상품 {product_index} S3 업로드/DB 저장 오류: {e}"
+                        )
                         upload_results.append(
                             {
                                 "product_index": product_index,
@@ -128,11 +129,13 @@ class S3UploadService:
                                 "fail_count": 0,
                             }
                         )
-                        db_save_results.append({
-                            "product_index": product_index,
-                            "db_status": "error",
-                            "error": str(e)
-                        })
+                        db_save_results.append(
+                            {
+                                "product_index": product_index,
+                                "db_status": "error",
+                                "error": str(e),
+                            }
+                        )
 
                     # 상품간 간격 (서버 부하 방지)
                     if product_index < len(crawled_products):
@@ -152,8 +155,12 @@ class S3UploadService:
                     "total_products": len(crawled_products),
                     "total_success_images": total_success_images,
                     "total_fail_images": total_fail_images,
-                    "db_success_count": len([r for r in db_save_results if r.get("db_status") == "success"]),
-                    "db_fail_count": len([r for r in db_save_results if r.get("db_status") == "error"]),
+                    "db_success_count": len(
+                        [r for r in db_save_results if r.get("db_status") == "success"]
+                    ),
+                    "db_fail_count": len(
+                        [r for r in db_save_results if r.get("db_status") == "error"]
+                    ),
                 },
                 "uploaded_at": time.strftime("%Y-%m-%d %H:%M:%S"),
             }
@@ -166,11 +173,7 @@ class S3UploadService:
             raise InvalidItemDataException()
 
     def _save_product_to_db(
-            self,
-            task_run_id: int,
-            keyword: str,
-            product_index: int,
-            product_info: Dict
+        self, task_run_id: int, keyword: str, product_index: int, product_info: Dict
     ) -> Dict:
         """
         상품 데이터를 TASK_IO_DATA 테이블에 저장 (MariaDB)
@@ -193,14 +196,17 @@ class S3UploadService:
                       VALUES (%s, %s, %s, %s, %s, %s) \
                       """
 
-                cursor.execute(sql, (
-                    task_run_id,
-                    "OUTPUT",
-                    product_name,
-                    "JSON",
-                    data_value_json,
-                    created_at
-                ))
+                cursor.execute(
+                    sql,
+                    (
+                        task_run_id,
+                        "OUTPUT",
+                        product_name,
+                        "JSON",
+                        data_value_json,
+                        created_at,
+                    ),
+                )
 
             logger.success(f"상품 {product_index} DB 저장 성공: name={product_name}")
 
@@ -216,5 +222,5 @@ class S3UploadService:
             return {
                 "product_index": product_index,
                 "db_status": "error",
-                "error": str(e)
+                "error": str(e),
             }
