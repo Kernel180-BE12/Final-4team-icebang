@@ -161,10 +161,11 @@ class ResponseSadaguCrawl(ResponseBase[SadaguCrawlData]):
     pass
 
 
-# ============== S3 이미지 업로드 ==============
+# ============== S3 업로드 ==============
 
 
 class RequestS3Upload(RequestBase):
+    task_run_id: int = Field(..., title="Task Run ID", description="워크플로우 실행 ID")
     keyword: str = Field(
         ..., title="검색 키워드", description="폴더명 생성용 키워드"
     )  # 추가
@@ -227,17 +228,41 @@ class S3UploadData(BaseModel):
     uploaded_at: str = Field(
         ..., title="업로드 완료 시간", description="S3 업로드 완료 시간"
     )
-    # 🆕 임시: 콘텐츠 생성용 단일 상품만 추가 (나중에 삭제 예정)
-    selected_product_for_content: Optional[Dict] = Field(
-        None,
-        title="콘텐츠 생성용 선택 상품",
-        description="임시: 블로그 콘텐츠 생성을 위해 선택된 단일 상품 정보",
-    )
 
 
 # 최종 응답 모델
 class ResponseS3Upload(ResponseBase[S3UploadData]):
     """S3 이미지 업로드 API 응답"""
+
+    pass
+
+
+# ============== 상품 선택 (새로 추가) ==============
+
+
+class RequestProductSelect(RequestBase):
+    task_run_id: int = Field(
+        ..., title="Task Run ID", description="상품을 선택할 task_run_id"
+    )
+    selection_criteria: Optional[str] = Field(
+        None, title="선택 기준", description="특별한 선택 기준 (기본: 이미지 개수 우선)"
+    )
+
+
+# 응답 데이터 모델
+class ProductSelectData(BaseModel):
+    task_run_id: int = Field(..., title="Task Run ID")
+    selected_product: Dict = Field(
+        ..., title="선택된 상품", description="콘텐츠 생성용으로 선택된 상품"
+    )
+    total_available_products: int = Field(
+        ..., title="전체 상품 수", description="선택 가능했던 전체 상품 개수"
+    )
+
+
+# 최종 응답 모델
+class ResponseProductSelect(ResponseBase[ProductSelectData]):
+    """상품 선택 API 응답"""
 
     pass
 
