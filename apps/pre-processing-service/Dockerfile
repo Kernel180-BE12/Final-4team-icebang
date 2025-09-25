@@ -2,6 +2,11 @@
 FROM python:3.11-slim AS builder
 WORKDIR /app
 
+# 필요한 툴 설치 (curl, gcc 등)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Poetry 설치
 RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH="/root/.local/bin:$PATH"
