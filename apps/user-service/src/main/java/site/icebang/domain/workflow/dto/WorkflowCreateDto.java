@@ -31,7 +31,6 @@ public class WorkflowCreateDto {
             message = "워크플로우 이름은 한글, 영문, 숫자, 공백, 언더스코어, 하이픈만 사용 가능합니다")
     private String name;
 
-    @Null
     @Size(max = 500, message = "설명은 500자를 초과할 수 없습니다")
     private String description;
 
