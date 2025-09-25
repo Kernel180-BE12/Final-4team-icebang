@@ -49,7 +49,8 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
 RUN apt-get update && apt-get install -y --no-install-recommends \
     mecab \
     libmecab-dev \
-    mecab-ipadic-utf8 \
+    mecab-ko \
+    mecab-ko-dic \
     && rm -rf /var/lib/apt/lists/*
 
 # /opt/venv 복사
