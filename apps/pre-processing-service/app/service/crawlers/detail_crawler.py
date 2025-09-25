@@ -1,5 +1,6 @@
 import time
 import re
+import asyncio
 from bs4 import BeautifulSoup
 from .search_crawler import SearchCrawler
 from loguru import logger
@@ -13,28 +14,17 @@ class DetailCrawler(SearchCrawler):
         try:
             logger.info(f"상품 상세 크롤링 시작: url='{product_url}'")
 
-            # HTML 가져오기
+            # HTML 가져오기 (Selenium 부분을 별도 스레드에서 실행)
             soup = (
                 await self._get_soup_selenium(product_url)
                 if self.use_selenium
                 else await self._get_soup_httpx(product_url)
             )
 
-            # 기본 정보 추출
-            title = self._extract_title(soup)
-            price = self._extract_price(soup)
-            rating = self._extract_rating(soup)
-            options = self._extract_options(soup)
-            material_info = self._extract_material_info(soup)
+            # 기본 정보 추출 (CPU 집약적 작업을 별도 스레드에서 실행)
+            extraction_tasks = await asyncio.to_thread(self._extract_all_data, soup, product_url)
 
-            # 이미지 정보 추출 (항상 실행)
-            logger.info("이미지 정보 추출 중...")
-            page_images = self._extract_images(soup)
-            option_images = [
-                opt["image_url"] for opt in options if opt.get("image_url")
-            ]
-            # 중복 제거 후 합치기
-            all_images = list(set(page_images + option_images))
+            title, price, rating, options, material_info, all_images = extraction_tasks
 
             product_data = {
                 "url": product_url,
@@ -58,20 +48,25 @@ class DetailCrawler(SearchCrawler):
             raise Exception(f"크롤링 실패: {str(e)}")
 
     async def _get_soup_selenium(self, product_url: str) -> BeautifulSoup:
-        """Selenium으로 HTML 가져오기"""
-        try:
-            logger.debug(f"Selenium HTML 로딩 시작: url='{product_url}'")
-            self.driver.get(product_url)
-            self.wait.until(
-                lambda driver: driver.execute_script("return document.readyState")
-                == "complete"
-            )
-            time.sleep(2)
-            logger.debug("Selenium HTML 로딩 완료")
-            return BeautifulSoup(self.driver.page_source, "html.parser")
-        except Exception as e:
-            logger.error(f"Selenium HTML 로딩 실패: url='{product_url}', error='{e}'")
-            raise Exception(f"Selenium HTML 로딩 실패: {e}")
+        """Selenium으로 HTML 가져오기 (별도 스레드에서 실행)"""
+
+        def _selenium_sync(url):
+            try:
+                logger.debug(f"Selenium HTML 로딩 시작: url='{url}'")
+                self.driver.get(url)
+                self.wait.until(
+                    lambda driver: driver.execute_script("return document.readyState")
+                                   == "complete"
+                )
+                time.sleep(2)
+                logger.debug("Selenium HTML 로딩 완료")
+                return BeautifulSoup(self.driver.page_source, "html.parser")
+            except Exception as e:
+                logger.error(f"Selenium HTML 로딩 실패: url='{url}', error='{e}'")
+                raise Exception(f"Selenium HTML 로딩 실패: {e}")
+
+        # Selenium 동기 코드를 별도 스레드에서 실행
+        return await asyncio.to_thread(_selenium_sync, product_url)
 
     async def _get_soup_httpx(self, product_url: str) -> BeautifulSoup:
         """httpx로 HTML 가져오기"""
@@ -84,6 +79,26 @@ class DetailCrawler(SearchCrawler):
         except Exception as e:
             logger.error(f"httpx HTML 요청 실패: url='{product_url}', error='{e}'")
             raise Exception(f"HTTP 요청 실패: {e}")
+
+    def _extract_all_data(self, soup: BeautifulSoup, product_url: str) -> tuple:
+        """모든 데이터 추출을 한 번에 처리 (동기 함수)"""
+        # 기본 정보 추출
+        title = self._extract_title(soup)
+        price = self._extract_price(soup)
+        rating = self._extract_rating(soup)
+        options = self._extract_options(soup)
+        material_info = self._extract_material_info(soup)
+
+        # 이미지 정보 추출
+        logger.info("이미지 정보 추출 중...")
+        page_images = self._extract_images(soup)
+        option_images = [
+            opt["image_url"] for opt in options if opt.get("image_url")
+        ]
+        # 중복 제거 후 합치기
+        all_images = list(set(page_images + option_images))
+
+        return title, price, rating, options, material_info, all_images
 
     def _extract_title(self, soup: BeautifulSoup) -> str:
         title_element = soup.find("h1", {"id": "kakaotitle"})
