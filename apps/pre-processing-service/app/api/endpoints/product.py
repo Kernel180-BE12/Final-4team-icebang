@@ -10,6 +10,7 @@ from ...service.s3_upload_service import S3UploadService
 from ...service.search_service import SearchService
 from ...service.match_service import MatchService
 from ...service.similarity_service import SimilarityService
+from ...service.product_selection_service import ProductSelectionService
 
 
 # from ...service.similarity_service import SimilarityService
@@ -119,5 +120,21 @@ async def s3_upload(request: RequestS3Upload):
         return response_data
     except InvalidItemDataException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/select", response_model=ResponseProductSelect, summary="콘텐츠용 상품 선택")
+def select_product(request: RequestProductSelect):  # async 제거
+    """
+    S3 업로드 완료 후 콘텐츠 생성을 위한 최적 상품을 선택합니다.
+    """
+    try:
+        selection_service = ProductSelectionService()
+        response_data = selection_service.select_product_for_content(request)  # await 제거
+
+        if not response_data:
+            raise CustomException(500, "상품 선택에 실패했습니다.", "PRODUCT_SELECTION_FAILED")
+
+        return response_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
