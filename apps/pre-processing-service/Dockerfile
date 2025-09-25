@@ -49,8 +49,19 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
 RUN apt-get update && apt-get install -y --no-install-recommends \
     mecab \
     libmecab-dev \
-    mecab-ipadic-utf8 \
+    wget \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
+
+# 한국어 사전 수동 설치
+RUN cd /tmp && \
+    wget https://bitbucket.org/eunjeon/mecab-ko-dic/downloads/mecab-ko-dic-2.1.1-20180720.tar.gz && \
+    tar -zxf mecab-ko-dic-2.1.1-20180720.tar.gz && \
+    cd mecab-ko-dic-2.1.1-20180720 && \
+    ./configure && \
+    make && \
+    make install && \
+    cd / && rm -rf /tmp/mecab-ko-dic-*
 
 # /opt/venv 복사
 COPY --from=builder /opt/venv /opt/venv
@@ -58,10 +69,6 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # 앱 소스
 COPY . .
-
-
-# 환경변수로 MeCab 경로 지정
-ENV MECAB_PATH=/usr/lib/mecab/dic/ipadic
 
 # (권장 대안) 코드에서 uvicorn import 안 하고 프로세스 매니저로 실행하려면:
 ENTRYPOINT ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "-b", "0.0.0.0:8000", "--timeout", "120"]
