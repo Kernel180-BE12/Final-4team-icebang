@@ -82,6 +82,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/v0/auth/check-session")
                     .authenticated()
+                    .requestMatchers(SecurityEndpoints.SUPER_ADMIN.getMatchers())
+                    .hasAnyRole("SUPER_ADMIN")
                     .requestMatchers(SecurityEndpoints.DATA_ADMIN.getMatchers())
                     .hasRole("SUPER_ADMIN") // hasAuthority -> hasRole
                     .requestMatchers(SecurityEndpoints.DATA_ENGINEER.getMatchers())
