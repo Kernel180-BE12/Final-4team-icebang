@@ -78,6 +78,7 @@ jobs:
         run: |
           ./gradlew unitTest
           ./gradlew integrationTest
+          ./gradlew javadoc
           if [ "${{ github.base_ref }}" = "main" ] || [[ "${{ github.ref }}" == refs/tags/* ]]; then
             ./gradlew e2eTest
             ./gradlew openapi3
