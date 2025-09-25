@@ -1,16 +1,15 @@
 package site.icebang.domain.workflow.service;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import site.icebang.common.dto.PageParams;
 import site.icebang.common.dto.PageResult;
@@ -92,9 +91,7 @@ public class WorkflowService implements PageableService<WorkflowCardDto> {
     return workflow;
   }
 
-  /**
-   * 워크플로우 생성
-   */
+  /** 워크플로우 생성 */
   @Transactional
   public void createWorkflow(WorkflowCreateDto dto, BigInteger createdBy) {
     // 1. 기본 검증
@@ -108,110 +105,31 @@ public class WorkflowService implements PageableService<WorkflowCardDto> {
       throw new IllegalArgumentException("이미 존재하는 워크플로우 이름입니다 : " + dto.getName());
     }
 
+    // 4. 워크플로우 생성
     try {
-      // 4. JSON 설정 생성
+      // JSON 설정 생성
       String defaultConfigJson = dto.genertateDefaultConfigJson();
       dto.setDefaultConfigJson(defaultConfigJson);
 
-      // 5. Workflow 삽입
-      Map<String, Object> workflowParams = new HashMap<>();
-      workflowParams.put("dto", dto);
-      workflowParams.put("createdBy", createdBy);
+      // DB 삽입 파라미터 구성
+      Map<String, Object> params = new HashMap<>();
+      params.put("dto", dto);
+      params.put("createdBy", createdBy);
 
-      int result = workflowMapper.insertWorkflow(workflowParams);
+      int result = workflowMapper.insertWorkflow(params);
       if (result != 1) {
         throw new RuntimeException("워크플로우 생성에 실패했습니다");
       }
 
-      BigInteger workflowId = dto.getId();
-      log.info("✅ Workflow 생성 완료 - ID: {}, Name: {}", workflowId, dto.getName());
-
-      // 6. ⭐ 템플릿 기반 Job 생성
-      List<WorkflowJobTemplate> jobTemplates = templateProvider.getTemplateByPlatform(
-              dto.getPostingPlatform()
-      );
-
-      // 7. ⭐ Job 데이터 준비 (Batch Insert)
-      List<Map<String, Object>> jobs = new ArrayList<>();
-      for (WorkflowJobTemplate template : jobTemplates) {
-        Map<String, Object> job = new HashMap<>();
-        job.put("name", template.getName());
-        job.put("description", template.getDescription());
-        jobs.add(job);
-      }
-
-      // 8. ⭐ Job Batch Insert
-      Map<String, Object> jobParams = new HashMap<>();
-      jobParams.put("jobs", jobs);
-      jobParams.put("createdBy", createdBy);
-      workflowMapper.insertJobs(jobParams);
-
-      log.info("✅ Job {} 개 Batch Insert 완료", jobs.size());
-
-      // 9. ⭐ 생성된 Job ID 조회 (안전한 방법)
-      List<Long> createdJobIds = workflowMapper.selectLastInsertedJobIds(createdBy);
-
-      if (createdJobIds.size() != jobTemplates.size()) {
-        throw new RuntimeException(
-                String.format("Job 생성 개수 불일치: 예상=%d, 실제=%d",
-                        jobTemplates.size(), createdJobIds.size())
-        );
-      }
-
-      log.info("✅ 생성된 Job IDs: {}", createdJobIds);
-
-      // 10. ⭐ Workflow-Job 연결 데이터 준비
-      List<Map<String, Object>> workflowJobs = new ArrayList<>();
-      for (int i = 0; i < jobTemplates.size(); i++) {
-        Map<String, Object> wj = new HashMap<>();
-        wj.put("workflowId", workflowId);
-        wj.put("jobId", createdJobIds.get(i));
-        wj.put("executionOrder", jobTemplates.get(i).getExecutionOrder());
-        workflowJobs.add(wj);
-      }
-
-      // 11. ⭐ Workflow-Job 연결
-      Map<String, Object> wjParams = new HashMap<>();
-      wjParams.put("workflowJobs", workflowJobs);
-      workflowMapper.insertWorkflowJobs(wjParams);
-
-      log.info("✅ Workflow-Job 연결 완료 - {} 개", workflowJobs.size());
-
-      // 12. ⭐ Job-Task 연결 데이터 준비
-      List<Map<String, Object>> jobTasks = new ArrayList<>();
-      for (int i = 0; i < jobTemplates.size(); i++) {
-        Long jobId = createdJobIds.get(i);
-        WorkflowJobTemplate template = jobTemplates.get(i);
-
-        List<Integer> taskIds = template.getTaskIds();
-        for (int j = 0; j < taskIds.size(); j++) {
-          Map<String, Object> jt = new HashMap<>();
-          jt.put("jobId", jobId);
-          jt.put("taskId", taskIds.get(j));
-          jt.put("executionOrder", j + 1);  // 1부터 시작
-          jobTasks.add(jt);
-        }
-      }
-
-      // 13. ⭐ Job-Task 연결
-      Map<String, Object> jtParams = new HashMap<>();
-      jtParams.put("jobTasks", jobTasks);
-      workflowMapper.insertJobTasks(jtParams);
-
-      log.info("✅ Job-Task 연결 완료 - {} 개", jobTasks.size());
-
-      log.info("🎉 워크플로우 전체 생성 완료: {} (ID: {}, Jobs: {}, Tasks: {}, 생성자: {})",
-              dto.getName(), workflowId, createdJobIds.size(), jobTasks.size(), createdBy);
+      log.info("워크플로우 생성 완료: {} (생성자: {})", dto.getName(), createdBy);
 
     } catch (Exception e) {
-      log.error("❌ 워크플로우 생성 실패: {}", dto.getName(), e);
-      throw new RuntimeException("워크플로우 생성 중 오류가 발생했습니다: " + e.getMessage(), e);
+      log.error("워크플로우 생성 실패: {}", dto.getName(), e);
+      throw new RuntimeException("워크플로우 생성 중 오류가 발생했습니다", e);
     }
   }
 
-  /**
-   * 기본 입력값 검증
-   */
+  /** 기본 입력값 검증 */
   private void validateBasicInput(WorkflowCreateDto dto, BigInteger createdBy) {
     if (dto == null) {
       throw new IllegalArgumentException("워크플로우 정보가 필요합니다");
@@ -221,9 +139,7 @@ public class WorkflowService implements PageableService<WorkflowCardDto> {
     }
   }
 
-  /**
-   * 비즈니스 규칙 검증
-   */
+  /** 비즈니스 규칙 검증 */
   private void validateBusinessRules(WorkflowCreateDto dto) {
     // 포스팅 플랫폼 선택 시 계정 정보 필수 검증
     String postingPlatform = dto.getPostingPlatform();
