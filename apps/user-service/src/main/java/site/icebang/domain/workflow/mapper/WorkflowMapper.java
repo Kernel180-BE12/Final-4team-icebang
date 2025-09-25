@@ -17,9 +17,9 @@ public interface WorkflowMapper {
   int insertWorkflow(Map<String, Object> params); // insert workflow
 
   // Job 생성 관련 메서드
-  void insertDefaultJobs(Map<String, Object> params);
-  void insertJobTask(Map<String, Object> params);
-  void insertWorkflowJob(Map<String, Object> params);
+  void insertJobs(Map<String, Object> params);  // 여러 Job을 동적으로 생성
+  void insertWorkflowJobs(Map<String, Object> params);  // Workflow-Job 연결
+  void insertJobTasks(Map<String, Object> params);  // Job-Task 연결
 
   boolean existsByName(String name);
 
