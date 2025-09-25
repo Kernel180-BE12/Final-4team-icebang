@@ -2,15 +2,20 @@ package site.icebang.domain.workflow.controller;
 
 import java.math.BigInteger;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import site.icebang.common.dto.ApiResponse;
 import site.icebang.common.dto.PageParams;
 import site.icebang.common.dto.PageResult;
+import site.icebang.domain.auth.model.AuthCredential;
 import site.icebang.domain.workflow.dto.WorkflowCardDto;
+import site.icebang.domain.workflow.dto.WorkflowCreateDto;
 import site.icebang.domain.workflow.dto.WorkflowDetailCardDto;
 import site.icebang.domain.workflow.service.WorkflowExecutionService;
 import site.icebang.domain.workflow.service.WorkflowService;
@@ -27,6 +32,23 @@ public class WorkflowController {
       @ModelAttribute PageParams pageParams) {
     PageResult<WorkflowCardDto> result = workflowService.getPagedResult(pageParams);
     return ApiResponse.success(result);
+  }
+
+  @PostMapping("")
+  @ResponseStatus(HttpStatus.CREATED)
+  public ApiResponse<Void> createWorkflow(
+      @Valid @RequestBody WorkflowCreateDto workflowCreateDto,
+      @AuthenticationPrincipal AuthCredential authCredential) {
+    // 인증 체크
+    if (authCredential == null) {
+      throw new IllegalArgumentException("로그인이 필요합니다");
+    }
+
+    // AuthCredential에서 userId 추출
+    BigInteger userId = authCredential.getId();
+
+    workflowService.createWorkflow(workflowCreateDto, userId);
+    return ApiResponse.success(null);
   }
 
   @PostMapping("/{workflowId}/run")
