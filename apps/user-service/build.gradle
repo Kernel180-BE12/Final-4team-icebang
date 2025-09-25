@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'site.icebang'
-version = '0.0.1-alpha-SNAPSHOT'
+version = '0.0.1-beta-STABLE'
 description = 'Ice bang - fast campus team4'
 
 java {
@@ -21,7 +21,6 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
-	// Spring Boot의 기본 로깅(Logback) 제외
 	all {
 		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
 	}
@@ -50,6 +49,7 @@ dependencies {
 	// Retry
 	implementation 'org.springframework.retry:spring-retry'
 
+	// logging
 	implementation 'org.springframework.boot:spring-boot-starter-log4j2'
 	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
 	implementation 'org.apache.logging.log4j:log4j-layout-template-json'
@@ -57,11 +57,8 @@ dependencies {
 	implementation 'org.apache.httpcomponents:httpclient:4.5.14'
 	implementation 'org.apache.httpcomponents:httpcore:4.4.16'
 
-	// 비동기 로깅
-//	implementation 'com.lmax:disruptor:3.4.4'
-//		implementation 'org.apache.commons:commons-dbcp2'
-//	implementation 'org.apache.commons:commons-pool2'
 
+	// micrometer & actuator
 	implementation "io.micrometer:micrometer-tracing-bridge-brave"
 	implementation "io.micrometer:micrometer-tracing"
 	implementation 'io.micrometer:micrometer-registry-prometheus'

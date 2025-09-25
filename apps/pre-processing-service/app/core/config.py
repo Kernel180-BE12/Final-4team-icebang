@@ -104,7 +104,7 @@ class BaseSettingsConfig(BaseSettings):
     MAX_IMAGE_SIZE_MB: int = 10
 
     # 테스트/추가용 필드
-    openai_api_key: Optional[str] = None  # << 이 부분 추가
+    OPENAI_API_KEY: Optional[str] = None  # << 이 부분 추가
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -50,11 +50,12 @@ public class WorkflowExecutionService {
   @Transactional
   @Async("traceExecutor")
   public void executeWorkflow(Long workflowId) {
-    mdcManager.setWorkflowContext(workflowId);
+    WorkflowRun workflowRun = WorkflowRun.start(workflowId);
+    workflowRunMapper.insert(workflowRun);
+
+    mdcManager.setWorkflowContext(workflowId, workflowRun.getTraceId());
     try {
       workflowLogger.info("========== 워크플로우 실행 시작: WorkflowId={} ==========", workflowId);
-      WorkflowRun workflowRun = WorkflowRun.start(workflowId);
-      workflowRunMapper.insert(workflowRun);
 
       Map<String, JsonNode> workflowContext = new HashMap<>();
       WorkflowDetailCardDto settings =
@@ -127,6 +128,7 @@ public class WorkflowExecutionService {
     workflowLogger.info(
         "Job (JobRunId={}) 내 총 {}개의 Task를 순차 실행합니다.", jobRun.getId(), taskDtos.size());
     boolean hasAnyTaskFailed = false;
+    Long s3UploadTaskRunId = null; // S3 업로드 태스크의 task_run_id 저장용
 
     for (TaskDto taskDto : taskDtos) {
       try {
@@ -144,6 +146,19 @@ public class WorkflowExecutionService {
                 .findFirst()
                 .map(builder -> builder.build(task, workflowContext))
                 .orElse(objectMapper.createObjectNode());
+
+        if ("S3 업로드 태스크".equals(task.getName())) {
+          requestBody.put("task_run_id", taskRun.getId());
+          s3UploadTaskRunId = taskRun.getId(); // S3 업로드의 task_run_id 저장
+        } else if ("상품 선택 태스크".equals(task.getName())) {
+          // S3 업로드에서 사용한 task_run_id를 사용
+          if (s3UploadTaskRunId != null) {
+            requestBody.put("task_run_id", s3UploadTaskRunId);
+          } else {
+            workflowLogger.error("S3 업로드 태스크가 먼저 실행되지 않아 task_run_id를 찾을 수 없습니다.");
+            // 또는 이전 Job에서 S3 업로드를 찾는 로직 추가 가능
+          }
+        }
 
         TaskRunner.TaskExecutionResult result =
             taskExecutionService.executeWithRetry(task, taskRun, requestBody);

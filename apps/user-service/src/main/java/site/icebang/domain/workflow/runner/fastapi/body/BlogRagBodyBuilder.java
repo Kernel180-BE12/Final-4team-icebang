@@ -20,7 +20,7 @@ public class BlogRagBodyBuilder implements TaskBodyBuilder {
   private final ObjectMapper objectMapper;
   private static final String TASK_NAME = "블로그 RAG 생성 태스크";
   private static final String KEYWORD_SOURCE_TASK = "키워드 검색 태스크";
-  private static final String S3_UPLOAD_SOURCE_TASK = "S3 업로드 태스크"; // 변경: 크롤링 → S3 업로드
+  private static final String PRODUCT_SELECT_SOURCE_TASK = "상품 선택 태스크"; // 변경: S3 업로드 → 상품 선택
 
   @Override
   public boolean supports(String taskName) {
@@ -36,14 +36,8 @@ public class BlogRagBodyBuilder implements TaskBodyBuilder {
         .map(node -> node.path("data").path("keyword"))
         .ifPresent(keywordNode -> body.set("keyword", keywordNode));
 
-    // S3 업로드에서 선택된 상품 정보 가져오기 (변경된 부분)
-    Optional.ofNullable(workflowContext.get(S3_UPLOAD_SOURCE_TASK))
-        .map(
-            node ->
-                node.path("data")
-                    .path("selected_product_for_content")
-                    .path("product_info")
-                    .path("product_detail"))
+    Optional.ofNullable(workflowContext.get(PRODUCT_SELECT_SOURCE_TASK))
+        .map(node -> node.path("data").path("selected_product"))
         .ifPresent(productNode -> body.set("product_info", productNode));
 
     // 기본 콘텐츠 설정
