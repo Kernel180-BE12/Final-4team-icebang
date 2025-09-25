@@ -32,12 +32,6 @@ spring:
         - classpath:sql/schema/01-schema.sql
         - classpath:sql/schema/02-quartz-schema.sql
         - classpath:sql/schema/03-schema-h2-timezone.sql
-      data-locations:
-        - classpath:sql/data/00-truncate.sql
-        - classpath:sql/data/01-insert-internal-users.sql
-        - classpath:sql/data/02-insert-external-users.sql
-        - classpath:sql/data/03-insert-workflow.sql
-        - classpath:sql/data/05-fix-timezone-data.sql
       encoding: UTF-8
 
 mybatis:

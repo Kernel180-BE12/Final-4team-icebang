@@ -20,9 +20,9 @@ import site.icebang.integration.setup.support.IntegrationTestSupport;
 
 @Sql(
     value = {
-      "classpath:sql/01-insert-internal-users.sql",
-      "classpath:sql/03-insert-workflow.sql",
-      "classpath:sql/04-insert-workflow-history.sql"
+      "classpath:sql/data/01-insert-internal-users.sql",
+      "classpath:sql/data/03-insert-workflow.sql",
+      "classpath:sql/data/04-insert-workflow-history.sql"
     },
     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Transactional
