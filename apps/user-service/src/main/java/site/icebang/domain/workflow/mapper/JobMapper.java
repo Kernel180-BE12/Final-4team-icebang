@@ -12,4 +12,7 @@ public interface JobMapper {
   List<JobDto> findJobsByWorkflowId(Long workflowId);
 
   List<TaskDto> findTasksByJobId(Long jobId);
+
+  JobDto findJobById(Long id);
+  void insertJob(JobDto job);
 }
