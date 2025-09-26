@@ -83,8 +83,8 @@ public class WorkflowHistoryApiIntegrationTest extends IntegrationTestSupport {
         .andExpect(jsonPath("$.data.jobRuns[0].jobDescription").value("키워드 검색, 상품 크롤링 및 유사도 분석 작업"))
         .andExpect(jsonPath("$.data.jobRuns[0].status").value("FAILED"))
         .andExpect(jsonPath("$.data.jobRuns[0].executionOrder").isEmpty())
-        .andExpect(jsonPath("$.data.jobRuns[0].startedAt").value("2025-09-22T09:18:44Z"))
-        .andExpect(jsonPath("$.data.jobRuns[0].finishedAt").value("2025-09-22T09:18:44Z"))
+        .andExpect(jsonPath("$.data.jobRuns[0].startedAt").value("2025-09-22T18:18:44Z"))
+        .andExpect(jsonPath("$.data.jobRuns[0].finishedAt").value("2025-09-22T18:18:44Z"))
         .andExpect(jsonPath("$.data.jobRuns[0].durationMs").value(0))
         // JobRun UTC 시간 형식 검증 - 마이크로초 포함 가능
         .andExpect(
@@ -109,9 +109,9 @@ public class WorkflowHistoryApiIntegrationTest extends IntegrationTestSupport {
         .andExpect(jsonPath("$.data.jobRuns[0].taskRuns[0].status").value("FAILED"))
         .andExpect(jsonPath("$.data.jobRuns[0].taskRuns[0].executionOrder").isEmpty())
         .andExpect(
-            jsonPath("$.data.jobRuns[0].taskRuns[0].startedAt").value("2025-09-22T09:18:44Z"))
+            jsonPath("$.data.jobRuns[0].taskRuns[0].startedAt").value("2025-09-22T18:18:44Z"))
         .andExpect(
-            jsonPath("$.data.jobRuns[0].taskRuns[0].finishedAt").value("2025-09-22T09:18:44Z"))
+            jsonPath("$.data.jobRuns[0].taskRuns[0].finishedAt").value("2025-09-22T18:18:44Z"))
         .andExpect(jsonPath("$.data.jobRuns[0].taskRuns[0].durationMs").value(0))
         // TaskRun UTC 시간 형식 검증 - 마이크로초 포함 가능
         .andExpect(
