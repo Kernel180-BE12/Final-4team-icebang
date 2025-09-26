@@ -14,5 +14,6 @@ public interface JobMapper {
   List<TaskDto> findTasksByJobId(Long jobId);
 
   JobDto findJobById(Long id);
+
   void insertJob(JobDto job);
 }
