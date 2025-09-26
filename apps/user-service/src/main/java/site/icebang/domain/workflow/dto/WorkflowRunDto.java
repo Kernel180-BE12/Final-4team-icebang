@@ -1,5 +1,7 @@
 package site.icebang.domain.workflow.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,9 +19,25 @@ public class WorkflowRunDto {
   private String runNumber;
   private String status;
   private String triggerType;
+
+  @JsonFormat(
+      shape = JsonFormat.Shape.STRING,
+      pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
+      timezone = "UTC")
   private String startedAt;
+
+  @JsonFormat(
+      shape = JsonFormat.Shape.STRING,
+      pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
+      timezone = "UTC")
   private String finishedAt;
+
   private Integer durationMs;
   private Long createdBy;
+
+  @JsonFormat(
+      shape = JsonFormat.Shape.STRING,
+      pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
+      timezone = "UTC")
   private String createdAt;
 }

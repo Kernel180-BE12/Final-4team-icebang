@@ -2,6 +2,8 @@ package site.icebang.domain.workflow.dto;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,8 +21,19 @@ public class JobRunDto {
   private String jobDescription;
   private String status;
   private Integer executionOrder;
+
+  @JsonFormat(
+      shape = JsonFormat.Shape.STRING,
+      pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
+      timezone = "UTC")
   private String startedAt;
+
+  @JsonFormat(
+      shape = JsonFormat.Shape.STRING,
+      pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
+      timezone = "UTC")
   private String finishedAt;
+
   private Integer durationMs;
   private List<TaskRunDto> taskRuns;
 }
