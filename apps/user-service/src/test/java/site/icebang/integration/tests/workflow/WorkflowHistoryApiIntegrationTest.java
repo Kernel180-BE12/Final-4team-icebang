@@ -57,8 +57,8 @@ public class WorkflowHistoryApiIntegrationTest extends IntegrationTestSupport {
         .andExpect(jsonPath("$.data.workflowRun.runNumber").isEmpty())
         .andExpect(jsonPath("$.data.workflowRun.status").value("FAILED"))
         .andExpect(jsonPath("$.data.workflowRun.triggerType").isEmpty())
-        .andExpect(jsonPath("$.data.workflowRun.startedAt").value("2025-09-22T09:18:43Z"))
-        .andExpect(jsonPath("$.data.workflowRun.finishedAt").value("2025-09-22T09:18:44Z"))
+        .andExpect(jsonPath("$.data.workflowRun.startedAt").value("2025-09-22T18:18:43Z"))
+        .andExpect(jsonPath("$.data.workflowRun.finishedAt").value("2025-09-22T18:18:44Z"))
         .andExpect(jsonPath("$.data.workflowRun.durationMs").value(1000))
         .andExpect(jsonPath("$.data.workflowRun.createdBy").isEmpty())
         .andExpect(jsonPath("$.data.workflowRun.createdAt").exists())
@@ -295,7 +295,7 @@ public class WorkflowHistoryApiIntegrationTest extends IntegrationTestSupport {
             jsonPath("$.data.jobRuns[0].taskRuns[0].finishedAt")
                 .value(matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$")))
         // 시간 순서 논리적 검증 (startedAt <= finishedAt)
-        .andExpect(jsonPath("$.data.workflowRun.startedAt").value("2025-09-22T09:18:43Z"))
-        .andExpect(jsonPath("$.data.workflowRun.finishedAt").value("2025-09-22T09:18:44Z"));
+        .andExpect(jsonPath("$.data.workflowRun.startedAt").value("2025-09-22T18:18:43Z"))
+        .andExpect(jsonPath("$.data.workflowRun.finishedAt").value("2025-09-22T18:18:44Z"));
   }
 }
