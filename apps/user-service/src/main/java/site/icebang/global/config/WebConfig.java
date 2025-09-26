@@ -70,7 +70,7 @@ public class WebConfig {
    * </ul>
    *
    * @return Z 포함 UTC 형식이 설정된 ObjectMapper 인스턴스
-   * @since v0.5.0
+   * @since v0.0.1
    */
   @Bean
   @Primary
