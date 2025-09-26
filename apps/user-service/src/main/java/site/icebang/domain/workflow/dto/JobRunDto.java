@@ -1,5 +1,6 @@
 package site.icebang.domain.workflow.dto;
 
+import java.time.Instant;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -19,8 +20,8 @@ public class JobRunDto {
   private String jobDescription;
   private String status;
   private Integer executionOrder;
-  private String startedAt;
-  private String finishedAt;
+  private Instant startedAt;
+  private Instant finishedAt;
   private Integer durationMs;
   private List<TaskRunDto> taskRuns;
 }
