@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="site.icebang.domain.log.mapper.ExecutionLogMapper">
+
+    <resultMap id="ExecutionLogResultMap" type="site.icebang.domain.workflow.dto.ExecutionLogDto">
+        <id property="id" column="id"/>
+        <result property="executionType" column="execution_type"/>
+        <result property="sourceId" column="source_id"/>
+        <result property="runId" column="run_id"/>
+        <result property="logLevel" column="log_level"/>
+        <result property="status" column="status"/>
+        <result property="logMessage" column="log_message"/>
+        <result property="executedAt" column="executed_at"/>
+        <result property="durationMs" column="duration_ms"/>
+        <result property="traceId" column="trace_id"/>
+        <result property="errorCode" column="error_code"/>
+    </resultMap>
+
+    <select id="selectLogsByCriteria" resultMap="ExecutionLogResultMap">
+        SELECT
+        id,
+        execution_type,
+        source_id,
+        run_id,
+        log_level,
+        status,
+        log_message,
+        executed_at,
+        duration_ms,
+        trace_id,
+        error_code
+        FROM
+        execution_log
+
+        <where>
+            <if test="traceId != null and traceId != ''">
+                AND trace_id = #{traceId}
+            </if>
+
+            <if test="sourceId != null">
+                AND source_id = #{sourceId}
+            </if>
+
+            <if test="executionType != null and executionType != ''">
+                AND execution_type = #{executionType}
+            </if>
+
+        </where>
+
+        ORDER BY executed_at DESC
+
+    </select>
+
+</mapper>
