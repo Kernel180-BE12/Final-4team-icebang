@@ -36,6 +36,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     gnupg \
     ca-certificates \
+    xclip \
+    xsel \
+    xvfb \
     && rm -rf /var/lib/apt/lists/*
 
 # Chrome 설치 (블로그 방식 - 직접 .deb 파일 다운로드)
@@ -70,5 +73,8 @@ ENV PATH="/opt/venv/bin:$PATH"
 # 앱 소스
 COPY . .
 
+ENV DISPLAY=:99
+RUN echo '#!/bin/bash\nXvfb :99 -screen 0 1920x1080x24 &\nsleep 2\nexec "$@"' > /start.sh && chmod +x /start.sh
+
 # (권장 대안) 코드에서 uvicorn import 안 하고 프로세스 매니저로 실행하려면:
-ENTRYPOINT ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "-b", "0.0.0.0:8000", "--timeout", "120"]
+ENTRYPOINT ["/start.sh", "gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "-b", "0.0.0.0:8000", "--timeout", "120"]
