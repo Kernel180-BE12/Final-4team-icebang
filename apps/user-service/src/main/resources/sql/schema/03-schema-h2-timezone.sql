@@ -6,7 +6,7 @@
 -- 모든 timestamp 컬럼의 기본값 제거 (H2에서는 MODIFY COLUMN 문법이 다름)
 -- H2에서는 ALTER TABLE table_name ALTER COLUMN column_name 문법 사용
 -- H2 MariaDB 모드에서는 백틱으로 테이블명을 감싸야 함
-
+SET TIME ZONE 'UTC';
 ALTER TABLE `permission` ALTER COLUMN created_at SET DEFAULT NULL;
 ALTER TABLE `permission` ALTER COLUMN updated_at SET DEFAULT NULL;
 
