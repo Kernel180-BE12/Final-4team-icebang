@@ -15,11 +15,8 @@ import lombok.NoArgsConstructor;
 /**
  * 워크플로우 생성 요청 DTO
  *
- * <p>프론트엔드에서 워크플로우 생성 시 필요한 모든 정보를 담는 DTO
- * - 기본 정보: 이름, 설명
- * - 플랫폼 설정: 검색 플랫폼, 포스팅 플랫폼
- * - 계정 설정: 포스팅 계정 정보 (JSON 형태로 저장)
- * - 스케줄 설정: 선택적으로 여러 스케줄 등록 가능
+ * <p>프론트엔드에서 워크플로우 생성 시 필요한 모든 정보를 담는 DTO - 기본 정보: 이름, 설명 - 플랫폼 설정: 검색 플랫폼, 포스팅 플랫폼 - 계정 설정: 포스팅 계정
+ * 정보 (JSON 형태로 저장) - 스케줄 설정: 선택적으로 여러 스케줄 등록 가능
  *
  * @author bwnfo0702@gmail.com
  * @since v0.1.0
@@ -71,13 +68,13 @@ public class WorkflowCreateDto {
    * 워크플로우에 등록할 스케줄 목록 (선택사항)
    *
    * <p>사용 시나리오:
+   *
    * <ul>
-   *   <li>null 또는 빈 리스트: 스케줄 없이 워크플로우만 생성</li>
-   *   <li>1개 이상: 해당 스케줄들을 함께 등록 (트랜잭션 보장)</li>
+   *   <li>null 또는 빈 리스트: 스케줄 없이 워크플로우만 생성
+   *   <li>1개 이상: 해당 스케줄들을 함께 등록 (트랜잭션 보장)
    * </ul>
    */
-  @Valid
-  private List<@Valid ScheduleCreateDto> schedules;
+  @Valid private List<@Valid ScheduleCreateDto> schedules;
 
   // JSON 변환용 필드 (MyBatis에서 사용)
   private String defaultConfigJson;

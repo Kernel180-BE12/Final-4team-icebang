@@ -3,24 +3,22 @@ package site.icebang.domain.workflow.service;
 import java.math.BigInteger;
 import java.util.*;
 
+import org.quartz.CronExpression;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.quartz.CronExpression;
-
-import site.icebang.common.exception.DuplicateDataException;
 import site.icebang.common.dto.PageParams;
 import site.icebang.common.dto.PageResult;
+import site.icebang.common.exception.DuplicateDataException;
 import site.icebang.common.service.PageableService;
+import site.icebang.domain.schedule.mapper.ScheduleMapper;
 import site.icebang.domain.schedule.model.Schedule;
+import site.icebang.domain.schedule.service.QuartzScheduleService;
 import site.icebang.domain.workflow.dto.*;
 import site.icebang.domain.workflow.mapper.WorkflowMapper;
-import site.icebang.domain.schedule.mapper.ScheduleMapper;
-import site.icebang.domain.schedule.service.QuartzScheduleService;
-
 
 /**
  * 워크플로우의 '정의'와 관련된 비즈니스 로직을 처리하는 서비스 클래스입니다.
@@ -98,8 +96,7 @@ public class WorkflowService implements PageableService<WorkflowCardDto> {
   /**
    * 워크플로우 생성 (스케줄 포함 가능)
    *
-   * <p>워크플로우와 스케줄을 하나의 트랜잭션으로 처리하여 원자성을 보장합니다.
-   * 스케줄이 포함된 경우 DB 저장 후 즉시 Quartz 스케줄러에 등록합니다.
+   * <p>워크플로우와 스케줄을 하나의 트랜잭션으로 처리하여 원자성을 보장합니다. 스케줄이 포함된 경우 DB 저장 후 즉시 Quartz 스케줄러에 등록합니다.
    *
    * @param dto 워크플로우 생성 정보 (스케줄 선택사항)
    * @param createdBy 생성자 ID
@@ -143,12 +140,12 @@ public class WorkflowService implements PageableService<WorkflowCardDto> {
 
       // 생성된 workflow ID 추출
       Object generatedId = params.get("id");
-      workflowId = (generatedId instanceof BigInteger)
+      workflowId =
+          (generatedId instanceof BigInteger)
               ? ((BigInteger) generatedId).longValue()
               : ((Number) generatedId).longValue();
 
-      log.info("워크플로우 생성 완료: {} (ID: {}, 생성자: {})",
-              dto.getName(), workflowId, createdBy);
+      log.info("워크플로우 생성 완료: {} (ID: {}, 생성자: {})", dto.getName(), workflowId, createdBy);
 
     } catch (Exception e) {
       log.error("워크플로우 생성 실패: {}", dto.getName(), e);
@@ -171,9 +168,7 @@ public class WorkflowService implements PageableService<WorkflowCardDto> {
     }
   }
 
-  /**
-   * 비즈니스 규칙 검증
-   */
+  /** 비즈니스 규칙 검증 */
   private void validateBusinessRules(WorkflowCreateDto dto) {
     // 포스팅 플랫폼 선택 시 계정 정보 필수 검증
     String postingPlatform = dto.getPostingPlatform();
@@ -215,14 +210,12 @@ public class WorkflowService implements PageableService<WorkflowCardDto> {
 
       // 1. 크론 표현식 유효성 검증 (Quartz 기준)
       if (!isValidCronExpression(cron)) {
-        throw new IllegalArgumentException(
-                "유효하지 않은 크론 표현식입니다: " + cron);
+        throw new IllegalArgumentException("유효하지 않은 크론 표현식입니다: " + cron);
       }
 
       // 2. 중복 크론식 검사
       if (cronExpressions.contains(cron)) {
-        throw new DuplicateDataException(
-                "중복된 크론 표현식이 있습니다: " + cron);
+        throw new DuplicateDataException("중복된 크론 표현식이 있습니다: " + cron);
       }
       cronExpressions.add(cron);
     }
@@ -247,24 +240,19 @@ public class WorkflowService implements PageableService<WorkflowCardDto> {
   /**
    * 스케줄 목록 등록 (DB 저장 + Quartz 등록)
    *
-   * <p>트랜잭션 내에서 DB 저장을 수행하고, Quartz 등록은 실패해도
-   * 워크플로우는 유지되도록 예외를 로그로만 처리합니다.
+   * <p>트랜잭션 내에서 DB 저장을 수행하고, Quartz 등록은 실패해도 워크플로우는 유지되도록 예외를 로그로만 처리합니다.
    *
    * @param workflowId 워크플로우 ID
    * @param scheduleCreateDtos 등록할 스케줄 목록
    * @param userId 생성자 ID
    */
   private void registerSchedules(
-          Long workflowId,
-          List<ScheduleCreateDto> scheduleCreateDtos,
-          Long userId
-  ) {
+      Long workflowId, List<ScheduleCreateDto> scheduleCreateDtos, Long userId) {
     if (scheduleCreateDtos == null || scheduleCreateDtos.isEmpty()) {
       return;
     }
 
-    log.info("스케줄 등록 시작: Workflow ID {} - {}개",
-            workflowId, scheduleCreateDtos.size());
+    log.info("스케줄 등록 시작: Workflow ID {} - {}개", workflowId, scheduleCreateDtos.size());
 
     int successCount = 0;
     int failCount = 0;
@@ -276,16 +264,15 @@ public class WorkflowService implements PageableService<WorkflowCardDto> {
 
         // 2. DB 중복 체크 (같은 워크플로우 + 같은 크론식)
         if (scheduleMapper.existsByWorkflowIdAndCronExpression(
-                workflowId, schedule.getCronExpression())) {
+            workflowId, schedule.getCronExpression())) {
           throw new DuplicateDataException(
-                  "이미 동일한 크론식의 스케줄이 존재합니다: " + schedule.getCronExpression());
+              "이미 동일한 크론식의 스케줄이 존재합니다: " + schedule.getCronExpression());
         }
 
         // 3. DB 저장
         int insertResult = scheduleMapper.insertSchedule(schedule);
         if (insertResult != 1) {
-          log.error("스케줄 DB 저장 실패: Workflow ID {} - {}",
-                  workflowId, schedule.getCronExpression());
+          log.error("스케줄 DB 저장 실패: Workflow ID {} - {}", workflowId, schedule.getCronExpression());
           failCount++;
           continue;
         }
@@ -293,24 +280,24 @@ public class WorkflowService implements PageableService<WorkflowCardDto> {
         // 4. Quartz 등록 (실시간 반영)
         quartzScheduleService.addOrUpdateSchedule(schedule);
 
-        log.info("스케줄 등록 완료: Workflow ID {} - {} ({})",
-                workflowId, schedule.getCronExpression(), schedule.getScheduleText());
+        log.info(
+            "스케줄 등록 완료: Workflow ID {} - {} ({})",
+            workflowId,
+            schedule.getCronExpression(),
+            schedule.getScheduleText());
         successCount++;
 
       } catch (DuplicateDataException e) {
-        log.warn("스케줄 중복으로 등록 건너뜀: Workflow ID {} - {}",
-                workflowId, dto.getCronExpression());
+        log.warn("스케줄 중복으로 등록 건너뜀: Workflow ID {} - {}", workflowId, dto.getCronExpression());
         failCount++;
         // 중복은 경고만 하고 계속 진행
       } catch (Exception e) {
-        log.error("스케줄 등록 실패: Workflow ID {} - {}",
-                workflowId, dto.getCronExpression(), e);
+        log.error("스케줄 등록 실패: Workflow ID {} - {}", workflowId, dto.getCronExpression(), e);
         failCount++;
         // 스케줄 등록 실패해도 워크플로우는 유지
       }
     }
 
-    log.info("스케줄 등록 완료: Workflow ID {} - 성공 {}개, 실패 {}개",
-            workflowId, successCount, failCount);
+    log.info("스케줄 등록 완료: Workflow ID {} - 성공 {}개, 실패 {}개", workflowId, successCount, failCount);
   }
 }

@@ -333,7 +333,7 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
 
     logStep(2, "워크플로우 생성 요청 전송");
     ResponseEntity<Map> response =
-            restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
 
     logStep(3, "응답 검증");
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -395,7 +395,7 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
 
     logStep(2, "워크플로우 생성 요청 전송 (3개 스케줄 포함)");
     ResponseEntity<Map> response =
-            restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
 
     logStep(3, "응답 검증");
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -436,11 +436,14 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
 
     logStep(2, "워크플로우 생성 요청 전송");
     ResponseEntity<Map> response =
-            restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
 
     logStep(3, "에러 응답 검증");
     assertThat(response.getStatusCode())
-            .isIn(HttpStatus.BAD_REQUEST, HttpStatus.UNPROCESSABLE_ENTITY, HttpStatus.INTERNAL_SERVER_ERROR);
+        .isIn(
+            HttpStatus.BAD_REQUEST,
+            HttpStatus.UNPROCESSABLE_ENTITY,
+            HttpStatus.INTERNAL_SERVER_ERROR);
 
     logSuccess("유효하지 않은 크론 표현식 검증 확인");
     logDebug("에러 응답: " + response.getBody());
@@ -484,11 +487,11 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
 
     logStep(2, "워크플로우 생성 요청 전송");
     ResponseEntity<Map> response =
-            restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
 
     logStep(3, "중복 크론식 에러 검증");
     assertThat(response.getStatusCode())
-            .isIn(HttpStatus.BAD_REQUEST, HttpStatus.CONFLICT, HttpStatus.INTERNAL_SERVER_ERROR);
+        .isIn(HttpStatus.BAD_REQUEST, HttpStatus.CONFLICT, HttpStatus.INTERNAL_SERVER_ERROR);
 
     logSuccess("중복 크론 표현식 검증 확인");
     logDebug("에러 응답: " + response.getBody());
@@ -520,7 +523,7 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
 
     logStep(2, "워크플로우 생성 요청 전송");
     ResponseEntity<Map> response =
-            restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
 
     logStep(3, "응답 검증");
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -562,7 +565,7 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
 
     logStep(2, "워크플로우 생성 요청 전송");
     ResponseEntity<Map> response =
-            restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
 
     logStep(3, "응답 검증 - DB 저장은 성공하지만 Quartz 미등록");
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -574,5 +577,4 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
 
     logCompletion("비활성화 스케줄 테스트 완료");
   }
-
 }
