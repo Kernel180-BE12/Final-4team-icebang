@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'site.icebang'
-version = '0.0.1-beta-STABLE'
+version = '0.1.0-SNAPSHOT'
 description = 'Ice bang - fast campus team4'
 
 java {
