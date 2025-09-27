@@ -187,8 +187,12 @@ class S3ImageInfo(BaseModel):
     )
     s3_url: str = Field(..., title="S3 URL", description="S3에서 접근 가능한 URL")
     # 새로 추가: 파일 크기 정보 (이미지 선별용)
-    file_size_kb: Optional[float] = Field(None, title="파일 크기(KB)", description="이미지 파일 크기")
-    file_name: Optional[str] = Field(None, title="파일명", description="S3에 저장된 파일명")
+    file_size_kb: Optional[float] = Field(
+        None, title="파일 크기(KB)", description="이미지 파일 크기"
+    )
+    file_name: Optional[str] = Field(
+        None, title="파일명", description="S3에 저장된 파일명"
+    )
 
 
 # 상품별 S3 업로드 결과
@@ -278,13 +282,17 @@ class RequestBlogCreate(RequestBase):
         None, title="키워드", description="콘텐츠 생성용 키워드"
     )
     translation_language: Optional[str] = Field(
-        None, title="번역한 언어", description="이미지에서 중국어를 한국어로 번역한 언어"
+        None,
+        title="번역한 언어",
+        description="이미지에서 중국어를 한국어로 번역한 언어",
     )
     product_info: Optional[Dict] = Field(
         None, title="상품 정보", description="블로그 콘텐츠에 포함할 상품 정보"
     )
     uploaded_images: Optional[List[Dict]] = Field(
-        None, title="업로드된 이미지", description="S3에 업로드된 이미지 목록 (크기 정보 포함)"
+        None,
+        title="업로드된 이미지",
+        description="S3에 업로드된 이미지 목록 (크기 정보 포함)",
     )
 
 

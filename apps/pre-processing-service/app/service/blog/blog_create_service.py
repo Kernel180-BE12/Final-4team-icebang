@@ -27,7 +27,7 @@ class BlogContentService:
             "s3",
             aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
             aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-            region_name=os.getenv("AWS_REGION", "ap-northeast-2")
+            region_name=os.getenv("AWS_REGION", "ap-northeast-2"),
         )
         self.bucket_name = os.getenv("S3_BUCKET_NAME", "icebang4-dev-bucket")
 
@@ -38,6 +38,7 @@ class BlogContentService:
         try:
             # 폴더 패턴: 20250922_키워드_1/ 형식으로 검색
             from datetime import datetime
+
             date_str = datetime.now().strftime("%Y%m%d")
 
             # 키워드 정리 (S3UploadUtil과 동일한 방식)
@@ -60,11 +61,10 @@ class BlogContentService:
 
             # S3에서 해당 폴더의 파일 목록 조회
             response = self.s3_client.list_objects_v2(
-                Bucket=self.bucket_name,
-                Prefix=folder_prefix
+                Bucket=self.bucket_name, Prefix=folder_prefix
             )
 
-            if 'Contents' not in response:
+            if "Contents" not in response:
                 logger.warning(f"S3에서 이미지를 찾을 수 없음: {folder_prefix}")
                 return []
 
@@ -72,31 +72,35 @@ class BlogContentService:
             base_url = f"https://{self.bucket_name}.s3.ap-northeast-2.amazonaws.com"
 
             # 이미지 파일만 필터링 (image_*.jpg 패턴)
-            for obj in response['Contents']:
-                key = obj['Key']
-                file_name = key.split('/')[-1]  # 마지막 부분이 파일명
+            for obj in response["Contents"]:
+                key = obj["Key"]
+                file_name = key.split("/")[-1]  # 마지막 부분이 파일명
 
                 # 이미지 파일인지 확인
-                if file_name.startswith('image_') and file_name.endswith(('.jpg', '.jpeg', '.png')):
+                if file_name.startswith("image_") and file_name.endswith(
+                    (".jpg", ".jpeg", ".png")
+                ):
                     # 파일 크기 정보 (bytes -> KB)
-                    file_size_kb = obj['Size'] / 1024
+                    file_size_kb = obj["Size"] / 1024
 
                     # 인덱스 추출 (image_001.jpg -> 1)
                     try:
-                        index = int(file_name.split('_')[1].split('.')[0])
+                        index = int(file_name.split("_")[1].split(".")[0])
                     except:
                         index = len(images) + 1
 
-                    images.append({
-                        "index": index,
-                        "s3_url": f"{base_url}/{key}",
-                        "file_name": file_name,
-                        "file_size_kb": round(file_size_kb, 2),
-                        "original_url": ""  # 원본 URL은 S3에서 조회 불가
-                    })
+                    images.append(
+                        {
+                            "index": index,
+                            "s3_url": f"{base_url}/{key}",
+                            "file_name": file_name,
+                            "file_size_kb": round(file_size_kb, 2),
+                            "original_url": "",  # 원본 URL은 S3에서 조회 불가
+                        }
+                    )
 
             # 인덱스 순으로 정렬
-            images.sort(key=lambda x: x['index'])
+            images.sort(key=lambda x: x["index"])
 
             logger.success(f"S3에서 이미지 {len(images)}개 조회 완료")
             return images
@@ -136,9 +140,8 @@ class BlogContentService:
             # STEP6: 이미지 자동 배치
             if uploaded_images and len(uploaded_images) > 0:
                 logger.debug("[STEP6] 이미지 자동 배치 시작")
-                result['content'] = self._insert_images_to_content(
-                    result['content'],
-                    uploaded_images
+                result["content"] = self._insert_images_to_content(
+                    result["content"], uploaded_images
                 )
                 logger.debug("[STEP6 완료] 이미지 배치 완료")
 
@@ -165,7 +168,9 @@ class BlogContentService:
 
             if request.product_info.get("price"):
                 try:
-                    context_parts.append(f"- 가격: {int(request.product_info['price']):,}원")
+                    context_parts.append(
+                        f"- 가격: {int(request.product_info['price']):,}원"
+                    )
                 except Exception:
                     context_parts.append(f"- 가격: {request.product_info.get('price')}")
 
@@ -192,8 +197,12 @@ class BlogContentService:
                     else:
                         context_parts.append(f"  {i}. {option}")
 
-            if request.product_info.get("url") or request.product_info.get("product_url"):
-                url = request.product_info.get("url") or request.product_info.get("product_url")
+            if request.product_info.get("url") or request.product_info.get(
+                "product_url"
+            ):
+                url = request.product_info.get("url") or request.product_info.get(
+                    "product_url"
+                )
                 context_parts.append(f"- 구매 링크: {url}")
 
         # 번역 텍스트 (translation_language) 추가
@@ -203,15 +212,19 @@ class BlogContentService:
 
         return "\n".join(context_parts) if context_parts else "키워드 기반 콘텐츠 생성"
 
-    def _select_best_images(self, uploaded_images: List[Dict], target_count: int = 4) -> List[Dict]:
+    def _select_best_images(
+        self, uploaded_images: List[Dict], target_count: int = 4
+    ) -> List[Dict]:
         """크기 기반으로 최적의 이미지 4개 선별"""
         if not uploaded_images:
             return []
 
-        logger.debug(f"이미지 선별 시작: 전체 {len(uploaded_images)}개 -> 목표 {target_count}개")
+        logger.debug(
+            f"이미지 선별 시작: 전체 {len(uploaded_images)}개 -> 목표 {target_count}개"
+        )
 
         # 1단계: 너무 작은 이미지 제외 (20KB 이하는 아이콘, 로고 가능성)
-        filtered = [img for img in uploaded_images if img.get('file_size_kb', 0) > 20]
+        filtered = [img for img in uploaded_images if img.get("file_size_kb", 0) > 20]
         logger.debug(f"크기 필터링 후: {len(filtered)}개 이미지 남음")
 
         if len(filtered) == 0:
@@ -219,7 +232,9 @@ class BlogContentService:
             filtered = uploaded_images
 
         # 2단계: 크기순 정렬 (큰 이미지 = 메인 상품 사진일 가능성)
-        sorted_images = sorted(filtered, key=lambda x: x.get('file_size_kb', 0), reverse=True)
+        sorted_images = sorted(
+            filtered, key=lambda x: x.get("file_size_kb", 0), reverse=True
+        )
 
         # 3단계: 상위 이미지 선택하되, 너무 많으면 균등 분산
         if len(sorted_images) <= target_count:
@@ -237,11 +252,15 @@ class BlogContentService:
 
         logger.debug(f"최종 선택된 이미지: {len(result)}개")
         for i, img in enumerate(result):
-            logger.debug(f"  {i + 1}. {img.get('file_name', 'unknown')} ({img.get('file_size_kb', 0):.1f}KB)")
+            logger.debug(
+                f"  {i + 1}. {img.get('file_name', 'unknown')} ({img.get('file_size_kb', 0):.1f}KB)"
+            )
 
         return result
 
-    def _insert_images_to_content(self, content: str, uploaded_images: List[Dict]) -> str:
+    def _insert_images_to_content(
+        self, content: str, uploaded_images: List[Dict]
+    ) -> str:
         """AI가 적절한 위치에 이미지 4개를 자동 배치"""
 
         # 1단계: 최적의 이미지 4개 선별
@@ -282,18 +301,19 @@ class BlogContentService:
 
             # 4단계: 플레이스홀더를 실제 img 태그로 교체
             for i, img in enumerate(selected_images):
-                img_tag = f'''
+                img_tag = f"""
 <div style="text-align: center; margin: 20px 0;">
     <img src="{img["s3_url"]}" alt="상품 이미지 {i + 1}" 
          style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-</div>'''
+</div>"""
 
                 placeholder = f"[IMAGE_{i + 1}]"
                 modified_content = modified_content.replace(placeholder, img_tag)
 
             # 5단계: 남은 플레이스홀더 제거 (혹시 AI가 더 많이 만들었을 경우)
             import re
-            modified_content = re.sub(r'\[IMAGE_\d+\]', '', modified_content)
+
+            modified_content = re.sub(r"\[IMAGE_\d+\]", "", modified_content)
 
             logger.success(f"이미지 배치 완료: {len(selected_images)}개 이미지 삽입")
             return modified_content
@@ -308,9 +328,9 @@ class BlogContentService:
         # 기본 키워드가 없으면 상품 제목에서 추출
         main_keyword = request.keyword
         if (
-                not main_keyword
-                and request.product_info
-                and request.product_info.get("title")
+            not main_keyword
+            and request.product_info
+            and request.product_info.get("title")
         ):
             main_keyword = request.product_info["title"]
 
@@ -365,7 +385,7 @@ class BlogContentService:
             raise
 
     def _parse_generated_content(
-            self, content: str, request: RequestBlogCreate
+        self, content: str, request: RequestBlogCreate
     ) -> Dict[str, Any]:
         """생성된 콘텐츠를 파싱하여 구조화"""
 

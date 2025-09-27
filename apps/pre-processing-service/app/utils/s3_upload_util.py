@@ -159,12 +159,12 @@ class S3UploadUtil:
         return f"{self.base_url}/{s3_key}"
 
     async def upload_single_product_images(
-            self,
-            session: aiohttp.ClientSession,
-            product_info: Dict,
-            product_index: int,
-            keyword: str,
-            base_folder: str = "product",
+        self,
+        session: aiohttp.ClientSession,
+        product_info: Dict,
+        product_index: int,
+        keyword: str,
+        base_folder: str = "product",
     ) -> Dict:
         """단일 상품의 모든 데이터(이미지 + JSON)를 S3에 업로드"""
 
@@ -256,7 +256,9 @@ class S3UploadUtil:
                         }
                     )
 
-                    logger.debug(f"상품 {product_index}, 이미지 {img_idx} 업로드 완료 ({file_size_kb:.1f}KB)")
+                    logger.debug(
+                        f"상품 {product_index}, 이미지 {img_idx} 업로드 완료 ({file_size_kb:.1f}KB)"
+                    )
                 else:
                     fail_count += 1
 
