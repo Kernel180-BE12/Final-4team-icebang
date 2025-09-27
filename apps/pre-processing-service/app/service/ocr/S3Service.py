@@ -27,7 +27,7 @@ class S3Service:
 
         try:
             response = self.s3_client.list_objects_v2(
-                Bucket=self.bucket_name, Prefix=f"product/20250922_{self.keyword}_1"
+                Bucket=self.bucket_name, Prefix=f"product/{self.date}_{self.keyword}_1"
             )
 
             objects = []
