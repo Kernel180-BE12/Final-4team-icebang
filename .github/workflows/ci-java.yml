@@ -22,14 +22,39 @@ permissions:
   pull-requests: write
   pages: write      # GitHub Pages 배포
   id-token: write   # GitHub Pages 배포
+  actions: write
 
 jobs:
+  dependency-submission:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@v4
+        with:
+          build-root-directory: apps/user-service
+
   spotless-check:
     if: github.event.pull_request.draft == false
     name: Lint Check
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debug cache settings
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Event type: ${{ github.event.action }}"
+          echo "Cache read-only condition: ${{ github.event_name == 'pull_request' }}"
+          echo "GitHub ref: ${{ github.ref }}"
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -44,6 +69,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' }}
+          gradle-home-cache-cleanup: false
+          gradle-home-cache-includes: |
+            caches
+            notifications
+            wrapper
 
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x ./gradlew
@@ -73,9 +103,9 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
-          cache-read-only: ${{ github.event_name == 'pull_request' }}
+          cache-disabled: false
 
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x ./gradlew
