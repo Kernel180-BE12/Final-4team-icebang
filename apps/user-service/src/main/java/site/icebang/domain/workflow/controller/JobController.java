@@ -9,24 +9,24 @@ import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;
 
 import site.icebang.domain.workflow.dto.JobDto;
-import site.icebang.domain.workflow.service.JobService;
+import site.icebang.domain.workflow.service.WorkflowService;
 
 @RestController
 @RequestMapping("/v0/jobs")
 @RequiredArgsConstructor
 public class JobController {
 
-  private final JobService jobService;
+  private final WorkflowService workflowService;
 
   @PostMapping
   public ResponseEntity<Map<String, Object>> createJob(@RequestBody JobDto dto) {
-    JobDto created = jobService.createJob(dto);
+    JobDto created = workflowService.createJob(dto);
     return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("success", true, "data", created));
   }
 
   @GetMapping("/{id}")
   public ResponseEntity<Map<String, Object>> getJob(@PathVariable Long id) {
-    JobDto job = jobService.findById(id);
+    JobDto job = workflowService.findJobById(id);
     if (job == null) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("success", false));
     }

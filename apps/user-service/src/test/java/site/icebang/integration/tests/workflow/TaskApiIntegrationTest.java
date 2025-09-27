@@ -24,7 +24,7 @@ import site.icebang.integration.setup.support.IntegrationTestSupport;
     value = {
       "classpath:sql/data/00-truncate.sql",
       "classpath:sql/data/01-insert-internal-users.sql",
-      "classpath:sql/data/03-insert-workflow-h2.sql" // Task 테스트 데이터 포함
+      "classpath:sql/data/03-insert-workflow-h2.sql" // Task 테스트 데이터 포함 (10개 Task)
     },
     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Transactional
@@ -38,15 +38,15 @@ public class TaskApiIntegrationTest extends IntegrationTestSupport {
     // given
     String taskRequestJson =
         """
-        {
-          "name": "통합테스트 Task",
-          "type": "FastAPI",
-          "parameters": {
-            "endpoint": "/test/api",
-            "method": "POST"
-          }
-        }
-        """;
+                {
+                  "name": "통합테스트 Task",
+                  "type": "FastAPI",
+                  "parameters": {
+                    "endpoint": "/test/api",
+                    "method": "POST"
+                  }
+                }
+                """;
 
     // when & then
     mockMvc
@@ -126,7 +126,7 @@ public class TaskApiIntegrationTest extends IntegrationTestSupport {
   @DisplayName("Task 조회 성공")
   @WithUserDetails("admin@icebang.site")
   void getTask_success() throws Exception {
-    // given - 03-insert-workflow-h2.sql에서 생성된 Task ID 1 사용
+    // given - 03-insert-workflow-h2.sql에서 생성된 Task ID 1 사용 (키워드 검색 태스크)
     Long taskId = 1L;
 
     // when & then
@@ -195,13 +195,13 @@ public class TaskApiIntegrationTest extends IntegrationTestSupport {
     // given
     String invalidTaskRequestJson =
         """
-        {
-          "type": "FastAPI",
-          "parameters": {
-            "endpoint": "/test/api"
-          }
-        }
-        """;
+                {
+                  "type": "FastAPI",
+                  "parameters": {
+                    "endpoint": "/test/api"
+                  }
+                }
+                """;
 
     // when & then
     mockMvc
@@ -221,14 +221,14 @@ public class TaskApiIntegrationTest extends IntegrationTestSupport {
     // given
     String blankNameTaskRequestJson =
         """
-        {
-          "name": "   ",
-          "type": "FastAPI",
-          "parameters": {
-            "endpoint": "/test/api"
-          }
-        }
-        """;
+                {
+                  "name": "   ",
+                  "type": "FastAPI",
+                  "parameters": {
+                    "endpoint": "/test/api"
+                  }
+                }
+                """;
 
     // when & then
     mockMvc
@@ -265,22 +265,22 @@ public class TaskApiIntegrationTest extends IntegrationTestSupport {
     // given
     String complexTaskRequestJson =
         """
-        {
-          "name": "복잡한 파라미터 Task",
-          "type": "FastAPI",
-          "parameters": {
-            "endpoint": "/products/similarity",
-            "method": "POST",
-            "body": {
-              "keyword": "String",
-              "matched_products": "List",
-              "search_results": "List"
-            },
-            "timeout": 30,
-            "retries": 3
-          }
-        }
-        """;
+                {
+                  "name": "복잡한 파라미터 Task",
+                  "type": "FastAPI",
+                  "parameters": {
+                    "endpoint": "/products/similarity",
+                    "method": "POST",
+                    "body": {
+                      "keyword": "String",
+                      "matched_products": "List",
+                      "search_results": "List"
+                    },
+                    "timeout": 30,
+                    "retries": 3
+                  }
+                }
+                """;
 
     // when & then
     mockMvc
@@ -295,5 +295,48 @@ public class TaskApiIntegrationTest extends IntegrationTestSupport {
         .andExpect(jsonPath("$.data.name").value("복잡한 파라미터 Task"))
         .andExpect(jsonPath("$.data.parameters.endpoint").value("/products/similarity"))
         .andExpect(jsonPath("$.data.parameters.body.keyword").value("String"));
+  }
+
+  @Test
+  @DisplayName("새로 추가된 OCR Task 조회 (Task ID 8)")
+  @WithUserDetails("admin@icebang.site")
+  void getOcrTask_success() throws Exception {
+    // given - 새로 추가된 이미지 OCR 태스크 (ID: 8)
+    Long ocrTaskId = 8L;
+
+    // when & then
+    mockMvc
+        .perform(
+            get(getApiUrlForDocs("/v0/tasks/{id}"), ocrTaskId)
+                .header("Origin", "https://admin.icebang.site")
+                .header("Referer", "https://admin.icebang.site/"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.data.id").value(ocrTaskId.intValue()))
+        .andExpect(jsonPath("$.data.name").value("이미지 OCR 태스크"))
+        .andExpect(jsonPath("$.data.type").value("FastAPI"))
+        .andExpect(jsonPath("$.data.parameters").exists())
+        .andExpect(jsonPath("$.data.parameters.endpoint").value("/blogs/ocr/extract"));
+  }
+
+  @Test
+  @DisplayName("업데이트된 블로그 발행 Task 조회 (Task ID 10)")
+  @WithUserDetails("admin@icebang.site")
+  void getBlogPublishTask_success() throws Exception {
+    // given - 업데이트된 블로그 발행 태스크 (ID: 10, 기존 9에서 변경)
+    Long publishTaskId = 10L;
+
+    // when & then
+    mockMvc
+        .perform(
+            get(getApiUrlForDocs("/v0/tasks/{id}"), publishTaskId)
+                .header("Origin", "https://admin.icebang.site")
+                .header("Referer", "https://admin.icebang.site/"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.data.id").value(publishTaskId.intValue()))
+        .andExpect(jsonPath("$.data.name").value("블로그 발행 태스크"))
+        .andExpect(jsonPath("$.data.type").value("FastAPI"))
+        .andExpect(jsonPath("$.data.parameters.endpoint").value("/blogs/publish"));
   }
 }

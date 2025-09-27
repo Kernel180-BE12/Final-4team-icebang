@@ -38,12 +38,12 @@ public class JobApiIntegrationTest extends IntegrationTestSupport {
     // given
     String jobRequestJson =
         """
-        {
-          "name": "통합테스트 Job",
-          "description": "Integration Test용 Job",
-          "isEnabled": true
-        }
-        """;
+                {
+                  "name": "통합테스트 Job",
+                  "description": "Integration Test용 Job",
+                  "isEnabled": true
+                }
+                """;
 
     // when & then
     mockMvc
@@ -200,11 +200,11 @@ public class JobApiIntegrationTest extends IntegrationTestSupport {
     // given
     String invalidJobRequestJson =
         """
-        {
-          "description": "이름이 없는 Job",
-          "isEnabled": true
-        }
-        """;
+                {
+                  "description": "이름이 없는 Job",
+                  "isEnabled": true
+                }
+                """;
 
     // when & then
     mockMvc
@@ -224,12 +224,12 @@ public class JobApiIntegrationTest extends IntegrationTestSupport {
     // given
     String blankNameJobRequestJson =
         """
-        {
-          "name": "   ",
-          "description": "빈 이름 Job",
-          "isEnabled": true
-        }
-        """;
+                {
+                  "name": "   ",
+                  "description": "빈 이름 Job",
+                  "isEnabled": true
+                }
+                """;
 
     // when & then
     mockMvc
@@ -266,11 +266,11 @@ public class JobApiIntegrationTest extends IntegrationTestSupport {
     // given
     String jobRequestJson =
         """
-        {
-          "name": "UTC 시간 검증 Job",
-          "description": "시간대 보정 테스트용 Job"
-        }
-        """;
+                {
+                  "name": "UTC 시간 검증 Job",
+                  "description": "시간대 보정 테스트용 Job"
+                }
+                """;
 
     // when & then
     mockMvc
