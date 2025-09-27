@@ -2,13 +2,11 @@
 FROM python:3.11-slim AS builder
 WORKDIR /app
 
-# 필수 OS 패키지 (기존 + Chrome 설치용 패키지 추가)
+# 필수 OS 패키지 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    wget \
-    unzip \
-    gnupg \
     ca-certificates \
+    build-essential \
   && rm -rf /var/lib/apt/lists/*
 
 # Poetry 설치
@@ -20,16 +18,15 @@ RUN poetry self add "poetry-plugin-export>=1.7.0"
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# 의존성 해결 → requirements로 export → pip로 설치(= 반드시 /opt/venv에 설치됨)
+# poetry → requirements로 export → pip로 설치
 COPY pyproject.toml poetry.lock ./
 RUN poetry export --without dev -f requirements.txt -o requirements.txt \
  && pip install --no-cache-dir -r requirements.txt
-
 # ---- runtime ----
 FROM python:3.11-slim AS final
 WORKDIR /app
 
-# Chrome과 ChromeDriver 설치를 위한 패키지 설치
+# Chrome과 ChromeDriver 설치를 위한 패키지 설치 (삭제 예정 - 마운트 방식)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     unzip \
@@ -38,19 +35,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Chrome 설치 (블로그 방식 - 직접 .deb 파일 다운로드)
+# Chrome 설치 (삭제 예정 - 마운트 방식)
 RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
     && apt-get update \
     && apt-get install -y ./google-chrome-stable_current_amd64.deb \
     && rm ./google-chrome-stable_current_amd64.deb \
     && rm -rf /var/lib/apt/lists/*
 
-# MeCab & 사전 설치 (형태소 분석 의존)
+# MeCab & 사전 설치 (삭제 예정 - 마운트 방식)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     mecab \
     libmecab-dev \
-    mecab-ipadic-utf8 \
+    wget \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
+
+# 한국어 사전 수동 설치 (삭제 예정 - 마운트 방식)
+RUN cd /tmp && \
+    wget https://bitbucket.org/eunjeon/mecab-ko-dic/downloads/mecab-ko-dic-2.1.1-20180720.tar.gz && \
+    tar -zxf mecab-ko-dic-2.1.1-20180720.tar.gz && \
+    cd mecab-ko-dic-2.1.1-20180720 && \
+    ./configure && \
+    make && \
+    make install && \
+    cd / && rm -rf /tmp/mecab-ko-dic-*
 
 # /opt/venv 복사
 COPY --from=builder /opt/venv /opt/venv
@@ -59,9 +67,5 @@ ENV PATH="/opt/venv/bin:$PATH"
 # 앱 소스
 COPY . .
 
-
-# 환경변수로 MeCab 경로 지정
-ENV MECAB_PATH=/usr/lib/mecab/dic/ipadic
-
-# (권장 대안) 코드에서 uvicorn import 안 하고 프로세스 매니저로 실행하려면:
-ENTRYPOINT ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "-b", "0.0.0.0:8000", "--timeout", "120"]
+# gunicorn으로 FastAPI 앱 실행 - 타임아웃 240초 설정
+ENTRYPOINT ["/opt/venv/bin/gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "-b", "0.0.0.0:8000", "--timeout", "240"]
