@@ -2,6 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="site.icebang.domain.schedule.mapper.ScheduleMapper">
+    <!-- ResultMap 정의 -->
     <resultMap id="ScheduleResultMap" type="site.icebang.domain.schedule.model.Schedule">
         <id property="id" column="id"/>
         <result property="workflowId" column="workflow_id"/>
@@ -17,7 +18,98 @@
         <result property="scheduleText" column="schedule_text"/>
     </resultMap>
 
+    <!-- 활성화된 모든 스케줄 조회 -->
     <select id="findAllActive" resultMap="ScheduleResultMap">
         SELECT * FROM schedule WHERE is_active = true
     </select>
+
+    <!-- 새로운 스케줄 등록 -->
+    <insert id="insertSchedule" parameterType="site.icebang.domain.schedule.model.Schedule"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO schedule (
+            workflow_id,
+            cron_expression,
+            parameters,
+            is_active,
+            schedule_text,
+            created_at,
+            created_by,
+            updated_at,
+            updated_by
+        ) VALUES (
+                     #{workflowId},
+                     #{cronExpression},
+                     #{parameters},
+                     #{isActive},
+                     #{scheduleText},
+                     UTC_TIMESTAMP(),
+                     #{createdBy},
+                     UTC_TIMESTAMP(),
+                     #{updatedBy}
+                 )
+    </insert>
+
+    <!-- 특정 워크플로우의 모든 활성 스케줄 조회 -->
+    <select id="findAllByWorkflowId" resultMap="ScheduleResultMap">
+        SELECT *
+        FROM schedule
+        WHERE workflow_id = #{workflowId}
+          AND is_active = true
+        ORDER BY id
+    </select>
+
+    <!-- 워크플로우 + 크론식 중복 확인 -->
+    <select id="existsByWorkflowIdAndCronExpression" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM schedule
+        WHERE workflow_id = #{workflowId}
+          AND cron_expression = #{cronExpression}
+          AND is_active = true
+    </select>
+
+    <!-- 워크플로우 + 크론식으로 스케줄 조회 -->
+    <select id="findByWorkflowIdAndCronExpression" resultMap="ScheduleResultMap">
+        SELECT *
+        FROM schedule
+        WHERE workflow_id = #{workflowId}
+          AND cron_expression = #{cronExpression}
+          AND is_active = true
+            LIMIT 1
+    </select>
+
+    <!-- 스케줄 활성화 상태 변경 -->
+    <update id="updateActiveStatus">
+        UPDATE schedule
+        SET is_active = #{isActive},
+            updated_at = UTC_TIMESTAMP()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 스케줄 정보 수정 -->
+    <update id="updateSchedule" parameterType="site.icebang.domain.schedule.model.Schedule">
+        UPDATE schedule
+        SET cron_expression = #{cronExpression},
+            schedule_text = #{scheduleText},
+            parameters = #{parameters},
+            is_active = #{isActive},
+            updated_at = UTC_TIMESTAMP(),
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 스케줄 삭제 (비활성화) -->
+    <update id="deleteSchedule">
+        UPDATE schedule
+        SET is_active = false,
+            updated_at = UTC_TIMESTAMP()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 워크플로우의 모든 스케줄 비활성화 -->
+    <update id="deactivateAllByWorkflowId">
+        UPDATE schedule
+        SET is_active = false,
+            updated_at = UTC_TIMESTAMP()
+        WHERE workflow_id = #{workflowId}
+    </update>
 </mapper>

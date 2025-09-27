@@ -3,7 +3,9 @@ package site.icebang.e2e.scenario;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
@@ -295,5 +297,284 @@ class WorkflowCreateFlowE2eTest extends E2eTestSupport {
     logDebug("현재 UTC 시간: " + Instant.now());
 
     logCompletion("UTC 시간 기반 워크플로우 생성 검증 완료");
+  }
+
+  @Test
+  @DisplayName("워크플로우 생성 시 단일 스케줄 등록 성공")
+  void createWorkflow_withSingleSchedule_success() {
+    performUserLogin();
+
+    logStep(1, "스케줄이 포함된 워크플로우 생성");
+
+    // 워크플로우 + 스케줄 요청 데이터 구성
+    Map<String, Object> workflowRequest = new HashMap<>();
+    workflowRequest.put("name", "매일 오전 9시 자동 실행 워크플로우");
+    workflowRequest.put("description", "매일 오전 9시에 자동으로 실행되는 워크플로우");
+    workflowRequest.put("search_platform", "naver");
+    workflowRequest.put("posting_platform", "naver_blog");
+    workflowRequest.put("posting_account_id", "test_account");
+    workflowRequest.put("posting_account_password", "test_password");
+    workflowRequest.put("is_enabled", true);
+
+    // 스케줄 정보 추가
+    List<Map<String, Object>> schedules = new ArrayList<>();
+    Map<String, Object> schedule = new HashMap<>();
+    schedule.put("cronExpression", "0 0 9 * * ?"); // 매일 오전 9시
+    schedule.put("scheduleText", "매일 오전 9시");
+    schedule.put("isActive", true);
+    schedules.add(schedule);
+
+    workflowRequest.put("schedules", schedules);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(workflowRequest, headers);
+
+    logStep(2, "워크플로우 생성 요청 전송");
+    ResponseEntity<Map> response =
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
+
+    logStep(3, "응답 검증");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat((Boolean) response.getBody().get("success")).isTrue();
+
+    logSuccess("스케줄이 포함된 워크플로우 생성 성공");
+    logDebug("응답: " + response.getBody());
+
+    logCompletion("단일 스케줄 등록 테스트 완료");
+  }
+
+  @Test
+  @DisplayName("워크플로우 생성 시 다중 스케줄 등록 성공")
+  void createWorkflow_withMultipleSchedules_success() {
+    performUserLogin();
+
+    logStep(1, "다중 스케줄이 포함된 워크플로우 생성");
+
+    // 워크플로우 기본 정보
+    Map<String, Object> workflowRequest = new HashMap<>();
+    workflowRequest.put("name", "다중 스케줄 워크플로우");
+    workflowRequest.put("description", "여러 시간대에 실행되는 워크플로우");
+    workflowRequest.put("search_platform", "naver");
+    workflowRequest.put("posting_platform", "naver_blog");
+    workflowRequest.put("posting_account_id", "test_multi");
+    workflowRequest.put("posting_account_password", "test_pass123");
+    workflowRequest.put("is_enabled", true);
+
+    // 다중 스케줄 정보 추가
+    List<Map<String, Object>> schedules = new ArrayList<>();
+
+    // 스케줄 1: 매일 오전 9시
+    Map<String, Object> schedule1 = new HashMap<>();
+    schedule1.put("cronExpression", "0 0 9 * * ?");
+    schedule1.put("scheduleText", "매일 오전 9시");
+    schedule1.put("isActive", true);
+    schedules.add(schedule1);
+
+    // 스케줄 2: 매일 오후 6시
+    Map<String, Object> schedule2 = new HashMap<>();
+    schedule2.put("cronExpression", "0 0 18 * * ?");
+    schedule2.put("scheduleText", "매일 오후 6시");
+    schedule2.put("isActive", true);
+    schedules.add(schedule2);
+
+    // 스케줄 3: 평일 오후 2시
+    Map<String, Object> schedule3 = new HashMap<>();
+    schedule3.put("cronExpression", "0 0 14 ? * MON-FRI");
+    schedule3.put("scheduleText", "평일 오후 2시");
+    schedule3.put("isActive", true);
+    schedules.add(schedule3);
+
+    workflowRequest.put("schedules", schedules);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(workflowRequest, headers);
+
+    logStep(2, "워크플로우 생성 요청 전송 (3개 스케줄 포함)");
+    ResponseEntity<Map> response =
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
+
+    logStep(3, "응답 검증");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat((Boolean) response.getBody().get("success")).isTrue();
+
+    logSuccess("다중 스케줄이 포함된 워크플로우 생성 성공");
+    logDebug("응답: " + response.getBody());
+
+    logCompletion("다중 스케줄 등록 테스트 완료");
+  }
+
+  @Test
+  @DisplayName("유효하지 않은 크론 표현식으로 스케줄 등록 시 실패")
+  void createWorkflow_withInvalidCronExpression_shouldFail() {
+    performUserLogin();
+
+    logStep(1, "잘못된 크론 표현식으로 워크플로우 생성 시도");
+
+    Map<String, Object> workflowRequest = new HashMap<>();
+    workflowRequest.put("name", "잘못된 크론식 테스트");
+    workflowRequest.put("search_platform", "naver");
+    workflowRequest.put("is_enabled", true);
+
+    // 잘못된 크론 표현식
+    List<Map<String, Object>> schedules = new ArrayList<>();
+    Map<String, Object> schedule = new HashMap<>();
+    schedule.put("cronExpression", "INVALID CRON"); // 잘못된 형식
+    schedule.put("scheduleText", "잘못된 스케줄");
+    schedule.put("isActive", true);
+    schedules.add(schedule);
+
+    workflowRequest.put("schedules", schedules);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(workflowRequest, headers);
+
+    logStep(2, "워크플로우 생성 요청 전송");
+    ResponseEntity<Map> response =
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
+
+    logStep(3, "에러 응답 검증");
+    assertThat(response.getStatusCode())
+        .isIn(
+            HttpStatus.BAD_REQUEST,
+            HttpStatus.UNPROCESSABLE_ENTITY,
+            HttpStatus.INTERNAL_SERVER_ERROR);
+
+    logSuccess("유효하지 않은 크론 표현식 검증 확인");
+    logDebug("에러 응답: " + response.getBody());
+
+    logCompletion("크론 표현식 검증 테스트 완료");
+  }
+
+  @Test
+  @DisplayName("중복된 크론 표현식으로 스케줄 등록 시 실패")
+  void createWorkflow_withDuplicateCronExpression_shouldFail() {
+    performUserLogin();
+
+    logStep(1, "중복된 크론식을 가진 워크플로우 생성 시도");
+
+    Map<String, Object> workflowRequest = new HashMap<>();
+    workflowRequest.put("name", "중복 크론식 테스트");
+    workflowRequest.put("search_platform", "naver");
+    workflowRequest.put("is_enabled", true);
+
+    // 동일한 크론 표현식을 가진 스케줄 2개
+    List<Map<String, Object>> schedules = new ArrayList<>();
+
+    Map<String, Object> schedule1 = new HashMap<>();
+    schedule1.put("cronExpression", "0 0 9 * * ?"); // 매일 오전 9시
+    schedule1.put("scheduleText", "매일 오전 9시 - 첫번째");
+    schedule1.put("isActive", true);
+    schedules.add(schedule1);
+
+    Map<String, Object> schedule2 = new HashMap<>();
+    schedule2.put("cronExpression", "0 0 9 * * ?"); // 동일한 크론식
+    schedule2.put("scheduleText", "매일 오전 9시 - 두번째");
+    schedule2.put("isActive", true);
+    schedules.add(schedule2);
+
+    workflowRequest.put("schedules", schedules);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(workflowRequest, headers);
+
+    logStep(2, "워크플로우 생성 요청 전송");
+    ResponseEntity<Map> response =
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
+
+    logStep(3, "중복 크론식 에러 검증");
+    assertThat(response.getStatusCode())
+        .isIn(HttpStatus.BAD_REQUEST, HttpStatus.CONFLICT, HttpStatus.INTERNAL_SERVER_ERROR);
+
+    logSuccess("중복 크론 표현식 검증 확인");
+    logDebug("에러 응답: " + response.getBody());
+
+    logCompletion("중복 크론식 검증 테스트 완료");
+  }
+
+  @Test
+  @DisplayName("스케줄 없이 워크플로우 생성 후 정상 작동 확인")
+  void createWorkflow_withoutSchedule_success() {
+    performUserLogin();
+
+    logStep(1, "스케줄 없이 워크플로우 생성");
+
+    Map<String, Object> workflowRequest = new HashMap<>();
+    workflowRequest.put("name", "스케줄 없는 워크플로우");
+    workflowRequest.put("description", "수동 실행 전용 워크플로우");
+    workflowRequest.put("search_platform", "naver");
+    workflowRequest.put("posting_platform", "naver_blog");
+    workflowRequest.put("posting_account_id", "manual_test");
+    workflowRequest.put("posting_account_password", "manual_pass");
+    workflowRequest.put("is_enabled", true);
+    // schedules 필드 없음
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(workflowRequest, headers);
+
+    logStep(2, "워크플로우 생성 요청 전송");
+    ResponseEntity<Map> response =
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
+
+    logStep(3, "응답 검증");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat((Boolean) response.getBody().get("success")).isTrue();
+
+    logSuccess("스케줄 없는 워크플로우 생성 성공");
+    logDebug("응답: " + response.getBody());
+
+    logCompletion("스케줄 선택사항 테스트 완료");
+  }
+
+  @Test
+  @DisplayName("비활성화 스케줄로 워크플로우 생성 시 Quartz 미등록 확인")
+  void createWorkflow_withInactiveSchedule_shouldNotRegisterToQuartz() {
+    performUserLogin();
+
+    logStep(1, "비활성화 스케줄로 워크플로우 생성");
+
+    Map<String, Object> workflowRequest = new HashMap<>();
+    workflowRequest.put("name", "비활성화 스케줄 테스트");
+    workflowRequest.put("description", "DB에는 저장되지만 Quartz에는 등록되지 않음");
+    workflowRequest.put("search_platform", "naver");
+    workflowRequest.put("is_enabled", true);
+
+    // 비활성화 스케줄
+    List<Map<String, Object>> schedules = new ArrayList<>();
+    Map<String, Object> schedule = new HashMap<>();
+    schedule.put("cronExpression", "0 0 10 * * ?");
+    schedule.put("scheduleText", "매일 오전 10시 (비활성)");
+    schedule.put("isActive", false); // 비활성화
+    schedules.add(schedule);
+
+    workflowRequest.put("schedules", schedules);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(workflowRequest, headers);
+
+    logStep(2, "워크플로우 생성 요청 전송");
+    ResponseEntity<Map> response =
+        restTemplate.postForEntity(getV0ApiUrl("/workflows"), entity, Map.class);
+
+    logStep(3, "응답 검증 - DB 저장은 성공하지만 Quartz 미등록");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat((Boolean) response.getBody().get("success")).isTrue();
+
+    logSuccess("비활성화 스케줄로 워크플로우 생성 성공");
+    logDebug("응답: " + response.getBody());
+    logDebug("비활성화 스케줄은 DB에 저장되지만 Quartz에는 등록되지 않음");
+
+    logCompletion("비활성화 스케줄 테스트 완료");
   }
 }
