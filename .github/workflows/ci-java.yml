@@ -12,6 +12,7 @@ on:
       - release/**
     paths:
       - "apps/user-service/**"
+      - ".github/workflows/ci-java.yml"
 
 permissions:
   contents: read
