@@ -16,10 +16,10 @@ import lombok.NoArgsConstructor;
  * 워크플로우 생성 요청 DTO
  *
  * <p>프론트엔드에서 워크플로우 생성 시 필요한 모든 정보를 담는 DTO - 기본 정보: 이름, 설명 - 플랫폼 설정: 검색 플랫폼, 포스팅 플랫폼 - 계정 설정: 포스팅 계정
- * <<<<<<< HEAD 정보 (JSON 형태로 저장) - 스케줄 설정: 선택적으로 여러 스케줄 등록 가능
+ * 정보 (JSON 형태로 저장) - 스케줄 설정: 선택적으로 여러 스케줄 등록 가능
  *
  * @author bwnfo0702@gmail.com
- * @since v0.1.0 ======= 정보 (JSON 형태로 저장) >>>>>>> main
+ * @since v0.1.0
  */
 @Data
 @Builder
