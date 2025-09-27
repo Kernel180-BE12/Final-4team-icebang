@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -47,7 +46,6 @@ public class WorkflowExecutionService {
   private final TaskExecutionService taskExecutionService;
   private final WorkflowMapper workflowMapper;
 
-  @Transactional
   @Async("traceExecutor")
   public void executeWorkflow(Long workflowId) {
     WorkflowRun workflowRun = WorkflowRun.start(workflowId);
@@ -60,14 +58,23 @@ public class WorkflowExecutionService {
       Map<String, JsonNode> workflowContext = new HashMap<>();
       WorkflowDetailCardDto settings =
           workflowMapper.selectWorkflowDetailById(BigInteger.valueOf(workflowId));
+      workflowLogger.info("Workflow 정보 로드 성공");
+
+      workflowLogger.info("Default config 로드 시도");
       JsonNode setting = objectMapper.readTree(settings.getDefaultConfig());
-      // 📌 Mapper로부터 JobDto 리스트를 조회합니다.
+      workflowLogger.info("Default config 로드 성공");
+
+      workflowLogger.info("Job 목록 로드 시도");
       List<JobDto> jobDtos = jobMapper.findJobsByWorkflowId(workflowId);
-      // 📌 JobDto를 execution_order 기준으로 정렬합니다.
+      workflowLogger.info("Job 목록 로드 성공");
+
+      workflowLogger.info("execution_order 기준으로 정렬 시도");
       jobDtos.sort(
           Comparator.comparing(
                   JobDto::getExecutionOrder, Comparator.nullsLast(Comparator.naturalOrder()))
               .thenComparing(JobDto::getId));
+
+      workflowLogger.info("execution_order 기준으로 성공");
 
       workflowLogger.info("총 {}개의 Job을 순차적으로 실행합니다.", jobDtos.size());
       boolean hasAnyJobFailed = false;

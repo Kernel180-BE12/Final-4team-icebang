@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'site.icebang'
-version = '0.0.1-beta-STABLE'
+version = '0.1.0-SNAPSHOT'
 description = 'Ice bang - fast campus team4'
 
 java {
@@ -160,6 +160,13 @@ bootJar {
 	from ("${asciidoctor.outputDir}/html5") {
 		into 'static/docs'
 	}
+
+	// 프로덕션 JAR에서 불필요한 파일들 제외
+	exclude 'application-test-*.yml'
+	exclude 'log4j2-test-*.yml'
+	exclude 'application-develop.yml'
+	exclude 'log4j2-develop.yml'
+	exclude 'sql/**'
 }
 
 spotless {

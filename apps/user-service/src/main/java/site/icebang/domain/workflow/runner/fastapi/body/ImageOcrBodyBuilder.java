@@ -15,13 +15,11 @@ import site.icebang.domain.workflow.model.Task;
 
 @Component
 @RequiredArgsConstructor
-public class BlogRagBodyBuilder implements TaskBodyBuilder {
+public class ImageOcrBodyBuilder implements TaskBodyBuilder {
 
   private final ObjectMapper objectMapper;
-  private static final String TASK_NAME = "블로그 RAG 생성 태스크";
+  private static final String TASK_NAME = "이미지 OCR 태스크";
   private static final String KEYWORD_SOURCE_TASK = "키워드 검색 태스크";
-  private static final String PRODUCT_SELECT_SOURCE_TASK = "상품 선택 태스크";
-  private static final String OCR_SOURCE_TASK = "이미지 OCR 태스크";
 
   @Override
   public boolean supports(String taskName) {
@@ -32,21 +30,11 @@ public class BlogRagBodyBuilder implements TaskBodyBuilder {
   public ObjectNode build(Task task, Map<String, JsonNode> workflowContext) {
     ObjectNode body = objectMapper.createObjectNode();
 
-    // 키워드 정보 가져오기
+    // 키워드 정보 가져오기 (OCR 처리용)
     Optional.ofNullable(workflowContext.get(KEYWORD_SOURCE_TASK))
         .map(node -> node.path("data").path("keyword"))
-        .ifPresent(keywordNode -> body.set("keyword", keywordNode));
-
-    // OCR 번역 결과 가져오기 (새로 추가)
-    Optional.ofNullable(workflowContext.get(OCR_SOURCE_TASK))
-        .map(node -> node.path("data").path("translation_language"))
         .filter(node -> !node.isMissingNode() && !node.asText().trim().isEmpty())
-        .ifPresent(translationNode -> body.set("translation_language", translationNode));
-
-    // 선택된 상품 정보 가져오기
-    Optional.ofNullable(workflowContext.get(PRODUCT_SELECT_SOURCE_TASK))
-        .map(node -> node.path("data").path("selected_product"))
-        .ifPresent(productNode -> body.set("product_info", productNode));
+        .ifPresent(keywordNode -> body.set("keyword", keywordNode));
 
     return body;
   }

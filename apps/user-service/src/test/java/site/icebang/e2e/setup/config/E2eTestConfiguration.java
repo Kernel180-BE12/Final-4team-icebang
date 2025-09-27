@@ -9,15 +9,10 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MariaDBContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.utility.DockerImageName;
 
 @TestConfiguration(proxyBeanMethods = false)
 public class E2eTestConfiguration {
-  @Bean
-  public ObjectMapper objectMapper() {
-    return new ObjectMapper();
-  }
 
   @Bean
   public Network testNetwork() {

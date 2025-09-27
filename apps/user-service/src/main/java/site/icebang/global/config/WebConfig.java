@@ -1,12 +1,18 @@
 package site.icebang.global.config;
 
 import java.time.Duration;
+import java.util.TimeZone;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
  * 애플리케이션의 웹 관련 설정을 담당하는 Java 기반 설정 클래스입니다.
@@ -50,5 +56,28 @@ public class WebConfig {
 
     // 3. 빌더에 직접 생성한 requestFactory를 설정
     return builder.requestFactory(() -> requestFactory).build();
+  }
+
+  /**
+   * Z 포함 UTC 형식으로 시간을 직렬화하는 ObjectMapper 빈을 생성합니다.
+   *
+   * <p>이 ObjectMapper는 애플리케이션 전역에서 사용되며, 다음과 같은 설정을 적용합니다:
+   *
+   * <ul>
+   *   <li>JavaTimeModule 등록으로 Java 8 시간 API 지원
+   *   <li>timestamps 대신 ISO 8601 문자열 형식 사용
+   *   <li>UTC 타임존 설정으로 Z 포함 형식 보장
+   * </ul>
+   *
+   * @return Z 포함 UTC 형식이 설정된 ObjectMapper 인스턴스
+   * @since v0.0.1
+   */
+  @Bean
+  @Primary
+  public ObjectMapper objectMapper() {
+    return new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 }

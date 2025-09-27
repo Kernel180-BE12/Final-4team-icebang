@@ -57,21 +57,21 @@ public class WorkflowHistoryApiIntegrationTest extends IntegrationTestSupport {
         .andExpect(jsonPath("$.data.workflowRun.runNumber").isEmpty())
         .andExpect(jsonPath("$.data.workflowRun.status").value("FAILED"))
         .andExpect(jsonPath("$.data.workflowRun.triggerType").isEmpty())
-        .andExpect(jsonPath("$.data.workflowRun.startedAt").value("2025-09-22 18:18:43"))
-        .andExpect(jsonPath("$.data.workflowRun.finishedAt").value("2025-09-22 18:18:44"))
+        .andExpect(jsonPath("$.data.workflowRun.startedAt").value("2025-09-22T18:18:43Z"))
+        .andExpect(jsonPath("$.data.workflowRun.finishedAt").value("2025-09-22T18:18:44Z"))
         .andExpect(jsonPath("$.data.workflowRun.durationMs").value(1000))
         .andExpect(jsonPath("$.data.workflowRun.createdBy").isEmpty())
         .andExpect(jsonPath("$.data.workflowRun.createdAt").exists())
         // UTC 시간 형식 검증 (시간대 보장) - 마이크로초 포함 가능
         .andExpect(
             jsonPath("$.data.workflowRun.startedAt")
-                .value(matchesPattern("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d+)?")))
+                .value(matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$")))
         .andExpect(
             jsonPath("$.data.workflowRun.finishedAt")
-                .value(matchesPattern("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d+)?")))
+                .value(matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$")))
         .andExpect(
             jsonPath("$.data.workflowRun.createdAt")
-                .value(matchesPattern("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d+)?")))
+                .value(matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$")))
         // jobRuns 배열 확인
         .andExpect(jsonPath("$.data.jobRuns").isArray())
         .andExpect(jsonPath("$.data.jobRuns.length()").value(1))
@@ -83,16 +83,19 @@ public class WorkflowHistoryApiIntegrationTest extends IntegrationTestSupport {
         .andExpect(jsonPath("$.data.jobRuns[0].jobDescription").value("키워드 검색, 상품 크롤링 및 유사도 분석 작업"))
         .andExpect(jsonPath("$.data.jobRuns[0].status").value("FAILED"))
         .andExpect(jsonPath("$.data.jobRuns[0].executionOrder").isEmpty())
-        .andExpect(jsonPath("$.data.jobRuns[0].startedAt").value("2025-09-22 18:18:44"))
-        .andExpect(jsonPath("$.data.jobRuns[0].finishedAt").value("2025-09-22 18:18:44"))
+        .andExpect(jsonPath("$.data.jobRuns[0].startedAt").value("2025-09-22T18:18:44Z"))
+        .andExpect(jsonPath("$.data.jobRuns[0].finishedAt").value("2025-09-22T18:18:44Z"))
         .andExpect(jsonPath("$.data.jobRuns[0].durationMs").value(0))
         // JobRun UTC 시간 형식 검증 - 마이크로초 포함 가능
         .andExpect(
-            jsonPath("$.data.jobRuns[0].startedAt")
-                .value(matchesPattern("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d+)?")))
+            jsonPath(
+                "$.data.jobRuns[0].startedAt",
+                matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$")))
+        // finishedAt 도 동일하게
         .andExpect(
-            jsonPath("$.data.jobRuns[0].finishedAt")
-                .value(matchesPattern("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d+)?")))
+            jsonPath(
+                "$.data.jobRuns[0].finishedAt",
+                matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$")))
         // taskRuns 배열 확인
         .andExpect(jsonPath("$.data.jobRuns[0].taskRuns").isArray())
         .andExpect(jsonPath("$.data.jobRuns[0].taskRuns.length()").value(1))
@@ -105,17 +108,18 @@ public class WorkflowHistoryApiIntegrationTest extends IntegrationTestSupport {
         .andExpect(jsonPath("$.data.jobRuns[0].taskRuns[0].taskType").value("FastAPI"))
         .andExpect(jsonPath("$.data.jobRuns[0].taskRuns[0].status").value("FAILED"))
         .andExpect(jsonPath("$.data.jobRuns[0].taskRuns[0].executionOrder").isEmpty())
-        .andExpect(jsonPath("$.data.jobRuns[0].taskRuns[0].startedAt").value("2025-09-22 18:18:44"))
         .andExpect(
-            jsonPath("$.data.jobRuns[0].taskRuns[0].finishedAt").value("2025-09-22 18:18:44"))
+            jsonPath("$.data.jobRuns[0].taskRuns[0].startedAt").value("2025-09-22T18:18:44Z"))
+        .andExpect(
+            jsonPath("$.data.jobRuns[0].taskRuns[0].finishedAt").value("2025-09-22T18:18:44Z"))
         .andExpect(jsonPath("$.data.jobRuns[0].taskRuns[0].durationMs").value(0))
         // TaskRun UTC 시간 형식 검증 - 마이크로초 포함 가능
         .andExpect(
             jsonPath("$.data.jobRuns[0].taskRuns[0].startedAt")
-                .value(matchesPattern("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d+)?")))
+                .value(matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$")))
         .andExpect(
             jsonPath("$.data.jobRuns[0].taskRuns[0].finishedAt")
-                .value(matchesPattern("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d+)?")))
+                .value(matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$")))
         .andDo(
             document(
                 "workflow-run-detail",
@@ -269,29 +273,29 @@ public class WorkflowHistoryApiIntegrationTest extends IntegrationTestSupport {
         // WorkflowRun 시간이 UTC 형식인지 검증 - 마이크로초 포함 가능
         .andExpect(
             jsonPath("$.data.workflowRun.startedAt")
-                .value(matchesPattern("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d+)?")))
+                .value(matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$")))
         .andExpect(
             jsonPath("$.data.workflowRun.finishedAt")
-                .value(matchesPattern("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d+)?")))
+                .value(matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$")))
         .andExpect(
             jsonPath("$.data.workflowRun.createdAt")
-                .value(matchesPattern("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d+)?")))
+                .value(matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$")))
         // JobRun 시간이 UTC 형식인지 검증 - 마이크로초 포함 가능
         .andExpect(
             jsonPath("$.data.jobRuns[0].startedAt")
-                .value(matchesPattern("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d+)?")))
+                .value(matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$")))
         .andExpect(
             jsonPath("$.data.jobRuns[0].finishedAt")
-                .value(matchesPattern("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d+)?")))
+                .value(matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$")))
         // TaskRun 시간이 UTC 형식인지 검증 - 마이크로초 포함 가능
         .andExpect(
             jsonPath("$.data.jobRuns[0].taskRuns[0].startedAt")
-                .value(matchesPattern("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d+)?")))
+                .value(matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$")))
         .andExpect(
             jsonPath("$.data.jobRuns[0].taskRuns[0].finishedAt")
-                .value(matchesPattern("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d+)?")))
+                .value(matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$")))
         // 시간 순서 논리적 검증 (startedAt <= finishedAt)
-        .andExpect(jsonPath("$.data.workflowRun.startedAt").value("2025-09-22 18:18:43"))
-        .andExpect(jsonPath("$.data.workflowRun.finishedAt").value("2025-09-22 18:18:44"));
+        .andExpect(jsonPath("$.data.workflowRun.startedAt").value("2025-09-22T18:18:43Z"))
+        .andExpect(jsonPath("$.data.workflowRun.finishedAt").value("2025-09-22T18:18:44Z"));
   }
 }

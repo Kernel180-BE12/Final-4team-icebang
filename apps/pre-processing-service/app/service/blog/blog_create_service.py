@@ -1,5 +1,6 @@
-import json
 import logging
+import os
+import boto3
 from loguru import logger
 from datetime import datetime
 from typing import Dict, List, Optional, Any
@@ -19,19 +20,98 @@ class BlogContentService:
         if not self.openai_api_key:
             raise ValueError("OPENAI_API_KEY가 .env.dev 파일에 설정되지 않았습니다.")
 
-        # 인스턴스 레벨에서 클라이언트 생성
         self.client = OpenAI(api_key=self.openai_api_key)
+
+        # S3 클라이언트 추가
+        self.s3_client = boto3.client(
+            "s3",
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            region_name=os.getenv("AWS_REGION", "ap-northeast-2"),
+        )
+        self.bucket_name = os.getenv("S3_BUCKET_NAME", "icebang4-dev-bucket")
+
         logging.basicConfig(level=logging.INFO)
+
+    def _fetch_images_from_s3(self, keyword: str, product_index: int = 1) -> List[Dict]:
+        """S3에서 해당 상품의 이미지 정보를 조회"""
+        try:
+            # 폴더 패턴: 20250922_키워드_1/ 형식으로 검색
+            from datetime import datetime
+
+            date_str = datetime.now().strftime("%Y%m%d")
+
+            # 키워드 정리 (S3UploadUtil과 동일한 방식)
+            safe_keyword = (
+                keyword.replace("/", "-")
+                .replace("\\", "-")
+                .replace(" ", "_")
+                .replace(":", "-")
+                .replace("*", "-")
+                .replace("?", "-")
+                .replace('"', "-")
+                .replace("<", "-")
+                .replace(">", "-")
+                .replace("|", "-")[:20]
+            )
+
+            folder_prefix = f"product/{date_str}_{safe_keyword}_{product_index}/"
+
+            logger.debug(f"S3에서 이미지 조회: {folder_prefix}")
+
+            # S3에서 해당 폴더의 파일 목록 조회
+            response = self.s3_client.list_objects_v2(
+                Bucket=self.bucket_name, Prefix=folder_prefix
+            )
+
+            if "Contents" not in response:
+                logger.warning(f"S3에서 이미지를 찾을 수 없음: {folder_prefix}")
+                return []
+
+            images = []
+            base_url = f"https://{self.bucket_name}.s3.ap-northeast-2.amazonaws.com"
+
+            # 이미지 파일만 필터링 (image_*.jpg 패턴)
+            for obj in response["Contents"]:
+                key = obj["Key"]
+                file_name = key.split("/")[-1]  # 마지막 부분이 파일명
+
+                # 이미지 파일인지 확인
+                if file_name.startswith("image_") and file_name.endswith(
+                    (".jpg", ".jpeg", ".png")
+                ):
+                    # 파일 크기 정보 (bytes -> KB)
+                    file_size_kb = obj["Size"] / 1024
+
+                    # 인덱스 추출 (image_001.jpg -> 1)
+                    try:
+                        index = int(file_name.split("_")[1].split(".")[0])
+                    except:
+                        index = len(images) + 1
+
+                    images.append(
+                        {
+                            "index": index,
+                            "s3_url": f"{base_url}/{key}",
+                            "file_name": file_name,
+                            "file_size_kb": round(file_size_kb, 2),
+                            "original_url": "",  # 원본 URL은 S3에서 조회 불가
+                        }
+                    )
+
+            # 인덱스 순으로 정렬
+            images.sort(key=lambda x: x["index"])
+
+            logger.success(f"S3에서 이미지 {len(images)}개 조회 완료")
+            return images
+
+        except Exception as e:
+            logger.error(f"S3 이미지 조회 실패: {e}")
+            return []
 
     def generate_blog_content(self, request: RequestBlogCreate) -> Dict[str, Any]:
         """
-        요청 데이터를 기반으로 블로그 콘텐츠 생성
-
-        Args:
-            request: RequestBlogCreate 객체
-
-        Returns:
-            Dict: {"title": str, "content": str, "tags": List[str]} 형태의 결과
+        요청 데이터를 기반으로 블로그 콘텐츠 생성 (이미지 자동 배치 포함)
         """
         try:
             logger.debug("[STEP1] 콘텐츠 컨텍스트 준비 시작")
@@ -50,6 +130,21 @@ class BlogContentService:
             result = self._parse_generated_content(generated_content, request)
             logger.debug("[STEP4 완료]")
 
+            # STEP5: S3에서 이미지 정보 조회 (새로 추가)
+            uploaded_images = request.uploaded_images
+            if not uploaded_images and request.keyword:
+                logger.debug("[STEP5-1] S3에서 이미지 정보 조회 시작")
+                uploaded_images = self._fetch_images_from_s3(request.keyword)
+                logger.debug(f"[STEP5-1 완료] 조회된 이미지: {len(uploaded_images)}개")
+
+            # STEP6: 이미지 자동 배치
+            if uploaded_images and len(uploaded_images) > 0:
+                logger.debug("[STEP6] 이미지 자동 배치 시작")
+                result["content"] = self._insert_images_to_content(
+                    result["content"], uploaded_images
+                )
+                logger.debug("[STEP6 완료] 이미지 배치 완료")
+
             return result
 
         except Exception as e:
@@ -60,29 +155,31 @@ class BlogContentService:
         """요청 데이터를 콘텐츠 생성용 컨텍스트로 변환"""
         context_parts = []
 
-        # 키워드 정보 추가
+        # 키워드 정보
         if request.keyword:
             context_parts.append(f"주요 키워드: {request.keyword}")
 
-        # 상품 정보 추가
+        # 상품 정보
         if request.product_info:
             context_parts.append("\n상품 정보:")
 
-            # 상품 기본 정보
             if request.product_info.get("title"):
                 context_parts.append(f"- 상품명: {request.product_info['title']}")
 
             if request.product_info.get("price"):
-                context_parts.append(f"- 가격: {request.product_info['price']:,}원")
+                try:
+                    context_parts.append(
+                        f"- 가격: {int(request.product_info['price']):,}원"
+                    )
+                except Exception:
+                    context_parts.append(f"- 가격: {request.product_info.get('price')}")
 
             if request.product_info.get("rating"):
                 context_parts.append(f"- 평점: {request.product_info['rating']}/5.0")
 
-            # 상품 상세 정보
             if request.product_info.get("description"):
                 context_parts.append(f"- 설명: {request.product_info['description']}")
 
-            # 상품 사양 (material_info 등)
             if request.product_info.get("material_info"):
                 context_parts.append("- 주요 사양:")
                 specs = request.product_info["material_info"]
@@ -90,18 +187,16 @@ class BlogContentService:
                     for key, value in specs.items():
                         context_parts.append(f"  * {key}: {value}")
 
-            # 상품 옵션
             if request.product_info.get("options"):
                 options = request.product_info["options"]
                 context_parts.append(f"- 구매 옵션 ({len(options)}개):")
-                for i, option in enumerate(options[:5], 1):  # 최대 5개만
+                for i, option in enumerate(options[:5], 1):
                     if isinstance(option, dict):
                         option_name = option.get("name", f"옵션 {i}")
                         context_parts.append(f"  {i}. {option_name}")
                     else:
                         context_parts.append(f"  {i}. {option}")
 
-            # 구매 링크
             if request.product_info.get("url") or request.product_info.get(
                 "product_url"
             ):
@@ -110,7 +205,122 @@ class BlogContentService:
                 )
                 context_parts.append(f"- 구매 링크: {url}")
 
+        # 번역 텍스트 (translation_language) 추가
+        if request.translation_language:
+            context_parts.append("\n이미지(OCR)에서 추출·번역된 텍스트:")
+            context_parts.append(request.translation_language.strip())
+
         return "\n".join(context_parts) if context_parts else "키워드 기반 콘텐츠 생성"
+
+    def _select_best_images(
+        self, uploaded_images: List[Dict], target_count: int = 4
+    ) -> List[Dict]:
+        """크기 기반으로 최적의 이미지 4개 선별"""
+        if not uploaded_images:
+            return []
+
+        logger.debug(
+            f"이미지 선별 시작: 전체 {len(uploaded_images)}개 -> 목표 {target_count}개"
+        )
+
+        # 1단계: 너무 작은 이미지 제외 (20KB 이하는 아이콘, 로고 가능성)
+        filtered = [img for img in uploaded_images if img.get("file_size_kb", 0) > 20]
+        logger.debug(f"크기 필터링 후: {len(filtered)}개 이미지 남음")
+
+        if len(filtered) == 0:
+            # 모든 이미지가 너무 작다면 원본에서 선택
+            filtered = uploaded_images
+
+        # 2단계: 크기순 정렬 (큰 이미지 = 메인 상품 사진일 가능성)
+        sorted_images = sorted(
+            filtered, key=lambda x: x.get("file_size_kb", 0), reverse=True
+        )
+
+        # 3단계: 상위 이미지 선택하되, 너무 많으면 균등 분산
+        if len(sorted_images) <= target_count:
+            selected = sorted_images
+        else:
+            # 상위 2개 (메인 이미지) + 나머지에서 균등분산으로 2개
+            selected = sorted_images[:2]  # 큰 이미지 2개
+
+            remaining = sorted_images[2:]
+            if len(remaining) >= 2:
+                step = len(remaining) // 2
+                selected.extend([remaining[i * step] for i in range(2)])
+
+        result = selected[:target_count]
+
+        logger.debug(f"최종 선택된 이미지: {len(result)}개")
+        for i, img in enumerate(result):
+            logger.debug(
+                f"  {i + 1}. {img.get('file_name', 'unknown')} ({img.get('file_size_kb', 0):.1f}KB)"
+            )
+
+        return result
+
+    def _insert_images_to_content(
+        self, content: str, uploaded_images: List[Dict]
+    ) -> str:
+        """AI가 적절한 위치에 이미지 4개를 자동 배치"""
+
+        # 1단계: 최적의 이미지 4개 선별
+        selected_images = self._select_best_images(uploaded_images, target_count=4)
+
+        if not selected_images:
+            logger.warning("선별된 이미지가 없어서 이미지 배치를 건너뜀")
+            return content
+
+        logger.debug(f"이미지 배치 시작: {len(selected_images)}개 이미지")
+
+        # 2단계: AI에게 이미지 배치 위치 물어보기
+        image_placement_prompt = f"""
+다음 HTML 콘텐츠에서 이미지 {len(selected_images)}개를 적절한 위치에 배치해주세요.
+
+콘텐츠:
+{content}
+
+이미지 개수: {len(selected_images)}개
+
+요구사항:
+- 각 섹션(h2, h3 태그)마다 골고루 분산 배치
+- 너무 몰려있지 않게 적절한 간격 유지
+- 글의 흐름을 방해하지 않는 자연스러운 위치
+- [IMAGE_1], [IMAGE_2], [IMAGE_3], [IMAGE_4] 형식의 플레이스홀더로 표시
+
+⚠️ 주의사항:
+- 기존 HTML 구조와 내용은 그대로 유지
+- 오직 이미지 플레이스홀더만 적절한 위치에 삽입
+- 코드 블록(```)은 사용하지 말고 수정된 HTML만 반환
+
+수정된 HTML을 반환해주세요.
+"""
+
+        try:
+            # 3단계: AI로 배치 위치 결정
+            modified_content = self._generate_with_openai(image_placement_prompt)
+
+            # 4단계: 플레이스홀더를 실제 img 태그로 교체
+            for i, img in enumerate(selected_images):
+                img_tag = f"""
+<div style="text-align: center; margin: 20px 0;">
+    <img src="{img["s3_url"]}" alt="상품 이미지 {i + 1}" 
+         style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+</div>"""
+
+                placeholder = f"[IMAGE_{i + 1}]"
+                modified_content = modified_content.replace(placeholder, img_tag)
+
+            # 5단계: 남은 플레이스홀더 제거 (혹시 AI가 더 많이 만들었을 경우)
+            import re
+
+            modified_content = re.sub(r"\[IMAGE_\d+\]", "", modified_content)
+
+            logger.success(f"이미지 배치 완료: {len(selected_images)}개 이미지 삽입")
+            return modified_content
+
+        except Exception as e:
+            logger.error(f"이미지 배치 중 오류: {e}, 원본 콘텐츠 반환")
+            return content
 
     def _create_content_prompt(self, context: str, request: RequestBlogCreate) -> str:
         """콘텐츠 생성용 프롬프트 생성"""
@@ -138,7 +348,7 @@ class BlogContentService:
 작성 요구사항:
 1. SEO 친화적이고 클릭하고 싶은 매력적인 제목
 2. 독자의 관심을 끄는 도입부
-3. 핵심 특징과 장점을 구체적으로 설명
+3. 핵심 특징과 장점을 구체적으로 설명 (h2, h3 태그로 구조화)
 4. 실제 사용 시나리오나 활용 팁
 5. 구매 결정에 도움이 되는 정보
 
@@ -147,6 +357,7 @@ class BlogContentService:
 - 출력 시 ```나 ```html 같은 코드 블록 구문을 포함하지 마세요.
 - 오직 HTML 태그만 사용하여 구조화된 콘텐츠를 작성해주세요.
 (예: <h2>, <h3>, <p>, <ul>, <li> 등)
+- 이미지는 나중에 자동으로 삽입되므로 img 태그를 작성하지 마세요.
 """
 
         return prompt
@@ -170,7 +381,7 @@ class BlogContentService:
             return response.choices[0].message.content
 
         except Exception as e:
-            self.logger.error(f"OpenAI API 호출 실패: {e}")
+            logger.error(f"OpenAI API 호출 실패: {e}")
             raise
 
     def _parse_generated_content(
@@ -304,43 +515,3 @@ class BlogContentService:
             "content": content,
             "tags": self._generate_tags(request),
         }
-
-
-# if __name__ == '__main__':
-#     # 테스트용 요청 데이터
-#     test_request = RequestBlogCreate(
-#         keyword="아이폰 케이스",
-#         product_info={
-#             "title": "아이폰 15 프로 투명 케이스",
-#             "price": 29900,
-#             "rating": 4.8,
-#             "description": "9H 강화 보호 기능을 제공하는 투명 케이스",
-#             "material_info": {
-#                 "소재": "TPU + PC",
-#                 "두께": "1.2mm",
-#                 "색상": "투명",
-#                 "호환성": "아이폰 15 Pro"
-#             },
-#             "options": [
-#                 {"name": "투명"},
-#                 {"name": "반투명"},
-#                 {"name": "블랙"}
-#             ],
-#             "url": "https://example.com/iphone-case"
-#         }
-#     )
-#
-#     # 서비스 실행
-#     service = BlogContentService()
-#     print("=== 블로그 콘텐츠 생성 테스트 ===")
-#     print(f"키워드: {test_request.keyword}")
-#     print(f"상품: {test_request.product_info['title']}")
-#     print("\n--- 생성 시작 ---")
-#
-#     result = service.generate_blog_content(test_request)
-#
-#     print(f"\n=== 생성 결과 ===")
-#     print(f"제목: {result['title']}")
-#     print(f"\n태그: {', '.join(result['tags'])}")
-#     print(f"\n내용:\n{result['content']}")
-#     print(f"\n글자수: {len(result['content'])}자")

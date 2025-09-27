@@ -12,32 +12,70 @@ on:
       - release/**
     paths:
       - "apps/user-service/**"
+      - ".github/workflows/ci-java.yml"
 
 permissions:
-  contents: read
+  contents: write   # Dependency graph 생성용
   packages: write
   security-events: write
   checks: write
   pull-requests: write
   pages: write      # GitHub Pages 배포
   id-token: write   # GitHub Pages 배포
+  actions: write
 
 jobs:
+  dependency-submission:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@v4
+        with:
+          build-root-directory: apps/user-service
+
   spotless-check:
     if: github.event.pull_request.draft == false
     name: Lint Check
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debug cache settings
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Event type: ${{ github.event.action }}"
+          echo "Cache read-only condition: ${{ github.event_name == 'pull_request' }}"
+          echo "GitHub ref: ${{ github.ref }}"
+
       - name: Checkout repository
         uses: actions/checkout@v4
+
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+          gradle-home-cache-cleanup: false
+          gradle-home-cache-includes: |
+            caches
+            notifications
+            wrapper
+          cache-write-only: false
 
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x ./gradlew
@@ -59,12 +97,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+
       - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v4
         with:
           java-version: '${{ matrix.java-version }}'
           distribution: 'temurin'
-          cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+          cache-write-only: false
 
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x ./gradlew
@@ -78,9 +122,15 @@ jobs:
         run: |
           ./gradlew unitTest
           ./gradlew integrationTest
-          ./gradlew javadoc
           if [ "${{ github.base_ref }}" = "main" ] || [[ "${{ github.ref }}" == refs/tags/* ]]; then
             ./gradlew e2eTest
+          fi
+        working-directory: apps/user-service
+
+      - name: Generate document artifacts
+        run: |
+          ./gradlew javadoc
+          if [ "${{ github.base_ref }}" = "main" ] || [[ "${{ github.ref }}" == refs/tags/* ]]; then
             ./gradlew openapi3
           fi
         working-directory: apps/user-service
