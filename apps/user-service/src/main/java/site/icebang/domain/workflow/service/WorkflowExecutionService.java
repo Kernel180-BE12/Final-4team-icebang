@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -47,7 +46,6 @@ public class WorkflowExecutionService {
   private final TaskExecutionService taskExecutionService;
   private final WorkflowMapper workflowMapper;
 
-  @Transactional
   @Async("traceExecutor")
   public void executeWorkflow(Long workflowId) {
     WorkflowRun workflowRun = WorkflowRun.start(workflowId);
