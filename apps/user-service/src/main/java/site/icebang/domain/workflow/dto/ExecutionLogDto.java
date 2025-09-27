@@ -21,4 +21,6 @@ public class ExecutionLogDto {
   private String logMessage;
   private Instant executedAt;
   private Integer durationMs;
+  private String traceId;
+  private String errorCode;
 }
