@@ -1,6 +1,6 @@
 # app/api/router.py
 from fastapi import APIRouter
-from .endpoints import keywords, blog, product, test, sample, ocr
+from .endpoints import keywords, blog, product, test, sample
 from ..core.config import settings
 
 api_router = APIRouter()
@@ -18,8 +18,6 @@ api_router.include_router(product.router, prefix="/products", tags=["product"])
 api_router.include_router(test.router, prefix="/tests", tags=["Test"])
 
 api_router.include_router(sample.router, prefix="/v0", tags=["Sample"])
-
-api_router.include_router(ocr.router, prefix="/ocr", tags=["OCR"])
 
 
 @api_router.get("/ping")

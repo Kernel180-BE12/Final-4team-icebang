@@ -301,6 +301,29 @@ class ResponseBlogCreate(ResponseBase[BlogCreateData]):
     pass
 
 
+# ================== 이미지에서 텍스트 추출 및 번역 ==================
+class RequestImageTextExtract(RequestBase):
+    keyword: Optional[str] = Field(
+        ..., title="키워드", description="텍스트 추출용 키워드"
+    )
+
+
+class ImageTextExtract(BaseModel):
+    keyword: Optional[str] = Field(
+        ..., title="키워드", description="텍스트 추출용 키워드"
+    )
+    extraction_language: str = Field(
+        ..., title="추출된 텍스트", description="이미지에서 추출된 텍스트"
+    )
+    translation_language: str = Field(
+        ..., title="번역된 텍스트", description="추출된 텍스트의 번역본"
+    )
+
+
+class ResponseImageTextExtract(ResponseBase[ImageTextExtract]):
+    pass
+
+
 # ============== 블로그 배포 ==============
 
 

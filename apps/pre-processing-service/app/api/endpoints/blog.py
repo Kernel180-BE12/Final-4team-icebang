@@ -10,8 +10,25 @@ from ...service.blog.blogger_blog_post_adapter import (
 from app.utils.response import Response
 from app.service.blog.blog_create_service import BlogContentService
 from app.service.blog.blog_publish_service import BlogPublishService
+from app.service.ocr.S3OCRProcessor import S3OCRProcessor
 
 router = APIRouter()
+
+
+@router.post(
+    "/ocr/extract",
+    response_model=ResponseImageTextExtract,
+    summary="S3 이미지에서 텍스트 추출 및 번역",
+)
+async def ocr_extract(request: RequestImageTextExtract):
+    """
+    S3 이미지에서 텍스트 추출 및 번역
+    """
+    processor = S3OCRProcessor(request.keyword)
+
+    result = processor.process_images()
+
+    return Response.ok(result)
 
 
 @router.post(
