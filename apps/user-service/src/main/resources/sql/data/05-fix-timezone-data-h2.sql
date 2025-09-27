@@ -1,0 +1,33 @@
+-- ===================================================================
+-- 기존 서버 데이터의 시간대 보정 (KST → UTC 변환) - H2 전용
+-- ===================================================================
+-- 이 스크립트는 서버에 올라가 있는 기존 더미데이터들의 시간을 UTC로 변환합니다.
+-- 한국시간(KST, +09:00)으로 저장된 데이터를 UTC(+00:00)로 변환
+
+-- ===================================================================
+-- 1. 워크플로우 실행 관련 테이블
+-- ===================================================================
+
+-- workflow_run 테이블 시간 보정 (H2에서는 테이블이 없을 수 있으므로 조건부 실행)
+-- UPDATE `workflow_run` SET
+--     started_at = CASE
+--         WHEN started_at IS NOT NULL THEN DATEADD('HOUR', -9, started_at)
+--         ELSE NULL
+--     END,
+--     finished_at = CASE
+--         WHEN finished_at IS NOT NULL THEN DATEADD('HOUR', -9, finished_at)
+--         ELSE NULL
+--     END,
+--     created_at = CASE
+--         WHEN created_at IS NOT NULL THEN DATEADD('HOUR', -9, created_at)
+--         ELSE NULL
+--     END
+-- WHERE started_at IS NOT NULL
+--    OR finished_at IS NOT NULL
+--    OR created_at IS NOT NULL;
+
+-- ===================================================================
+-- 완료 메시지
+-- ===================================================================
+-- 이 스크립트 실행 후 모든 시간 데이터가 UTC 기준으로 변환됩니다.
+-- 애플리케이션에서 Instant를 사용하여 UTC 시간으로 처리됩니다.

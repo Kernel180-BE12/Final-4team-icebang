@@ -1,7 +1,9 @@
 package site.icebang.domain.workflow.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
+
+import org.slf4j.MDC;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,15 +16,16 @@ public class WorkflowRun {
   private Long workflowId;
   private String traceId; // 분산 추적을 위한 ID
   private String status; // PENDING, RUNNING, SUCCESS, FAILED
-  private LocalDateTime startedAt;
-  private LocalDateTime finishedAt;
-  private LocalDateTime createdAt;
+  private Instant startedAt;
+  private Instant finishedAt;
+  private Instant createdAt;
 
   private WorkflowRun(Long workflowId) {
     this.workflowId = workflowId;
-    this.traceId = UUID.randomUUID().toString(); // 고유 추적 ID 생성
+    // MDC에서 현재 요청의 traceId를 가져오거나, 없으면 새로 생성
+    this.traceId = MDC.get("traceId") != null ? MDC.get("traceId") : UUID.randomUUID().toString();
     this.status = "RUNNING";
-    this.startedAt = LocalDateTime.now();
+    this.startedAt = Instant.now();
     this.createdAt = this.startedAt;
   }
 
@@ -34,6 +37,6 @@ public class WorkflowRun {
   /** 워크플로우 실행 완료 처리 */
   public void finish(String status) {
     this.status = status;
-    this.finishedAt = LocalDateTime.now();
+    this.finishedAt = Instant.now();
   }
 }

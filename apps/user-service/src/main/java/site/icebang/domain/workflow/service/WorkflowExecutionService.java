@@ -1,5 +1,6 @@
 package site.icebang.domain.workflow.service;
 
+import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +12,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -19,11 +22,9 @@ import lombok.RequiredArgsConstructor;
 
 import site.icebang.domain.workflow.dto.JobDto;
 import site.icebang.domain.workflow.dto.TaskDto;
+import site.icebang.domain.workflow.dto.WorkflowDetailCardDto;
 import site.icebang.domain.workflow.manager.ExecutionMdcManager;
-import site.icebang.domain.workflow.mapper.JobMapper;
-import site.icebang.domain.workflow.mapper.JobRunMapper;
-import site.icebang.domain.workflow.mapper.TaskRunMapper;
-import site.icebang.domain.workflow.mapper.WorkflowRunMapper;
+import site.icebang.domain.workflow.mapper.*;
 import site.icebang.domain.workflow.model.Job;
 import site.icebang.domain.workflow.model.JobRun;
 import site.icebang.domain.workflow.model.Task;
@@ -44,6 +45,7 @@ public class WorkflowExecutionService {
   private final List<TaskBodyBuilder> bodyBuilders;
   private final ExecutionMdcManager mdcManager;
   private final TaskExecutionService taskExecutionService;
+  private final WorkflowMapper workflowMapper;
 
   @Transactional
   @Async("traceExecutor")
@@ -56,7 +58,9 @@ public class WorkflowExecutionService {
       workflowLogger.info("========== 워크플로우 실행 시작: WorkflowId={} ==========", workflowId);
 
       Map<String, JsonNode> workflowContext = new HashMap<>();
-
+      WorkflowDetailCardDto settings =
+          workflowMapper.selectWorkflowDetailById(BigInteger.valueOf(workflowId));
+      JsonNode setting = objectMapper.readTree(settings.getDefaultConfig());
       // 📌 Mapper로부터 JobDto 리스트를 조회합니다.
       List<JobDto> jobDtos = jobMapper.findJobsByWorkflowId(workflowId);
       // 📌 JobDto를 execution_order 기준으로 정렬합니다.
@@ -79,7 +83,7 @@ public class WorkflowExecutionService {
         workflowLogger.info(
             "---------- Job 실행 시작: JobId={}, JobRunId={} ----------", job.getId(), jobRun.getId());
 
-        boolean jobSucceeded = executeTasksForJob(jobRun, workflowContext);
+        boolean jobSucceeded = executeTasksForJob(jobRun, workflowContext, setting);
         jobRun.finish(jobSucceeded ? "SUCCESS" : "FAILED");
         jobRunMapper.update(jobRun);
 
@@ -97,13 +101,25 @@ public class WorkflowExecutionService {
           "========== 워크플로우 실행 {} : WorkflowRunId={} ==========",
           hasAnyJobFailed ? "실패" : "성공",
           workflowRun.getId());
+    } catch (JsonMappingException e) {
+      throw new RuntimeException(e);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
     } finally {
       mdcManager.clearExecutionContext();
     }
   }
 
-  private boolean executeTasksForJob(JobRun jobRun, Map<String, JsonNode> workflowContext) {
+  private boolean executeTasksForJob(
+      JobRun jobRun, Map<String, JsonNode> workflowContext, JsonNode setting) {
     List<TaskDto> taskDtos = jobMapper.findTasksByJobId(jobRun.getJobId());
+    for (TaskDto taskDto : taskDtos) {
+      String taskId = taskDto.getId().toString();
+      JsonNode settingForTask = setting.get(taskId);
+      if (settingForTask != null) {
+        taskDto.setSettings(settingForTask);
+      }
+    }
     taskDtos.sort(
         Comparator.comparing(
                 TaskDto::getExecutionOrder, Comparator.nullsLast(Comparator.naturalOrder()))
@@ -112,6 +128,7 @@ public class WorkflowExecutionService {
     workflowLogger.info(
         "Job (JobRunId={}) 내 총 {}개의 Task를 순차 실행합니다.", jobRun.getId(), taskDtos.size());
     boolean hasAnyTaskFailed = false;
+    Long s3UploadTaskRunId = null; // S3 업로드 태스크의 task_run_id 저장용
 
     for (TaskDto taskDto : taskDtos) {
       try {
@@ -129,6 +146,19 @@ public class WorkflowExecutionService {
                 .findFirst()
                 .map(builder -> builder.build(task, workflowContext))
                 .orElse(objectMapper.createObjectNode());
+
+        if ("S3 업로드 태스크".equals(task.getName())) {
+          requestBody.put("task_run_id", taskRun.getId());
+          s3UploadTaskRunId = taskRun.getId(); // S3 업로드의 task_run_id 저장
+        } else if ("상품 선택 태스크".equals(task.getName())) {
+          // S3 업로드에서 사용한 task_run_id를 사용
+          if (s3UploadTaskRunId != null) {
+            requestBody.put("task_run_id", s3UploadTaskRunId);
+          } else {
+            workflowLogger.error("S3 업로드 태스크가 먼저 실행되지 않아 task_run_id를 찾을 수 없습니다.");
+            // 또는 이전 Job에서 S3 업로드를 찾는 로직 추가 가능
+          }
+        }
 
         TaskRunner.TaskExecutionResult result =
             taskExecutionService.executeWithRetry(task, taskRun, requestBody);

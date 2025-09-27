@@ -1,6 +1,6 @@
 package site.icebang.domain.workflow.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -24,14 +24,17 @@ public class Task {
   /** Task 실행에 필요한 파라미터 (JSON) 예: {"url": "http://...", "method": "POST", "body": {...}} */
   private JsonNode parameters;
 
-  private LocalDateTime createdAt;
+  private JsonNode settings;
 
-  private LocalDateTime updatedAt;
+  private Instant createdAt;
+
+  private Instant updatedAt;
 
   public Task(TaskDto taskDto) {
     this.id = taskDto.getId();
     this.name = taskDto.getName();
     this.type = taskDto.getType();
+    this.settings = taskDto.getSettings();
     this.parameters = taskDto.getParameters();
   }
 }

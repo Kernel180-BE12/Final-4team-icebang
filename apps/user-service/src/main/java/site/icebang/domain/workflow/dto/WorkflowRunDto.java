@@ -1,5 +1,7 @@
 package site.icebang.domain.workflow.dto;
 
+import java.time.Instant;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,9 +19,9 @@ public class WorkflowRunDto {
   private String runNumber;
   private String status;
   private String triggerType;
-  private String startedAt;
-  private String finishedAt;
+  private Instant startedAt;
+  private Instant finishedAt;
   private Integer durationMs;
   private Long createdBy;
-  private String createdAt;
+  private Instant createdAt;
 }

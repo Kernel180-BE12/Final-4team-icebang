@@ -1,5 +1,7 @@
 package site.icebang.domain.workflow.dto;
 
+import java.time.Instant;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,6 +19,8 @@ public class ExecutionLogDto {
   private String logLevel; // info, success, warning, error
   private String status; // running, success, failed, etc
   private String logMessage;
-  private String executedAt;
+  private Instant executedAt;
   private Integer durationMs;
+  private String traceId;
+  private String errorCode;
 }

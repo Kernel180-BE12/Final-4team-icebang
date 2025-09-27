@@ -1,6 +1,6 @@
 package site.icebang.domain.workflow.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.Data;
 
@@ -10,9 +10,9 @@ public class JobDto {
   private String name;
   private String description;
   private Boolean isEnabled;
-  private LocalDateTime createdAt;
+  private Instant createdAt;
   private Long createdBy;
-  private LocalDateTime updatedAt;
+  private Instant updatedAt;
   private Long updatedBy;
 
   private Integer executionOrder;

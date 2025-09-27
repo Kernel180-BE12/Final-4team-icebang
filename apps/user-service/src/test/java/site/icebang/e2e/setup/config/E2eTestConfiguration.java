@@ -9,15 +9,10 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MariaDBContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.utility.DockerImageName;
 
 @TestConfiguration(proxyBeanMethods = false)
 public class E2eTestConfiguration {
-  @Bean
-  public ObjectMapper objectMapper() {
-    return new ObjectMapper();
-  }
 
   @Bean
   public Network testNetwork() {
@@ -48,7 +43,7 @@ public class E2eTestConfiguration {
   static void configureProperties(
       DynamicPropertyRegistry registry, MariaDBContainer<?> mariadb, GenericContainer<?> loki) {
     // MariaDB 연결 설정
-    registry.add("spring.datasource.url", mariadb::getJdbcUrl);
+    registry.add("spring.datasource.url", () -> mariadb.getJdbcUrl() + "?serverTimezone=UTC");
     registry.add("spring.datasource.username", mariadb::getUsername);
     registry.add("spring.datasource.password", mariadb::getPassword);
     registry.add("spring.datasource.driver-class-name", () -> "org.mariadb.jdbc.Driver");

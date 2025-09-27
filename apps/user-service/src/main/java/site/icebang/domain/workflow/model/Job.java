@@ -1,6 +1,6 @@
 package site.icebang.domain.workflow.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -17,9 +17,9 @@ public class Job {
   private String name;
   private String description;
   private boolean isEnabled;
-  private LocalDateTime createdAt;
+  private Instant createdAt;
   private Long createdBy;
-  private LocalDateTime updatedAt;
+  private Instant updatedAt;
   private Long updatedBy;
 
   public Job(JobDto dto) {

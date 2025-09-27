@@ -6,8 +6,6 @@ import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation;
 import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
 import org.springframework.restdocs.operation.preprocess.Preprocessors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 @TestConfiguration
 public class RestDocsConfiguration {
 
@@ -20,10 +18,5 @@ public class RestDocsConfiguration {
         Preprocessors.preprocessResponse(
             Preprocessors.removeHeaders("Content-Length", "Date", "Keep-Alive", "Connection"),
             Preprocessors.prettyPrint()));
-  }
-
-  @Bean
-  public ObjectMapper testObjectMapper() {
-    return new ObjectMapper();
   }
 }

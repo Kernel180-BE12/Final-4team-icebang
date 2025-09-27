@@ -8,9 +8,9 @@
         <result property="workflowId" column="workflow_id"/>
         <result property="traceId" column="trace_id"/>
         <result property="status" column="status"/>
-        <result property="startedAt" column="started_at"/>
-        <result property="finishedAt" column="finished_at"/>
-        <result property="createdAt" column="created_at"/>
+        <result property="startedAt" column="started_at" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
+        <result property="finishedAt" column="finished_at" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
+        <result property="createdAt" column="created_at" javaType="java.time.Instant" jdbcType="TIMESTAMP" typeHandler="site.icebang.global.config.mybatis.typehandler.InstantTypeHandler"/>
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
