@@ -32,6 +32,7 @@ services:
       - SPRING_PROFILES_ACTIVE=production
     volumes:
       - logs_volume:/logs
+      - ./config:/app/config:ro
 
   # Grafana Agent만으로 메트릭 수집 + 전송
   grafana-agent:

@@ -11,6 +11,7 @@ services:
       - ~/app/blogger:/app/blogger
       - ~/app/models:/app/models
       - logs_volume:/logs
+      - ~/app/key:/app/key
     depends_on:
       - promtail
     env_file:

@@ -106,6 +106,9 @@ class BaseSettingsConfig(BaseSettings):
     # 테스트/추가용 필드
     OPENAI_API_KEY: Optional[str] = None  # << 이 부분 추가
 
+    # OCR 번역기 설정
+    google_application_credentials: Optional[str] = None
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
