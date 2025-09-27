@@ -75,6 +75,7 @@ jobs:
             caches
             notifications
             wrapper
+          cache-write-only: false
 
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x ./gradlew
@@ -107,6 +108,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' }}
+          cache-write-only: false
 
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x ./gradlew

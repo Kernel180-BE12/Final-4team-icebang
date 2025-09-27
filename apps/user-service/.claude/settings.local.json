@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Read(//Users/jys0101/study/fast-campus-12/public/Final-4team-icebang/**)"
-    ],
-    "deny": [],
-    "ask": []
-  }
-}
