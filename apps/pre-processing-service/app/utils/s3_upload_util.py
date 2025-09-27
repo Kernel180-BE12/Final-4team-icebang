@@ -161,14 +161,13 @@ class S3UploadUtil:
     async def upload_single_product_images(
         self,
         session: aiohttp.ClientSession,
-        product_info: Dict,  # 🔸 이름 변경: product_data → product_info (전체 크롤링 데이터)
+        product_info: Dict,
         product_index: int,
-        keyword: str,  # 키워드 파라미터 추가
-        base_folder: str = "product",  # 🔸 기본 폴더 변경: product-images → product
+        keyword: str,
+        base_folder: str = "product",
     ) -> Dict:
         """단일 상품의 모든 데이터(이미지 + JSON)를 S3에 업로드"""
 
-        # 🔸 전체 크롤링 데이터에서 필요한 정보 추출
         product_detail = product_info.get("product_detail", {})
         product_title = product_detail.get("title", "Unknown")
         product_images = product_detail.get("product_images", [])
@@ -179,18 +178,15 @@ class S3UploadUtil:
             f"상품 {product_index} 업로드 시작: {len(product_images)}개 이미지, keyword='{keyword}'"
         )
 
-        # 키워드 기반 폴더명 한 번만 생성
         folder_name = self.generate_product_folder_name(product_index, keyword)
-
         fail_count = 0
         folder_s3_url = f"{self.base_url}/{base_folder}/{folder_name}"
 
-        # 🆕 1. 먼저 상품 데이터 JSON 파일 업로드
+        # 1. JSON 파일 업로드
         try:
-            # 전체 크롤링 데이터를 JSON으로 저장 (S3 업로드 메타데이터 추가)
             product_data_with_meta = {
-                **product_info,  # 전체 크롤링 데이터 (index, url, product_detail, status, crawled_at 포함)
-                "s3_upload_keyword": keyword,  # 추가 메타데이터
+                **product_info,
+                "s3_upload_keyword": keyword,
                 "s3_uploaded_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             }
 
@@ -206,7 +202,7 @@ class S3UploadUtil:
         except Exception as e:
             logger.error(f"상품 {product_index} JSON 업로드 오류: {e}")
 
-        # 2. 이미지 업로드 (기존 로직)
+        # 2. 이미지 업로드
         if not product_images:
             logger.warning(f"상품 {product_index}: 업로드할 이미지가 없음")
             return {
@@ -236,7 +232,10 @@ class S3UploadUtil:
                     fail_count += 1
                     continue
 
-                # S3 키 생성 (키워드 기반 폴더명 사용)
+                # 파일 크기 계산 (KB 단위)
+                file_size_kb = len(image_data) / 1024
+
+                # S3 키 생성
                 file_extension = self.get_file_extension(original_url)
                 image_file_name = f"image_{img_idx:03d}{file_extension}"
                 s3_key = self.generate_s3_key(base_folder, folder_name, image_file_name)
@@ -246,15 +245,20 @@ class S3UploadUtil:
 
                 if self.upload_to_s3(image_data, s3_key, content_type):
                     s3_url = self.get_s3_url(s3_key)
+                    # 파일 크기 정보 추가
                     uploaded_images.append(
                         {
                             "index": img_idx,
                             "original_url": original_url,
                             "s3_url": s3_url,
+                            "file_size_kb": round(file_size_kb, 2),
+                            "file_name": image_file_name,
                         }
                     )
 
-                    logger.debug(f"상품 {product_index}, 이미지 {img_idx} 업로드 완료")
+                    logger.debug(
+                        f"상품 {product_index}, 이미지 {img_idx} 업로드 완료 ({file_size_kb:.1f}KB)"
+                    )
                 else:
                     fail_count += 1
 
@@ -273,8 +277,8 @@ class S3UploadUtil:
             "product_index": product_index,
             "product_title": product_title,
             "status": "completed",
-            "folder_s3_url": folder_s3_url,  # 🔸 폴더 전체를 가리킴 (이미지 + JSON 포함)
-            "json_s3_url": f"{folder_s3_url}/product_data.json",  # 🆕 JSON 파일 직접 링크
+            "folder_s3_url": folder_s3_url,
+            "json_s3_url": f"{folder_s3_url}/product_data.json",
             "uploaded_images": uploaded_images,
             "success_count": len(uploaded_images),
             "fail_count": fail_count,
