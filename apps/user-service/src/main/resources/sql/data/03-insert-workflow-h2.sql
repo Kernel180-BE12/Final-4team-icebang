@@ -23,79 +23,79 @@ INSERT INTO `workflow` (`id`, `name`, `description`, `created_by`, `default_conf
                          updated_at = NOW();
 
 -- Job 생성 (ID: 1, 2) - H2에서는 NOW() 사용
-INSERT INTO `job` (`id`, `name`, `description`, `created_by`) VALUES
-                                                                  (1, '상품 분석', '키워드 검색, 상품 크롤링, S3 업로드, OCR 처리 및 상품 선택 작업', 1),
-                                                                  (2, '블로그 콘텐츠 생성', 'OCR 데이터 기반 RAG 콘텐츠 생성 및 발행 작업', 1)
+INSERT INTO `job` (`id`, `name`, `description`, `created_by`, `created_at`, `updated_at`) VALUES
+                                                                                              (1, '상품 분석', '키워드 검색, 상품 크롤링, S3 업로드, OCR 처리 및 상품 선택 작업', 1, NOW(), NOW()),
+                                                                                              (2, '블로그 콘텐츠 생성', 'OCR 데이터 기반 RAG 콘텐츠 생성 및 발행 작업', 1, NOW(), NOW())
     ON DUPLICATE KEY UPDATE name = VALUES(name), description = VALUES(description), updated_at = NOW();
 
--- Task 생성 (ID: 1 ~ 10) - H2에서는 NOW() 사용
-INSERT INTO `task` (`id`, `name`, `type`, `parameters`) VALUES
-                                                            (1, '키워드 검색 태스크', 'FastAPI', JSON_OBJECT(
-                                                                    'endpoint', '/keywords/search', 'method', 'POST',
-                                                                    'body', JSON_OBJECT('tag', 'String')
-                                                                                         )),
-                                                            (2, '상품 검색 태스크', 'FastAPI', JSON_OBJECT(
-                                                                    'endpoint', '/products/search', 'method', 'POST',
-                                                                    'body', JSON_OBJECT('keyword', 'String')
-                                                                                        )),
-                                                            (3, '상품 매칭 태스크', 'FastAPI', JSON_OBJECT(
-                                                                    'endpoint', '/products/match', 'method', 'POST',
-                                                                    'body', JSON_OBJECT(
-                                                                            'keyword', 'String',
-                                                                            'search_results', 'List'
-                                                                            )
-                                                                                        )),
-                                                            (4, '상품 유사도 분석 태스크', 'FastAPI', JSON_OBJECT(
-                                                                    'endpoint', '/products/similarity', 'method', 'POST',
-                                                                    'body', JSON_OBJECT(
-                                                                            'keyword', 'String',
-                                                                            'matched_products', 'List',
-                                                                            'search_results', 'List'
-                                                                            )
-                                                                                            )),
-                                                            (5, '상품 정보 크롤링 태스크', 'FastAPI', JSON_OBJECT(
-                                                                    'endpoint', '/products/crawl', 'method', 'POST',
-                                                                    'body', JSON_OBJECT('product_urls', 'List')
-                                                                                            )),
-                                                            (6, 'S3 업로드 태스크', 'FastAPI', JSON_OBJECT(
-                                                                    'endpoint', '/products/s3-upload', 'method', 'POST',
-                                                                    'body', JSON_OBJECT(
-                                                                            'keyword', 'String',
-                                                                            'crawled_products', 'List',
-                                                                            'base_folder', 'String'
-                                                                            )
-                                                                                         )),
-                                                            (7, '상품 선택 태스크', 'FastAPI', JSON_OBJECT(
-                                                                    'endpoint', '/products/select', 'method', 'POST',
-                                                                    'body', JSON_OBJECT(
-                                                                            'task_run_id', 'Integer',
-                                                                            'selection_criteria', 'String'
-                                                                            )
-                                                                                        )),
-                                                            (8, '이미지 OCR 태스크', 'FastAPI', JSON_OBJECT(
-                                                                    'endpoint', '/blogs/ocr/extract', 'method', 'POST',
-                                                                    'body', JSON_OBJECT('keyword', 'String')
-                                                                                          )),
-                                                            (9, '블로그 RAG 생성 태스크', 'FastAPI', JSON_OBJECT(
-                                                                    'endpoint', '/blogs/rag/create', 'method', 'POST',
-                                                                    'body', JSON_OBJECT(
-                                                                            'keyword', 'String',
-                                                                            'translation_language', 'String',
-                                                                            'product_info', 'Object'
-                                                                            )
-                                                                                             )),
-                                                            (10, '블로그 발행 태스크', 'FastAPI', JSON_OBJECT(
-                                                                    'endpoint', '/blogs/publish', 'method', 'POST',
-                                                                    'body', JSON_OBJECT(
-                                                                            'tag', 'String',
-                                                                            'blog_id', 'String',
-                                                                            'blog_pw', 'String',
-                                                                            'blog_name', 'String',
-                                                                            'post_title', 'String',
-                                                                            'post_content', 'String',
-                                                                            'post_tags', 'List'
-                                                                            )
-                                                                                          ))
+-- Task 생성 (ID: 1 ~ 10) - H2에서는 NOW() 사용, created_at/updated_at 추가
+INSERT INTO `task` (`id`, `name`, `type`, `parameters`, `created_at`, `updated_at`) VALUES
+                                                                                        (1, '키워드 검색 태스크', 'FastAPI', JSON_OBJECT(
+                                                                                                'endpoint', '/keywords/search', 'method', 'POST',
+                                                                                                'body', JSON_OBJECT('tag', 'String')
+                                                                                                                     ), NOW(), NOW()),
+                                                                                        (2, '상품 검색 태스크', 'FastAPI', JSON_OBJECT(
+                                                                                                'endpoint', '/products/search', 'method', 'POST',
+                                                                                                'body', JSON_OBJECT('keyword', 'String')
+                                                                                                                    ), NOW(), NOW()),
+                                                                                        (3, '상품 매칭 태스크', 'FastAPI', JSON_OBJECT(
+                                                                                                'endpoint', '/products/match', 'method', 'POST',
+                                                                                                'body', JSON_OBJECT(
+                                                                                                        'keyword', 'String',
+                                                                                                        'search_results', 'List'
+                                                                                                        )
+                                                                                                                    ), NOW(), NOW()),
+                                                                                        (4, '상품 유사도 분석 태스크', 'FastAPI', JSON_OBJECT(
+                                                                                                'endpoint', '/products/similarity', 'method', 'POST',
+                                                                                                'body', JSON_OBJECT(
+                                                                                                        'keyword', 'String',
+                                                                                                        'matched_products', 'List',
+                                                                                                        'search_results', 'List'
+                                                                                                        )
+                                                                                                                        ), NOW(), NOW()),
+                                                                                        (5, '상품 정보 크롤링 태스크', 'FastAPI', JSON_OBJECT(
+                                                                                                'endpoint', '/products/crawl', 'method', 'POST',
+                                                                                                'body', JSON_OBJECT('product_urls', 'List')
+                                                                                                                        ), NOW(), NOW()),
+                                                                                        (6, 'S3 업로드 태스크', 'FastAPI', JSON_OBJECT(
+                                                                                                'endpoint', '/products/s3-upload', 'method', 'POST',
+                                                                                                'body', JSON_OBJECT(
+                                                                                                        'keyword', 'String',
+                                                                                                        'crawled_products', 'List',
+                                                                                                        'base_folder', 'String'
+                                                                                                        )
+                                                                                                                     ), NOW(), NOW()),
+                                                                                        (7, '상품 선택 태스크', 'FastAPI', JSON_OBJECT(
+                                                                                                'endpoint', '/products/select', 'method', 'POST',
+                                                                                                'body', JSON_OBJECT(
+                                                                                                        'task_run_id', 'Integer',
+                                                                                                        'selection_criteria', 'String'
+                                                                                                        )
+                                                                                                                    ), NOW(), NOW()),
+                                                                                        (8, '이미지 OCR 태스크', 'FastAPI', JSON_OBJECT(
+                                                                                                'endpoint', '/blogs/ocr/extract', 'method', 'POST',
+                                                                                                'body', JSON_OBJECT('keyword', 'String')
+                                                                                                                      ), NOW(), NOW()),
+                                                                                        (9, '블로그 RAG 생성 태스크', 'FastAPI', JSON_OBJECT(
+                                                                                                'endpoint', '/blogs/rag/create', 'method', 'POST',
+                                                                                                'body', JSON_OBJECT(
+                                                                                                        'keyword', 'String',
+                                                                                                        'translation_language', 'String',
+                                                                                                        'product_info', 'Object'
+                                                                                                        )
+                                                                                                                         ), NOW(), NOW()),
+                                                                                        (10, '블로그 발행 태스크', 'FastAPI', JSON_OBJECT(
+                                                                                                'endpoint', '/blogs/publish', 'method', 'POST',
+                                                                                                'body', JSON_OBJECT(
+                                                                                                        'tag', 'String',
+                                                                                                        'blog_id', 'String',
+                                                                                                        'blog_pw', 'String',
+                                                                                                        'blog_name', 'String',
+                                                                                                        'post_title', 'String',
+                                                                                                        'post_content', 'String',
+                                                                                                        'post_tags', 'List'
+                                                                                                        )
+                                                                                                                      ), NOW(), NOW())
     ON DUPLICATE KEY UPDATE name = VALUES(name), type = VALUES(type), parameters = VALUES(parameters), updated_at = NOW();
 
 -- ===================================================================

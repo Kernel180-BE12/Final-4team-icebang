@@ -84,6 +84,14 @@ public class TaskApiIntegrationTest extends IntegrationTestSupport {
                             fieldWithPath("parameters")
                                 .type(JsonFieldType.OBJECT)
                                 .description("Task 실행에 필요한 파라미터 (JSON 형태)")
+                                .optional(),
+                            fieldWithPath("parameters.endpoint")
+                                .type(JsonFieldType.STRING)
+                                .description("API 엔드포인트")
+                                .optional(),
+                            fieldWithPath("parameters.method")
+                                .type(JsonFieldType.STRING)
+                                .description("HTTP 메소드")
                                 .optional())
                         .responseFields(
                             fieldWithPath("success")
@@ -170,6 +178,22 @@ public class TaskApiIntegrationTest extends IntegrationTestSupport {
                             fieldWithPath("data.parameters")
                                 .type(JsonFieldType.OBJECT)
                                 .description("Task 파라미터")
+                                .optional(),
+                            fieldWithPath("data.parameters.endpoint")
+                                .type(JsonFieldType.STRING)
+                                .description("API 엔드포인트")
+                                .optional(),
+                            fieldWithPath("data.parameters.method")
+                                .type(JsonFieldType.STRING)
+                                .description("HTTP 메소드")
+                                .optional(),
+                            fieldWithPath("data.parameters.body")
+                                .type(JsonFieldType.OBJECT)
+                                .description("요청 본문")
+                                .optional(),
+                            fieldWithPath("data.parameters.body.tag")
+                                .type(JsonFieldType.STRING)
+                                .description("태그 값")
                                 .optional(),
                             fieldWithPath("data.executionOrder")
                                 .type(JsonFieldType.NUMBER)

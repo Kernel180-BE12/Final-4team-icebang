@@ -1,6 +1,7 @@
 package site.icebang.domain.workflow.service;
 
 import java.math.BigInteger;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -175,10 +176,24 @@ public class WorkflowService implements PageableService<WorkflowCardDto> {
    */
   @Transactional
   public JobDto createJob(JobDto dto) {
+    // 1. 유효성 검증
     if (dto.getName() == null || dto.getName().isBlank()) {
       throw new IllegalArgumentException("job name is required");
     }
+
+    // 2. 시간 정보 설정
+    Instant now = Instant.now();
+    dto.setCreatedAt(now);
+    dto.setUpdatedAt(now);
+
+    // 3. 생성자 정보 설정 (현재 사용자 정보가 없으므로 기본값 또는 추후 개선)
+    // dto.setCreatedBy(getCurrentUserId());
+    // dto.setUpdatedBy(getCurrentUserId());
+
+    // 4. DB 저장
     jobMapper.insertJob(dto);
+
+    // 5. 저장된 Job 반환
     return jobMapper.findJobById(dto.getId());
   }
 
@@ -202,10 +217,23 @@ public class WorkflowService implements PageableService<WorkflowCardDto> {
    */
   @Transactional
   public TaskDto createTask(TaskDto dto) {
+    // 1. 유효성 검증
     if (dto.getName() == null || dto.getName().isBlank()) {
       throw new IllegalArgumentException("task name is required");
     }
+    // 2. 시간 정보 설정
+    Instant now = Instant.now();
+    dto.setCreatedAt(now);
+    dto.setUpdatedAt(now);
+
+    // 3. 생성자 정보 설정 (현재 사용자 정보가 없으므로 기본값 또는 추후 개선)
+    // dto.setCreatedBy(getCurrentUserId());
+    // dto.setUpdatedBy(getCurrentUserId());
+
+    // 4. DB 저장
     taskMapper.insertTask(dto);
+
+    // 5. 저장된 Task 반환
     return taskMapper.findTaskById(dto.getId());
   }
 

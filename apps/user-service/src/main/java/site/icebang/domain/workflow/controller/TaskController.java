@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import site.icebang.domain.workflow.dto.TaskDto;
@@ -19,7 +20,7 @@ public class TaskController {
   private final WorkflowService workflowService;
 
   @PostMapping
-  public ResponseEntity<Map<String, Object>> createTask(@RequestBody TaskDto dto) {
+  public ResponseEntity<Map<String, Object>> createTask(@Valid @RequestBody TaskDto dto) {
     TaskDto created = workflowService.createTask(dto);
     return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("success", true, "data", created));
   }

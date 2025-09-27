@@ -140,7 +140,8 @@ public class JobApiIntegrationTest extends IntegrationTestSupport {
         .andExpect(jsonPath("$.success").value(true))
         .andExpect(jsonPath("$.data.id").value(jobId.intValue()))
         .andExpect(jsonPath("$.data.name").value("상품 분석"))
-        .andExpect(jsonPath("$.data.description").value("키워드 검색, 상품 크롤링 및 유사도 분석 작업"))
+        .andExpect(
+            jsonPath("$.data.description").value("키워드 검색, 상품 크롤링, S3 업로드, OCR 처리 및 상품 선택 작업"))
         .andExpect(jsonPath("$.data.createdAt").exists())
         .andExpect(jsonPath("$.data.updatedAt").exists())
         .andDo(
