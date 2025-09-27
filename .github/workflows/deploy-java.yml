@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Create env file
+      - name: Create env file and config folder
         run: |
           echo "DB_HOST=${{ secrets.DB_HOST }}" > .env.prod
           echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env.prod
@@ -36,6 +36,11 @@ jobs:
           echo "GRAFANA_CLOUD_API_KEY=${{ secrets.GRAFANA_CLOUD_API_KEY }}" >> .env.prod
           echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env.prod
           echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env.prod
+
+          # Create config folder and copy config files
+          mkdir -p config
+          cp apps/user-service/src/main/resources/application-production.yml config/
+          cp apps/user-service/src/main/resources/log4j2-production.yml config/
 
       - name: Set repo lowercase
         run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
@@ -89,24 +94,14 @@ jobs:
           target: "~/app"
           overwrite: true
 
-      - name: Copy application-production.yml to EC2
+      - name: Copy config folder to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "apps/user-service/src/main/resources/application-production.yml"
-          target: "~/app/docker/production/config/application-production.yml"
-          overwrite: true
-
-      - name: Copy log4j2-production.yml to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ubuntu
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "apps/user-service/src/main/resources/log4j2-production.yml"
-          target: "~/app/docker/production/config/log4j2-production.yml"
+          source: "config"
+          target: "~/app/docker/production/"
           overwrite: true
 
       - name: Deploy on EC2
