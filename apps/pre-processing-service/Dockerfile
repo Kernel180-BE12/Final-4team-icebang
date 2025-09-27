@@ -68,4 +68,4 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY . .
 
 # gunicorn으로 FastAPI 앱 실행 - 타임아웃 240초 설정
-ENTRYPOINT ["/opt/venv/bin/gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "-b", "0.0.0.0:8000", "--timeout", "240"]
+ENTRYPOINT ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "-b", "0.0.0.0:8000", "--timeout", "240"]
