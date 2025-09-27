@@ -1,6 +1,7 @@
 Configuration:
   status: INFO
   name: production
+  monitorInterval: 30
 
   properties:
     property:
