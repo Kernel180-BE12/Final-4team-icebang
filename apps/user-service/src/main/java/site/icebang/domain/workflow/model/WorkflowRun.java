@@ -3,6 +3,8 @@ package site.icebang.domain.workflow.model;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.slf4j.MDC;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -20,7 +22,8 @@ public class WorkflowRun {
 
   private WorkflowRun(Long workflowId) {
     this.workflowId = workflowId;
-    this.traceId = UUID.randomUUID().toString(); // 고유 추적 ID 생성
+    // MDC에서 현재 요청의 traceId를 가져오거나, 없으면 새로 생성
+    this.traceId = MDC.get("traceId") != null ? MDC.get("traceId") : UUID.randomUUID().toString();
     this.status = "RUNNING";
     this.startedAt = Instant.now();
     this.createdAt = this.startedAt;
